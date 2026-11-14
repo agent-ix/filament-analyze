@@ -3,7 +3,7 @@ id: TC-009
 title: "Verify ADR-0010 identity measurements and invalidation decision"
 type: TC
 relationships:
-  - target: ix://agent-ix/quire-analyze/FR-001
+  - target: ix://agent-ix/filament-analyze/FR-001
     type: verifies
 ---
 # TC-009: Verify ADR-0010 identity measurements and invalidation decision

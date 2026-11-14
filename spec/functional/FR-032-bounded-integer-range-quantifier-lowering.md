@@ -3,13 +3,13 @@ id: FR-032
 title: "Lower quantifiers over bounded integer ranges"
 type: FR
 relationships:
-  - target: ix://agent-ix/quire-analyze/FR-030
+  - target: ix://agent-ix/filament-analyze/FR-030
     type: depends_on
-  - target: ix://agent-ix/quire-analyze/FR-010
+  - target: ix://agent-ix/filament-analyze/FR-010
     type: depends_on
-  - target: ix://agent-ix/quire-analyze/FR-002
+  - target: ix://agent-ix/filament-analyze/FR-002
     type: depends_on
-  - target: ix://agent-ix/quire-analyze/StR-001
+  - target: ix://agent-ix/filament-analyze/StR-001
     type: implements
 ---
 # FR-032: Lower quantifiers over bounded integer ranges
@@ -76,7 +76,7 @@ solver quantifier.
   original range by [FR-033](./FR-033-quantified-assertion-replay.md). Replay failures and limits
   leave the solver's logical response unchanged and never publish the model as verified.
 - Package path: until the upstream contract model and operation catalog define a range-domain
-  quantifier operand, no QSL package reaches the bounded solver quantifier; a package range arrives
+  quantifier operand, no FSL package reaches the bounded solver quantifier; a package range arrives
   as a literal integer collection and is expanded or refused as `expansion-ceiling`
   ([FR-034](./FR-034-quantifier-package-translation.md)). The upstream range-domain form is a blocking
   dependency of the package path for the bounded-solver-quantifier encoding only; the encoding itself
@@ -85,7 +85,7 @@ solver quantifier.
   ([FR-020](./FR-020-datatype-lowering.md)) with the quantifier-free prefix removed: `LIA` when it
   declares no datatype and `UFDTLIA` when it declares at least one (an enum, record or option in the
   body). Every other query keeps `QF_LIA` or `QF_UFDTLIA`. The logic is part of the one profile
-  `quire.smtlib2/v2`, not a second profile.
+  `filament.smtlib2/v2`, not a second profile.
 - Decidability argument: expansion is quantifier-free linear integer arithmetic. Quantified linear
   integer arithmetic is decidable in principle (Presburger arithmetic), independent of the interval
   guards; the guards keep every quantifier finite, which makes the instance count checkable and

@@ -28,7 +28,7 @@ use std::os::{
 
 use crate::QueryBundle;
 
-pub const SOLVER_PROCESS_PROFILE: &str = "quire.solver-process/v1";
+pub const SOLVER_PROCESS_PROFILE: &str = "filament.solver-process/v1";
 pub const MAX_SOLVER_WALL_TIME_MS: u64 = 5_000;
 pub const MAX_SOLVER_CLEANUP_TIME_MS: u64 = 1_000;
 pub const MAX_SOLVER_GRACEFUL_CLEANUP_MS: u64 = 100;
@@ -492,8 +492,9 @@ pub fn execute_solver(
     #[cfg(not(target_os = "linux"))]
     {
         record.outcome = SolverOutcome::UnsupportedPlatform;
-        record.diagnostic =
-            Some("quire.solver-process/v1 process containment is implemented for Linux".to_owned());
+        record.diagnostic = Some(
+            "filament.solver-process/v1 process containment is implemented for Linux".to_owned(),
+        );
         return record;
     }
 
@@ -1026,7 +1027,7 @@ fn run_process(
 ) -> io::Result<RawProcess> {
     Err(io::Error::new(
         io::ErrorKind::Unsupported,
-        "quire.solver-process/v1 process containment is implemented for Linux",
+        "filament.solver-process/v1 process containment is implemented for Linux",
     ))
 }
 

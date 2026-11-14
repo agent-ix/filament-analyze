@@ -3,11 +3,11 @@ id: FR-011
 title: "Replay integer witness models against every assertion"
 type: FR
 relationships:
-  - target: ix://agent-ix/quire-analyze/FR-004
+  - target: ix://agent-ix/filament-analyze/FR-004
     type: depends_on
-  - target: ix://agent-ix/quire-analyze/FR-010
+  - target: ix://agent-ix/filament-analyze/FR-010
     type: depends_on
-  - target: ix://agent-ix/quire-analyze/StR-001
+  - target: ix://agent-ix/filament-analyze/StR-001
     type: implements
 ---
 # FR-011: Replay integer witness models against every assertion

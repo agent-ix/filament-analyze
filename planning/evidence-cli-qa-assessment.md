@@ -34,7 +34,7 @@ is 91.00% overall, 88.96% for `src/report.rs`, 90.47% for `src/solver.rs`, and 7
 - deterministic create/write/sync/rename/crash publication injection and competing publishers (#23);
 - complete retained positive/negative/unsupported/timeout/disagreement corpus through a future
   trusted direct-analysis CLI (#24);
-- shared PGM-01 envelope/integrity verification (`quire-contract-ir#20`);
+- shared PGM-01 envelope/integrity verification (`filament-contract-ir#20`);
 - generated/fuzz/model mutation campaigns (#22), process stress (#21), and non-Linux execution (#20).
 
 ## QA Verdict

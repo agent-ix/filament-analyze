@@ -4,13 +4,13 @@ title: "Quantifier expansion is bounded by an instance budget"
 type: NFR
 quality_attribute: reliability
 relationships:
-  - target: ix://agent-ix/quire-analyze/FR-030
+  - target: ix://agent-ix/filament-analyze/FR-030
     type: constrains
-  - target: ix://agent-ix/quire-analyze/FR-031
+  - target: ix://agent-ix/filament-analyze/FR-031
     type: constrains
-  - target: ix://agent-ix/quire-analyze/FR-032
+  - target: ix://agent-ix/filament-analyze/FR-032
     type: constrains
-  - target: ix://agent-ix/quire-analyze/StR-001
+  - target: ix://agent-ix/filament-analyze/StR-001
     type: implements
 ---
 # NFR-030: Quantifier expansion is bounded by an instance budget

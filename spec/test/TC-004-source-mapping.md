@@ -3,9 +3,9 @@ id: TC-004
 title: "Verify injective symbols and source mapping"
 type: TC
 relationships:
-  - target: ix://agent-ix/quire-analyze/FR-002
+  - target: ix://agent-ix/filament-analyze/FR-002
     type: verifies
-  - target: ix://agent-ix/quire-analyze/FR-004
+  - target: ix://agent-ix/filament-analyze/FR-004
     type: verifies
 ---
 # TC-004: Verify injective symbols and source mapping

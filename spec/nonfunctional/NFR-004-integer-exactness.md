@@ -4,11 +4,11 @@ title: "Exact and bounded integer analysis"
 type: NFR
 quality_attribute: reliability
 relationships:
-  - target: ix://agent-ix/quire-analyze/FR-010
+  - target: ix://agent-ix/filament-analyze/FR-010
     type: constrains
-  - target: ix://agent-ix/quire-analyze/FR-011
+  - target: ix://agent-ix/filament-analyze/FR-011
     type: constrains
-  - target: ix://agent-ix/quire-analyze/FR-012
+  - target: ix://agent-ix/filament-analyze/FR-012
     type: constrains
 ---
 # NFR-004: Exact and bounded integer analysis

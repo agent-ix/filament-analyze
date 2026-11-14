@@ -144,8 +144,8 @@ fn explicit_bindings_reject_incompatible_members() {
 #[test]
 fn adr_binds_versions_hashes_and_supersession() {
     for required in [
-        "quire.analysis-model/v1",
-        "quire.smtlib2/v1",
+        "filament.analysis-model/v1",
+        "filament.smtlib2/v1",
         "explicit binding group",
         "clause canonical digest",
         "binding-set digest",

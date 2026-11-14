@@ -3,15 +3,15 @@ id: FR-033
 title: "Replay quantified assertions over their bound"
 type: FR
 relationships:
-  - target: ix://agent-ix/quire-analyze/FR-030
+  - target: ix://agent-ix/filament-analyze/FR-030
     type: depends_on
-  - target: ix://agent-ix/quire-analyze/FR-004
+  - target: ix://agent-ix/filament-analyze/FR-004
     type: depends_on
-  - target: ix://agent-ix/quire-analyze/FR-011
+  - target: ix://agent-ix/filament-analyze/FR-011
     type: depends_on
-  - target: ix://agent-ix/quire-analyze/FR-021
+  - target: ix://agent-ix/filament-analyze/FR-021
     type: depends_on
-  - target: ix://agent-ix/quire-analyze/StR-001
+  - target: ix://agent-ix/filament-analyze/StR-001
     type: implements
 ---
 # FR-033: Replay quantified assertions over their bound

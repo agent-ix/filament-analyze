@@ -1,22 +1,22 @@
 ---
 id: FR-022
-title: "Translate enum and record analysis_claim terms from QSL contract packages"
+title: "Translate enum and record analysis_claim terms from FSL contract packages"
 type: FR
 relationships:
-  - target: ix://agent-ix/quire-analyze/FR-009
+  - target: ix://agent-ix/filament-analyze/FR-009
     type: depends_on
-  - target: ix://agent-ix/quire-analyze/FR-020
+  - target: ix://agent-ix/filament-analyze/FR-020
     type: depends_on
-  - target: ix://agent-ix/quire-analyze/StR-001
+  - target: ix://agent-ix/filament-analyze/StR-001
     type: implements
 ---
-# FR-022: Translate enum and record analysis_claim terms from QSL contract packages
+# FR-022: Translate enum and record analysis_claim terms from FSL contract packages
 
 ## Description
 
 The `run-package` translation of [FR-009](./FR-009-package-runner.md) shall translate
 `analysis_claim` terms that use enums, records and options into analysis expressions that
-[FR-020](./FR-020-datatype-lowering.md) lowers, so data-classification and role rules written in QSL
+[FR-020](./FR-020-datatype-lowering.md) lowers, so data-classification and role rules written in FSL
 reach the solvers. This extends the term table and value declarations of FR-009 and keeps every
 other rule of that requirement (identity, anchor, spans, node and depth bounds, exit statuses).
 
@@ -30,33 +30,33 @@ other rule of that requirement (identity, anchor, spans, node and depth bounds, 
   declares one `ValueDeclaration` of that type under the FR-009 naming and ordering rule, kind `Input`,
   observation `Current`.
 - **Terms.** In addition to the Boolean rows of FR-009, the runner shall translate exactly these,
-  by `CheckedApplicationOperation::identity()` of the locked `quire-verification-contracts` catalog:
+  by `CheckedApplicationOperation::identity()` of the locked `filament-verification-contracts` catalog:
 
 | Term | Result |
 |---|---|
 | `Literal` of an enum type, or a `Reference` to an enum `value/enum_value` member node | `ExpressionKind::EnumLiteral` |
 | `Literal` of value kind `none` with an option type | `ExpressionKind::OptionNone` |
 | `Reference` to an enum, record or option typed `value/parameter` | `ExpressionKind::ValueReference`, as for Boolean |
-| `Application` of `quire.op.enum.eq` / `quire.op.enum.ne` | `Compare` with `Equal` / `NotEqual` |
-| `Application` of `quire.op.structural.eq` / `quire.op.structural.ne` over operands of one enum, record or option sort | `Compare` with `Equal` / `NotEqual` |
-| `Application` of `quire.op.record.project`, one operand (the record) and the catalog `field` member naming the field | `ExpressionKind::FieldAccess` |
-| `Application` of `quire.op.option.value`, one operand (the option) | `ExpressionKind::Unwrap`, only under a presence proof (Option access below) |
-| `Application` of `quire.op.option.present` | `ExpressionKind::IsPresent` |
+| `Application` of `filament.op.enum.eq` / `filament.op.enum.ne` | `Compare` with `Equal` / `NotEqual` |
+| `Application` of `filament.op.structural.eq` / `filament.op.structural.ne` over operands of one enum, record or option sort | `Compare` with `Equal` / `NotEqual` |
+| `Application` of `filament.op.record.project`, one operand (the record) and the catalog `field` member naming the field | `ExpressionKind::FieldAccess` |
+| `Application` of `filament.op.option.value`, one operand (the option) | `ExpressionKind::Unwrap`, only under a presence proof (Option access below) |
+| `Application` of `filament.op.option.present` | `ExpressionKind::IsPresent` |
 
 - **Not translated.** The catalog has no identity for record construction or option construction
   (a present option), so a package cannot carry them and they exit `2`. No membership
-  construct exists: a role-membership rule is a disjunction of `quire.op.enum.eq` applications under
-  `quire.op.boolean.or`. `quire.op.collection.contains` and `quire.op.collection.set` are collection
+  construct exists: a role-membership rule is a disjunction of `filament.op.enum.eq` applications under
+  `filament.op.boolean.or`. `filament.op.collection.contains` and `filament.op.collection.set` are collection
   terms and exit `2`. An application with no identity, or an identity not in the table, cannot be
   lowered.
-- **Option access.** `quire.op.option.value` is translated to `Unwrap` only where the same option
+- **Option access.** `filament.op.option.value` is translated to `Unwrap` only where the same option
   term is proven present by the upstream rule of [FR-020](./FR-020-datatype-lowering.md): inside the
-  consequent of `quire.op.boolean.implies` whose antecedent is the `quire.op.option.present` of that
+  consequent of `filament.op.boolean.implies` whose antecedent is the `filament.op.option.present` of that
   term, or inside the right operand of a short-circuit `and` (or `or`, with the negated fact) whose
-  left operand establishes it. The runner translates `quire.op.boolean.and` and `or` to the total
+  left operand establishes it. The runner translates `filament.op.boolean.and` and `or` to the total
   operators (FR-009), which establish no fact, so only the implication guard is reachable from a
   package today; a guard through a short-circuit operator needs a short-circuit identity that FR-009
-  does not translate. An unguarded `quire.op.option.value` is refused by the upstream `check_expression`
+  does not translate. An unguarded `filament.op.option.value` is refused by the upstream `check_expression`
   and reaches the runner as a clause error, so it exits `2` naming the clause `claim-N` that contains
   it and the validator's path (as the Refusals bullet states), not the `option.value` node. The
   translation adds no guard check of its own.
@@ -69,9 +69,9 @@ other rule of that requirement (identity, anchor, spans, node and depth bounds, 
 
 | ID | Criteria | Verification |
 |---|---|---|
-| FR-022-AC-1 | Six built contract-package fixtures run end to end through `run-package`, with a stub `producer-execute` and with real solvers where installed, each with a fixed expected exit: an enum-membership disjunction (`role = Admin` or `role = Auditor`) with `role != Admin`; the same disjunction with `role = Guest`, which exits `1`; a record-field claim `record.project(user)` with field `role` equal to `Admin`; and the same with a second claim that field equal to `Guest`, which exits `1`. A fifth fixture is a single claim, `quire.op.boolean.implies` with antecedent `quire.op.option.present` of an option-of-`Role` parameter `o` and consequent `quire.op.enum.eq` of `quire.op.option.value` of `o` with `Admin`; it translates to an `Unwrap` and the request is satisfiable (`o` absent, or `o` present as `Admin`). The first, third and fifth fixtures are satisfiable: its model replays under FR-021 and verifies, so with a verified model from both engines the run exits `0`, and with a model that fails replay (for example one that omits the datatype symbol) it exits `3` with both engines `satisfied`, the witness incomplete and the differential run inconclusive. A sixth fixture is the same consequent alone, without the antecedent, and exits `2` naming the clause `claim-N` and the validator's path. | Test |
+| FR-022-AC-1 | Six built contract-package fixtures run end to end through `run-package`, with a stub `producer-execute` and with real solvers where installed, each with a fixed expected exit: an enum-membership disjunction (`role = Admin` or `role = Auditor`) with `role != Admin`; the same disjunction with `role = Guest`, which exits `1`; a record-field claim `record.project(user)` with field `role` equal to `Admin`; and the same with a second claim that field equal to `Guest`, which exits `1`. A fifth fixture is a single claim, `filament.op.boolean.implies` with antecedent `filament.op.option.present` of an option-of-`Role` parameter `o` and consequent `filament.op.enum.eq` of `filament.op.option.value` of `o` with `Admin`; it translates to an `Unwrap` and the request is satisfiable (`o` absent, or `o` present as `Admin`). The first, third and fifth fixtures are satisfiable: its model replays under FR-021 and verifies, so with a verified model from both engines the run exits `0`, and with a model that fails replay (for example one that omits the datatype symbol) it exits `3` with both engines `satisfied`, the witness incomplete and the differential run inconclusive. A sixth fixture is the same consequent alone, without the antecedent, and exits `2` naming the clause `claim-N` and the validator's path. | Test |
 | FR-022-AC-2 | Every enum variant, record field and type in the lowered query comes from the package's `semantic_type` nodes, and a fixture naming an unresolved type exits `2` naming the node. | Test |
-| FR-022-AC-3 | An unsupported datatype term (collection, except a collection literal consumed as a quantifier domain per [FR-030](./FR-030-bounded-quantifier-domains.md) and [FR-034](./FR-034-quantifier-package-translation.md); text, rational, enum ordering, a record nesting a collection or text) exits `2` naming `semantic_graph.nodes[N]`, writes no report and invokes no solver. An unguarded `quire.op.option.value` is the one exception: it exits `2` naming `claim-N` and the validator's path, writes no report and invokes no solver. | Test |
+| FR-022-AC-3 | An unsupported datatype term (collection, except a collection literal consumed as a quantifier domain per [FR-030](./FR-030-bounded-quantifier-domains.md) and [FR-034](./FR-034-quantifier-package-translation.md); text, rational, enum ordering, a record nesting a collection or text) exits `2` naming `semantic_graph.nodes[N]`, writes no report and invokes no solver. An unguarded `filament.op.option.value` is the one exception: it exits `2` naming `claim-N` and the validator's path, writes no report and invokes no solver. | Test |
 | FR-022-AC-4 | Datatype terms are translated by a pure function of the admitted package: the same bytes yield the same clause order, declarations and query. | Test |
 | FR-022-AC-5 | Datatype expressions count toward the FR-009 node and depth bounds, and a shared enum or record chain that exceeds them exits `2` without expanding the refused tree. | Test |
 

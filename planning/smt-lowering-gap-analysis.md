@@ -25,15 +25,15 @@ type: Review
 |---|---|
 | No bounded external solver process, cleanup proof, or cancellation path exists yet. | Existing issue #3 / Task-005. Reviewer issue #16 remains open until that implementation measures process-tree cleanup. |
 | The five analysis kinds, model replay, and conclusion classification do not exist yet. | Existing issue #4 / Task-006. |
-| Differential execution, deterministic reports, CLI publication, and machine-produced derivation evidence do not exist yet. | Existing issue #5 / Task-007; shared evidence component remains guarded on `quire-contract-ir#20`. |
+| Differential execution, deterministic reports, CLI publication, and machine-produced derivation evidence do not exist yet. | Existing issue #5 / Task-007; shared evidence component remains guarded on `filament-contract-ir#20`. |
 | Mutation, fuzz, digest-collision-family, every-unsupported-variant, and large boundary campaigns are not part of the issue slice. | New QA issue #19. These are defense-in-depth additions, not untested issue #7 acceptance paths. |
-| `time` cannot both consume its patched release and retain Cargo/Rust 1.75 because the patched dependency uses edition 2024. | Upstream `quire-contract-ir#37`; exact unreachable-parser exception is documented and narrowly scoped. |
+| `time` cannot both consume its patched release and retain Cargo/Rust 1.75 because the patched dependency uses edition 2024. | Upstream `filament-contract-ir#37`; exact unreachable-parser exception is documented and narrowly scoped. |
 | Installed Quire disagrees between matrix validation (`Coverage Status`) and coverage calculation (`Status`). | Existing issue #14; Quire validation remains gated. |
 
 ## Ticket Census
 
 The QA assessment filed issue #19. Dependency hygiene is filed upstream as
-`agent-ix/quire-contract-ir#37`. All other gaps map to existing #3, #4, #5, #14, #16, or the shared
+`agent-ix/filament-contract-ir#37`. All other gaps map to existing #3, #4, #5, #14, #16, or the shared
 evidence issue; no duplicate tickets are needed.
 
 ## Verdict

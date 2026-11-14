@@ -13,7 +13,7 @@ use std::{
     sync::atomic::{AtomicU64, Ordering},
 };
 
-use quire_analyze::{
+use filament_analyze::{
     classify_analysis, compare_solver_records, execute_solver, lower_analysis_request,
     lower_boolean_statements, render_differential_report, validate_differential_report,
     validate_report_document, AdapterLimits, AnalysisFormula, AnalysisRequest, AnalysisStatus,
@@ -23,7 +23,7 @@ use quire_analyze::{
     RangeQuantifier, ReplayFailureReason, SolverConfig, SolverEngine, SolverOutcome,
     StatementInput, UnboundedDomain, CAPABILITY_CONTRACT,
 };
-use quire_contract_model::{
+use filament_contract_model::{
     AnchorName, Clause, ClauseId, ClauseKind, ComparisonOperator, ContractPackage,
     DeclarationEnvironment, EnumDeclaration, EnumVariantDeclaration, ExecutionPoint, Expression,
     ExpressionKind, IntegerDomain, IntegerType, NumericOperator, OverflowPolicy, PackageId,
@@ -1033,7 +1033,7 @@ impl TempDirectory {
     fn new(label: &str) -> Self {
         let counter = TEMP_COUNTER.fetch_add(1, Ordering::Relaxed);
         let path = std::env::temp_dir().join(format!(
-            "quire-range-{label}-{}-{counter}",
+            "filament-range-{label}-{}-{counter}",
             std::process::id()
         ));
         fs::create_dir(&path).expect("temporary directory");
@@ -1056,7 +1056,7 @@ fn script_record(
     action: &str,
     engine: SolverEngine,
     limits: AdapterLimits,
-) -> quire_analyze::SolverRecord {
+) -> filament_analyze::SolverRecord {
     let directory = TempDirectory::new("solver");
     let path = directory.path().join("solver");
     let body = format!(
@@ -1071,7 +1071,7 @@ fn response_record(
     query: &QueryBundle,
     response: &str,
     engine: SolverEngine,
-) -> quire_analyze::SolverRecord {
+) -> filament_analyze::SolverRecord {
     script_record(
         query,
         &format!("printf '%s' '{response}'"),
@@ -1710,10 +1710,11 @@ fn enum_and_collection_domains_cover_complementary_outcomes() {
 /// FR-032-AC-1: real solvers decide the expanded and bounded fixtures; run only where installed.
 #[trace("TC-030", "FR-032-AC-1", "NFR-032-AC-3")]
 #[test]
-#[ignore = "requires official Z3 and cvc5 executables at QUIRE_Z3 and QUIRE_CVC5"]
+#[ignore = "requires official Z3 and cvc5 executables at FILAMENT_Z3 and FILAMENT_CVC5"]
 fn real_z3_cvc5_decide_range_fixtures() {
-    let z3_path = PathBuf::from(std::env::var_os("QUIRE_Z3").expect("QUIRE_Z3 is required"));
-    let cvc5_path = PathBuf::from(std::env::var_os("QUIRE_CVC5").expect("QUIRE_CVC5 is required"));
+    let z3_path = PathBuf::from(std::env::var_os("FILAMENT_Z3").expect("FILAMENT_Z3 is required"));
+    let cvc5_path =
+        PathBuf::from(std::env::var_os("FILAMENT_CVC5").expect("FILAMENT_CVC5 is required"));
     let z3 = SolverConfig::new(SolverEngine::Z3, z3_path, AdapterLimits::default()).expect("z3");
     let cvc5 =
         SolverConfig::new(SolverEngine::Cvc5, cvc5_path, AdapterLimits::default()).expect("cvc5");
@@ -1751,7 +1752,7 @@ fn real_z3_cvc5_decide_range_fixtures() {
         )]),
     ];
     for query in &unsat {
-        let run = quire_analyze::execute_differential(query, &z3, &cvc5, &token).expect("run");
+        let run = filament_analyze::execute_differential(query, &z3, &cvc5, &token).expect("run");
         assert_eq!(run.disposition(), DifferentialDisposition::Agreement);
         assert_eq!(
             run.agreed_status(),
@@ -1770,7 +1771,7 @@ fn real_z3_cvc5_decide_range_fixtures() {
         analysis_query(expanded_fixture()),
     ];
     for query in &sat {
-        let run = quire_analyze::execute_differential(query, &z3, &cvc5, &token).expect("run");
+        let run = filament_analyze::execute_differential(query, &z3, &cvc5, &token).expect("run");
         assert_eq!(run.disposition(), DifferentialDisposition::Agreement);
         assert_eq!(run.agreed_status(), Some(AnalysisStatus::Satisfied));
         for conclusion in [run.z3(), run.cvc5()] {
@@ -1785,7 +1786,7 @@ fn real_z3_cvc5_decide_range_fixtures() {
 /// is reported `timeout` or `unknown`, never satisfied, refuted or a tool error.
 #[trace("TC-030", "NFR-032-AC-3")]
 #[test]
-#[ignore = "requires official Z3 and cvc5 executables at QUIRE_Z3 and QUIRE_CVC5"]
+#[ignore = "requires official Z3 and cvc5 executables at FILAMENT_Z3 and FILAMENT_CVC5"]
 fn real_solver_timeout_on_a_quantified_query_is_inconclusive() {
     let limits = AdapterLimits {
         wall_time_ms: 1,
@@ -1796,8 +1797,8 @@ fn real_solver_timeout_on_a_quantified_query_is_inconclusive() {
     };
     let query = analysis_query(vec![bounded_fixture()]);
     for (engine, variable) in [
-        (SolverEngine::Z3, "QUIRE_Z3"),
-        (SolverEngine::Cvc5, "QUIRE_CVC5"),
+        (SolverEngine::Z3, "FILAMENT_Z3"),
+        (SolverEngine::Cvc5, "FILAMENT_CVC5"),
     ] {
         let path = PathBuf::from(std::env::var_os(variable).expect("solver path is required"));
         let config = SolverConfig::new(engine, path, limits).expect("config");
@@ -2663,14 +2664,14 @@ fn empty_collection_domains_with_unencodable_sorts_are_refused_when_attached() {
     let invalid_empty_sorts = [
         ValueType::Text,
         ValueType::Rational {
-            value: quire_contract_model::RationalType::new(-1, 1, 2).expect("rational type"),
+            value: filament_contract_model::RationalType::new(-1, 1, 2).expect("rational type"),
         },
         ValueType::Record {
             name: symbol("Record"),
         },
         ValueType::option(ValueType::Boolean),
         ValueType::collection(
-            quire_contract_model::CollectionType::new(ValueType::Boolean, 4)
+            filament_contract_model::CollectionType::new(ValueType::Boolean, 4)
                 .expect("collection type"),
         ),
     ];
@@ -2793,10 +2794,11 @@ fn an_unsat_response_on_a_domain_fixture_is_a_refutation() {
 /// run only where installed.
 #[trace("TC-030", "FR-031-AC-1", "FR-031-AC-2")]
 #[test]
-#[ignore = "requires official Z3 and cvc5 executables at QUIRE_Z3 and QUIRE_CVC5"]
+#[ignore = "requires official Z3 and cvc5 executables at FILAMENT_Z3 and FILAMENT_CVC5"]
 fn real_z3_cvc5_decide_domain_fixtures() {
-    let z3_path = PathBuf::from(std::env::var_os("QUIRE_Z3").expect("QUIRE_Z3 is required"));
-    let cvc5_path = PathBuf::from(std::env::var_os("QUIRE_CVC5").expect("QUIRE_CVC5 is required"));
+    let z3_path = PathBuf::from(std::env::var_os("FILAMENT_Z3").expect("FILAMENT_Z3 is required"));
+    let cvc5_path =
+        PathBuf::from(std::env::var_os("FILAMENT_CVC5").expect("FILAMENT_CVC5 is required"));
     let z3 = SolverConfig::new(SolverEngine::Z3, z3_path, AdapterLimits::default()).expect("z3");
     let cvc5 =
         SolverConfig::new(SolverEngine::Cvc5, cvc5_path, AdapterLimits::default()).expect("cvc5");
@@ -2812,7 +2814,7 @@ fn real_z3_cvc5_decide_domain_fixtures() {
             };
             assert_eq!(record.outcome(), want, "{name}\n{}", query.query());
         }
-        let run = quire_analyze::execute_differential(&query, &z3, &cvc5, &token).expect("run");
+        let run = filament_analyze::execute_differential(&query, &z3, &cvc5, &token).expect("run");
         assert_eq!(
             run.disposition(),
             DifferentialDisposition::Agreement,

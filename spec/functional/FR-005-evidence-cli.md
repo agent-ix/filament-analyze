@@ -3,9 +3,9 @@ id: FR-005
 title: "Provide evidence reports, differential checks, and CLI"
 type: FR
 relationships:
-  - target: ix://agent-ix/quire-analyze/FR-004
+  - target: ix://agent-ix/filament-analyze/FR-004
     type: depends_on
-  - target: ix://agent-ix/quire-analyze/interface_001
+  - target: ix://agent-ix/filament-analyze/interface_001
     type: implements
 ---
 # FR-005: Provide evidence reports, differential checks, and CLI
@@ -33,12 +33,12 @@ stable exit classification, and shall retain cross-engine discrepancies without 
   directory sync failure after rename reports `published-durability-unknown`, because complete
   destination bytes can already be visible. Callers do not delete or retry that state as though the
   destination were absent.
-- The analysis product contract names `quire.analysis-report/v1`; the differential runtime
-  report emits `quire.differential-report/v2`. Canonical JSON is UTF-8, compact, recursively
+- The analysis product contract names `filament.analysis-report/v1`; the differential runtime
+  report emits `filament.differential-report/v2`. Canonical JSON is UTF-8, compact, recursively
   key-sorted, and has no insignificant whitespace. Validation re-derives canonical proof-input
   identities against retained material and the authoritative query where supplied; it does not
   add a hash of already retained raw streams or the report itself.
-- The `quire.differential-report/v2` closed contract removes the duplicated
+- The `filament.differential-report/v2` closed contract removes the duplicated
   `contractIrRevision` field. It retains the producer application name and version, complete clause
   and source identities with canonical clause digests, request and query identities, exact query
   bytes, and raw solver-stream bytes. The engine record retains its observed executable path and
@@ -61,7 +61,7 @@ stable exit classification, and shall retain cross-engine discrepancies without 
   close and remove their staging file and synchronize that removal. An uncatchable process
   termination can leave a private staging file but never exposes partial destination bytes; the
   file name identifies it as non-authoritative staging rather than a report.
-- Until `quire-contract-ir#20` selects the shared PGM-01 envelope and integrity component, its
+- Until `filament-contract-ir#20` selects the shared PGM-01 envelope and integrity component, its
   status is `unavailable`; no report or local gate may translate that absence into schema
   validation success.
 
@@ -74,7 +74,7 @@ stable exit classification, and shall retain cross-engine discrepancies without 
 | FR-005-AC-3 | Differential disagreement retains both results and cannot be reported as agreement. | Test (TC-006) |
 | FR-005-AC-4 | Failed publication leaves no partial result or modified developer-owned file. | Test (TC-008) |
 | FR-005-AC-5 | Every filed semantic defect maps to an executable retained regression fixture. | Inspection and test (TC-006) |
-| FR-005-AC-6 | The closed `quire.differential-report/v2` schema requires `producer.name` and `producer.version`; every `assertions[].clause`, `assertions[].source`, and `assertions[].clauseDigest`; `bindingSetDigest`, `requestDigest`, `queryDigest`, and `queryHex`; and every engine's `configuredExecutable`, observed `identity.path` and `identity.version` when available, `stdoutHex`, `stderrHex`, and `modelHex`. It refuses `identity.bytes`, `identity.sha256`, `limits.executableBytes`, `expectedVersion`, `expectedExecutableSha256`, `configurationDigest`, `querySha256`, `stdoutSha256`, `stderrSha256`, `modelSha256`, and `reportDigest`, and the three removed mismatch outcomes. Standalone v2 validation derives `queryDigest` from retained `requestDigest` and query bytes. Validation bound to the authoritative `QueryBundle` and differential run rejects a report whose clause/source identities, clause/binding-set/request identities, or raw solver output differ from the authoritative reconstruction; standalone validation does not claim to derive those values from absent source content or authenticate self-consistent substituted raw output. Both validation paths reject missing named fields, `contractIrRevision`, and every `quire.differential-report/v1` document, with no v1 fallback. The closed schema requires `encodingProfile` `quire.smtlib2/v2` and a `logic` equal to the logic the query's feature set requires (`QF_LIA` for a query without datatype declarations; otherwise the logic FR-020 specifies; `LIA` or `UFDTLIA` for a query that holds a bounded solver quantifier per FR-032, without or with datatypes), and validation refuses a report that names `quire.smtlib2/v1` or `QF_UF`, with no fallback. `assertions[]` lists the named assertions of the query only; integer range constraints are not named assertions ([FR-010](./FR-010-linear-integer-arithmetic.md)). | Test (TC-007) |
+| FR-005-AC-6 | The closed `filament.differential-report/v2` schema requires `producer.name` and `producer.version`; every `assertions[].clause`, `assertions[].source`, and `assertions[].clauseDigest`; `bindingSetDigest`, `requestDigest`, `queryDigest`, and `queryHex`; and every engine's `configuredExecutable`, observed `identity.path` and `identity.version` when available, `stdoutHex`, `stderrHex`, and `modelHex`. It refuses `identity.bytes`, `identity.sha256`, `limits.executableBytes`, `expectedVersion`, `expectedExecutableSha256`, `configurationDigest`, `querySha256`, `stdoutSha256`, `stderrSha256`, `modelSha256`, and `reportDigest`, and the three removed mismatch outcomes. Standalone v2 validation derives `queryDigest` from retained `requestDigest` and query bytes. Validation bound to the authoritative `QueryBundle` and differential run rejects a report whose clause/source identities, clause/binding-set/request identities, or raw solver output differ from the authoritative reconstruction; standalone validation does not claim to derive those values from absent source content or authenticate self-consistent substituted raw output. Both validation paths reject missing named fields, `contractIrRevision`, and every `filament.differential-report/v1` document, with no v1 fallback. The closed schema requires `encodingProfile` `filament.smtlib2/v2` and a `logic` equal to the logic the query's feature set requires (`QF_LIA` for a query without datatype declarations; otherwise the logic FR-020 specifies; `LIA` or `UFDTLIA` for a query that holds a bounded solver quantifier per FR-032, without or with datatypes), and validation refuses a report that names `filament.smtlib2/v1` or `QF_UF`, with no fallback. `assertions[]` lists the named assertions of the query only; integer range constraints are not named assertions ([FR-010](./FR-010-linear-integer-arithmetic.md)). | Test (TC-007) |
 
 ## Dependencies
 

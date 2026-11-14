@@ -4,16 +4,16 @@ title: "Contract analysis architecture"
 type: ArchitectureDescription
 status: accepted
 owner: analyze-maintainers
-system: quire-analyze v0.1
+system: filament-analyze v0.1
 relationships:
-  - target: ix://agent-ix/quire-analyze/AP-001
+  - target: ix://agent-ix/filament-analyze/AP-001
     type: realizes
 ---
 # Contract analysis architecture
 
 ## System Boundary
 
-The Rust library consumes typed expressions and clause identities from `quire-contract-ir`. It owns
+The Rust library consumes typed expressions and clause identities from `filament-contract-ir`. It owns
 closed-request validation, Boolean-v1 lowering, bounded solver execution, conclusion classification,
 source mapping, and differential report rendering. The solver engines and operating-system process
 behavior remain external. The CLI currently validates and publishes an existing library report;
@@ -37,7 +37,7 @@ same-status differential `Agreement`, as FR-005 requires.
 
 | Boundary | Owner and current entry point | Responsibility |
 |---|---|---|
-| Typed contract input | `quire-contract-ir` dependency; `src/smt.rs` `StatementInput`, `BindingGroup` | Consume authoritative expressions, clause identity, and explicit cross-requirement bindings; refuse unsupported shapes. |
+| Typed contract input | `filament-contract-ir` dependency; `src/smt.rs` `StatementInput`, `BindingGroup` | Consume authoritative expressions, clause identity, and explicit cross-requirement bindings; refuse unsupported shapes. |
 | Request and exact lowering | `src/analysis.rs` `AnalysisRequest`, `lower_analysis_request`; `src/smt.rs` `lower_boolean_statements` | Validate closed analysis kinds and produce the Boolean-v1 SMT-LIB2 query plus source maps. |
 | Bounded engine execution | `src/solver.rs` `execute_solver` | Run the external engine under resource bounds and retain a normalized record; never certify its answer. |
 | Conclusion classification | `src/analysis.rs` `classify_analysis` | Apply analysis-kind-specific sat/unsat rules; preserve the logical status while recording a failed SAT model replay as incomplete explanation evidence. |
@@ -46,7 +46,7 @@ same-status differential `Agreement`, as FR-005 requires.
 
 The proof identity view binds selected clause content, explicit bindings, query bytes and maps,
 engine execution record, classified conclusion, and canonical report content. These content digests
-bind a proof to what it analyzed. Cargo.toml declares `quire-contract-ir` and Cargo.lock records
+bind a proof to what it analyzed. Cargo.toml declares `filament-contract-ir` and Cargo.lock records
 its resolved source; they are the dependency identity authorities. Report producer identity is the
 application name and version. The differential report is a closed v2 contract without a copied
 dependency revision. It retains canonical proof-to-content digests and producer application
@@ -60,7 +60,7 @@ engine statuses retain both records with a non-conclusive differential dispositi
 construct conclusions directly.
 
 The evidence view is incomplete: `src/report.rs` explicitly marks its PGM-01 envelope
-`unavailable` pending `quire-contract-ir#20`. FR-005-AC-2 and TC-007 cannot be claimed complete
+`unavailable` pending `filament-contract-ir#20`. FR-005-AC-2 and TC-007 cannot be claimed complete
 from that placeholder. Source publication and release qualification remain a human PGM-02 Wave 4
 decision.
 
@@ -101,12 +101,12 @@ all requirements, measurement campaigns, platform lanes, or release qualificatio
 
 | Concern | Decision and current implementation | Disposition |
 |---|---|---|
-| Semantic authority and aliasing | Retain typed `quire-contract-ir` expressions and explicit structurally validated binding groups; never infer cross-requirement aliases from names. `src/smt.rs` owns lowering and source maps. | Resolved by ADR-0010; accepted scope is the implemented Boolean-v1 subset. |
+| Semantic authority and aliasing | Retain typed `filament-contract-ir` expressions and explicit structurally validated binding groups; never infer cross-requirement aliases from names. `src/smt.rs` owns lowering and source maps. | Resolved by ADR-0010; accepted scope is the implemented Boolean-v1 subset. |
 | Request validation timing | `AnalysisRequest` constructors reject missing groups and duplicate statement identities. `lower_analysis_request` delegates remaining semantic/binding/capability checks to lowering before execution. | Resolved: a separate fully validated `AnalysisModel` prepare result is not part of the current API contract. |
 | Status and explanation | `classify_analysis` preserves the logical SAT-derived status on replay failure; no verified model is returned. Differential agreement requires verified SAT evidence. | Resolved: logical classification and explanation evidence are distinct, as FR-004/FR-005 require. |
 | Failure detail | `SolverRecord` retains cancellation, absence and protocol/process outcomes; `AnalysisStatus` maps cancellation and timeout to `Timeout`, unsupported platform to `Unsupported`, and other failures to `ToolError`. | Resolved: consumers inspect the retained solver record for detail; interface_001 states both levels. |
 | CLI scope | `publish-report` validates existing v2 report bytes and publishes them; it does not compose or execute analysis stages. | Resolved: analysis orchestration is outside the current CLI contract. |
-| Shared assurance envelope | `src/report.rs` requires the explicit unavailable envelope placeholder. | Dependency work remains `agent-ix/quire-contract-ir#20`; this architecture accepts the visible limitation, not envelope compliance. |
+| Shared assurance envelope | `src/report.rs` requires the explicit unavailable envelope placeholder. | Dependency work remains `agent-ix/filament-contract-ir#20`; this architecture accepts the visible limitation, not envelope compliance. |
 | Separate methods | Hybrid reachability and synthesis return method outcomes through `crates/method-contract`. | Resolved: these providers do not establish Boolean SMT conclusions or engine qualification. |
 | Qualification and release | AP-001 retains the human source-release boundary; MP-001 supplies evidence only. | Resolved boundary: no architecture acceptance, automated status or zero-count observation grants qualification or release authority. |
 

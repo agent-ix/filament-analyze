@@ -3,7 +3,7 @@ id: StR-001
 title: "Reviewable contract consistency and implication analysis"
 type: StR
 relationships:
-  - target: ix://agent-ix/quire-analyze/FR-001
+  - target: ix://agent-ix/filament-analyze/FR-001
     type: satisfied_by
 ---
 # StR-001: Reviewable contract consistency and implication analysis
@@ -29,5 +29,5 @@ would create false assurance.
 
 ## Dependencies
 
-PGM-01 at `ix://agent-ix/quire-contract-ir/PGM-01` governs compatibility, evidence, authority, and
+PGM-01 at `ix://agent-ix/filament-contract-ir/PGM-01` governs compatibility, evidence, authority, and
 qualification. Contract-IR issues #8 and #10 provide the accepted semantic and corpus substrate.

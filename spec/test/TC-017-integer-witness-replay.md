@@ -3,9 +3,9 @@ id: TC-017
 title: "Verify integer witness model replay"
 type: TC
 relationships:
-  - target: ix://agent-ix/quire-analyze/FR-011
+  - target: ix://agent-ix/filament-analyze/FR-011
     type: verifies
-  - target: ix://agent-ix/quire-analyze/NFR-004
+  - target: ix://agent-ix/filament-analyze/NFR-004
     type: verifies
 ---
 # TC-017: Verify integer witness model replay

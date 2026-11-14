@@ -4,7 +4,7 @@ title: "Package runner is bounded, hermetic and one-shot"
 type: NFR
 quality_attribute: reliability
 relationships:
-  - target: ix://agent-ix/quire-analyze/FR-009
+  - target: ix://agent-ix/filament-analyze/FR-009
     type: constrains
 ---
 # NFR-003: Package runner is bounded, hermetic and one-shot

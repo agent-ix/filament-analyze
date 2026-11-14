@@ -3,7 +3,7 @@ id: TC-008
 title: "Verify library and CLI parity and atomic output"
 type: TC
 relationships:
-  - target: ix://agent-ix/quire-analyze/FR-005
+  - target: ix://agent-ix/filament-analyze/FR-005
     type: verifies
 ---
 # TC-008: Verify library and CLI parity and atomic output

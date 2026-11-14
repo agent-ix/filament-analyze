@@ -3,9 +3,9 @@ id: TC-003
 title: "Reject invalid, unsupported, and approximate requests"
 type: TC
 relationships:
-  - target: ix://agent-ix/quire-analyze/FR-001
+  - target: ix://agent-ix/filament-analyze/FR-001
     type: verifies
-  - target: ix://agent-ix/quire-analyze/FR-002
+  - target: ix://agent-ix/filament-analyze/FR-002
     type: verifies
 ---
 # TC-003: Reject invalid, unsupported, and approximate requests

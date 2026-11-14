@@ -3,9 +3,9 @@ id: FR-004
 title: "Classify analyses and map counterexamples"
 type: FR
 relationships:
-  - target: ix://agent-ix/quire-analyze/FR-003
+  - target: ix://agent-ix/filament-analyze/FR-003
     type: depends_on
-  - target: ix://agent-ix/quire-analyze/interface_001
+  - target: ix://agent-ix/filament-analyze/interface_001
     type: implements
 ---
 # FR-004: Classify analyses and map counterexamples

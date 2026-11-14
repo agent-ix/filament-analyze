@@ -3,21 +3,21 @@ id: TC-030
 title: "Verify bounded quantifiers"
 type: TC
 relationships:
-  - target: ix://agent-ix/quire-analyze/FR-030
+  - target: ix://agent-ix/filament-analyze/FR-030
     type: verifies
-  - target: ix://agent-ix/quire-analyze/FR-031
+  - target: ix://agent-ix/filament-analyze/FR-031
     type: verifies
-  - target: ix://agent-ix/quire-analyze/FR-032
+  - target: ix://agent-ix/filament-analyze/FR-032
     type: verifies
-  - target: ix://agent-ix/quire-analyze/FR-033
+  - target: ix://agent-ix/filament-analyze/FR-033
     type: verifies
-  - target: ix://agent-ix/quire-analyze/FR-034
+  - target: ix://agent-ix/filament-analyze/FR-034
     type: verifies
-  - target: ix://agent-ix/quire-analyze/NFR-030
+  - target: ix://agent-ix/filament-analyze/NFR-030
     type: verifies
-  - target: ix://agent-ix/quire-analyze/NFR-031
+  - target: ix://agent-ix/filament-analyze/NFR-031
     type: verifies
-  - target: ix://agent-ix/quire-analyze/NFR-032
+  - target: ix://agent-ix/filament-analyze/NFR-032
     type: verifies
 ---
 # TC-030: Verify bounded quantifiers
@@ -25,7 +25,7 @@ relationships:
 ## Description
 
 Verify that quantifiers over enum domains, finite collections and bounded integer ranges are
-admitted, expanded or bounded, decided, replayed over their bound and translated from QSL packages,
+admitted, expanded or bounded, decided, replayed over their bound and translated from FSL packages,
 and that every unbounded quantifier and every exhausted limit is non-conclusive.
 
 ## Test Procedure
@@ -50,7 +50,7 @@ and that every unbounded quantifier and every exhausted limit is non-conclusive.
 5. Resources: instance budget and replay limit at and one above their values, a 2^64-wide range,
    the nested width-100 fixture, a stalled solver and a solver answering `unknown` on a quantified
    query. Distinguish replay exhaustion from solver exhaustion.
-6. Package: a QSL contract package with admitted and refused quantifiers through `run-package`, including an integer-literal collection one above the budget and a range-domain operand with no upstream form (both exit `2`), and the Boolean and integer fixtures with no quantifier.
+6. Package: a FSL contract package with admitted and refused quantifiers through `run-package`, including an integer-literal collection one above the budget and a range-domain operand with no upstream form (both exit `2`), and the Boolean and integer fixtures with no quantifier.
 
 ## Expected Results
 

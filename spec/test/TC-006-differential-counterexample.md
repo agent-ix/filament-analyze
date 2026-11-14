@@ -3,11 +3,11 @@ id: TC-006
 title: "Verify engine parity and counterexamples"
 type: TC
 relationships:
-  - target: ix://agent-ix/quire-analyze/FR-003
+  - target: ix://agent-ix/filament-analyze/FR-003
     type: verifies
-  - target: ix://agent-ix/quire-analyze/FR-004
+  - target: ix://agent-ix/filament-analyze/FR-004
     type: verifies
-  - target: ix://agent-ix/quire-analyze/FR-005
+  - target: ix://agent-ix/filament-analyze/FR-005
     type: verifies
 ---
 # TC-006: Verify engine parity and counterexamples

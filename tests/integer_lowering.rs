@@ -11,7 +11,7 @@ use std::{
     sync::atomic::{AtomicU64, Ordering},
 };
 
-use quire_analyze::{
+use filament_analyze::{
     classify_analysis, compare_solver_records, execute_solver, lower_analysis_request,
     lower_boolean_statements, render_differential_report, validate_differential_report,
     validate_report_document, AdapterLimits, AnalysisRequest, AnalysisStatus, CancellationToken,
@@ -19,7 +19,7 @@ use quire_analyze::{
     SolverConfig, SolverEngine, StatementInput, UnsupportedClass, CAPABILITY_CONTRACT,
     SMTLIB2_PROFILE,
 };
-use quire_contract_model::{
+use filament_contract_model::{
     AnchorName, BooleanOperator, Clause, ClauseId, ClauseKind, ComparisonOperator, ContractPackage,
     DeclarationEnvironment, ExecutionPoint, Expression, ExpressionKind, IntegerDomain, IntegerType,
     NumericOperator, OverflowPolicy, PackageId, Requirement, RequirementId, RequirementRef,
@@ -283,7 +283,7 @@ impl TempDirectory {
     fn new(label: &str) -> Self {
         let counter = TEMP_COUNTER.fetch_add(1, Ordering::Relaxed);
         let path = std::env::temp_dir().join(format!(
-            "quire-integer-{label}-{}-{counter}",
+            "filament-integer-{label}-{}-{counter}",
             std::process::id()
         ));
         fs::create_dir(&path).expect("temporary directory");
@@ -305,7 +305,7 @@ fn response_record(
     query: &QueryBundle,
     response: &str,
     engine: SolverEngine,
-) -> quire_analyze::SolverRecord {
+) -> filament_analyze::SolverRecord {
     response_record_with(query, response, engine, AdapterLimits::default())
 }
 
@@ -314,7 +314,7 @@ fn response_record_with(
     response: &str,
     engine: SolverEngine,
     limits: AdapterLimits,
-) -> quire_analyze::SolverRecord {
+) -> filament_analyze::SolverRecord {
     let directory = TempDirectory::new("response");
     let path = directory.path().join("solver");
     let body = format!(
@@ -329,7 +329,7 @@ fn response_record_with(
 #[trace("TC-016", "FR-010-AC-1")]
 #[test]
 fn capability_contract_declares_the_integer_profile() {
-    assert_eq!(CAPABILITY_CONTRACT.profile, "quire.smtlib2/v2");
+    assert_eq!(CAPABILITY_CONTRACT.profile, "filament.smtlib2/v2");
     assert_eq!(CAPABILITY_CONTRACT.smtlib_version, "2.6");
     assert_eq!(CAPABILITY_CONTRACT.logic, "QF_LIA");
     for exact in [
@@ -680,7 +680,7 @@ fn unsat_fixture_agrees_and_integer_models_stay_unverified() {
     assert_eq!(run.disposition(), DifferentialDisposition::Agreement);
     let report = render_differential_report(&query, &run).expect("report");
     let value: serde_json::Value = serde_json::from_slice(&report).expect("json");
-    assert_eq!(value["encodingProfile"], "quire.smtlib2/v2");
+    assert_eq!(value["encodingProfile"], "filament.smtlib2/v2");
     assert_eq!(value["logic"], "QF_LIA");
     validate_differential_report(&report, &query, &run).expect("valid");
 
@@ -697,7 +697,7 @@ fn unsat_fixture_agrees_and_integer_models_stay_unverified() {
         &format!("sat\n(model {symbols})\n"),
         SolverEngine::Z3,
     );
-    let conclusion = quire_analyze::classify_analysis(&query, &sat);
+    let conclusion = filament_analyze::classify_analysis(&query, &sat);
     assert!(conclusion.verified_model().is_none());
 }
 
@@ -718,7 +718,10 @@ fn reports_naming_the_boolean_only_profile_are_refused() {
         .expect("assertions")
         .iter()
         .all(|assertion| assertion["clause"].is_string()));
-    for (field, stale) in [("encodingProfile", "quire.smtlib2/v1"), ("logic", "QF_UF")] {
+    for (field, stale) in [
+        ("encodingProfile", "filament.smtlib2/v1"),
+        ("logic", "QF_UF"),
+    ] {
         let mut mutated = value.clone();
         mutated[field] = serde_json::Value::String(stale.to_owned());
         let bytes = serde_json::to_vec(&mutated).expect("bytes");
@@ -731,26 +734,31 @@ fn reports_naming_the_boolean_only_profile_are_refused() {
 /// the sat fixture, and each returned model replay-verifies.
 #[trace("TC-016", "TC-017", "FR-010-AC-7", "FR-011-AC-1", "FR-011-AC-11")]
 #[test]
-#[ignore = "requires official Z3 and cvc5 executables at QUIRE_Z3 and QUIRE_CVC5"]
+#[ignore = "requires official Z3 and cvc5 executables at FILAMENT_Z3 and FILAMENT_CVC5"]
 fn real_z3_cvc5_decide_integer_fixtures_identically() {
-    let z3_path = PathBuf::from(std::env::var_os("QUIRE_Z3").expect("QUIRE_Z3 is required"));
-    let cvc5_path = PathBuf::from(std::env::var_os("QUIRE_CVC5").expect("QUIRE_CVC5 is required"));
+    let z3_path = PathBuf::from(std::env::var_os("FILAMENT_Z3").expect("FILAMENT_Z3 is required"));
+    let cvc5_path =
+        PathBuf::from(std::env::var_os("FILAMENT_CVC5").expect("FILAMENT_CVC5 is required"));
     let z3 = SolverConfig::new(SolverEngine::Z3, z3_path, AdapterLimits::default()).expect("z3");
     let cvc5 =
         SolverConfig::new(SolverEngine::Cvc5, cvc5_path, AdapterLimits::default()).expect("cvc5");
     let run_for = |statements: Vec<StatementInput>| {
         let request = AnalysisRequest::consistency(vec![], statements, vec![]).expect("request");
         let query = lower_analysis_request(&request).expect("lower");
-        let run =
-            quire_analyze::execute_differential(&query, &z3, &cvc5, &CancellationToken::default())
-                .expect("run");
+        let run = filament_analyze::execute_differential(
+            &query,
+            &z3,
+            &cvc5,
+            &CancellationToken::default(),
+        )
+        .expect("run");
         (query, run)
     };
     let (query, run) = run_for(unsat_fixture());
     assert_eq!(run.disposition(), DifferentialDisposition::Agreement);
     assert_eq!(
         run.agreed_status(),
-        Some(quire_analyze::AnalysisStatus::Refuted)
+        Some(filament_analyze::AnalysisStatus::Refuted)
     );
     let report = render_differential_report(&query, &run).expect("report");
     validate_differential_report(&report, &query, &run).expect("valid");
@@ -760,11 +768,11 @@ fn real_z3_cvc5_decide_integer_fixtures_identically() {
     for conclusion in [run.z3(), run.cvc5()] {
         assert_eq!(
             conclusion.solver().outcome(),
-            quire_analyze::SolverOutcome::Sat
+            filament_analyze::SolverOutcome::Sat
         );
         assert_eq!(
             conclusion.explanation(),
-            quire_analyze::ExplanationState::Verified
+            filament_analyze::ExplanationState::Verified
         );
         assert_eq!(
             conclusion
@@ -778,7 +786,7 @@ fn real_z3_cvc5_decide_integer_fixtures_identically() {
     assert_eq!(run.disposition(), DifferentialDisposition::Agreement);
     assert_eq!(
         run.agreed_status(),
-        Some(quire_analyze::AnalysisStatus::Satisfied)
+        Some(filament_analyze::AnalysisStatus::Satisfied)
     );
 }
 
@@ -826,7 +834,7 @@ fn assert_replay_fails(
     subject: Option<&str>,
 ) {
     let record = response_record(query, response, SolverEngine::Z3);
-    assert_eq!(record.outcome(), quire_analyze::SolverOutcome::Sat);
+    assert_eq!(record.outcome(), filament_analyze::SolverOutcome::Sat);
     let conclusion = classify_analysis(query, &record);
     assert_eq!(conclusion.status(), AnalysisStatus::Satisfied, "{response}");
     assert_eq!(conclusion.explanation(), ExplanationState::Incomplete);
@@ -1177,7 +1185,10 @@ fn an_integer_model_above_the_model_ceiling_is_not_conclusive() {
     };
     assert!(response.len() > 64);
     let record = response_record_with(&query, &response, SolverEngine::Z3, limits);
-    assert_eq!(record.outcome(), quire_analyze::SolverOutcome::ModelLimit);
+    assert_eq!(
+        record.outcome(),
+        filament_analyze::SolverOutcome::ModelLimit
+    );
     let conclusion = classify_analysis(&query, &record);
     assert!(!conclusion.is_conclusive());
     assert_eq!(conclusion.status(), AnalysisStatus::ToolError);
@@ -1191,5 +1202,5 @@ fn an_integer_model_above_the_model_ceiling_is_not_conclusive() {
             ..AdapterLimits::default()
         },
     );
-    assert_eq!(within.outcome(), quire_analyze::SolverOutcome::Sat);
+    assert_eq!(within.outcome(), filament_analyze::SolverOutcome::Sat);
 }

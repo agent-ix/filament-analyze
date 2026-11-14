@@ -9,14 +9,14 @@ type: Review
 
 | Issue #5 acceptance area | Evidence | Status |
 |---|---|---|
-| Versioned machine and human-readable reports | Strict `quire.differential-report/v2`, canonical renderer, stderr summary, complete query/engine bytes and identities | closed for differential-report v2 |
+| Versioned machine and human-readable reports | Strict `filament.differential-report/v2`, canonical renderer, stderr summary, complete query/engine bytes and identities | closed for differential-report v2 |
 | Positive and negative real-engine agreement | Explicit ignored/manual test against verified official Z3 5.1.0 and cvc5 1.3.4 assets; both SAT and UNSAT cases pass | closed for seeded Boolean SAT/UNSAT |
 | Unsupported, timeout, unavailable, disagreement, and incomplete states | Requirement-tagged deterministic fake-process/lowering fixtures preserve every state and both engine records | closed for controlled fixtures |
 | Same supported corpus through both real engines | SAT/UNSAT corpus runs through both; complete retained corpus/CLI campaign does not | partial; issue #24 |
 | Library-first API and deterministic CLI | Library executes and renders; CLI schema-validates, byte-preserves, refuses overwrite, and returns stable 0/1/2/3/4 classes | closed for v1 publisher boundary; direct analysis CLI is issue #24 |
 | Schema and evidence mutation rejection | Production Draft-07 validation plus resealed unknown-field, raw-byte, query-byte, engine-order, status, disposition, and canonical-form mutations | closed for application report v1 |
 | Atomic output at every failure boundary | Success and rename no-replace are covered; write/sync/crash injection is absent | partial; issue #23 |
-| Shared PGM-01 envelope and integrity validation | Explicit unavailable envelope bound to upstream dependency | blocked on `quire-contract-ir#20`; FR-005-AC-2 remains open |
+| Shared PGM-01 envelope and integrity validation | Explicit unavailable envelope bound to upstream dependency | blocked on `filament-contract-ir#20`; FR-005-AC-2 remains open |
 
 ## Ticket Census
 
@@ -24,7 +24,7 @@ type: Review
 - #24 owns the complete retained real-engine corpus and any future trusted direct-analysis CLI.
 - #22 owns generated/fuzz/mutation analysis and model campaigns.
 - #21 and #20 retain solver containment stress and non-Linux containment.
-- `quire-contract-ir#20` owns selection of the shared PGM-01 envelope/integrity component.
+- `filament-contract-ir#20` owns selection of the shared PGM-01 envelope/integrity component.
 
 ## Verdict
 

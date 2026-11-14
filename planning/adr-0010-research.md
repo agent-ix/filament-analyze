@@ -41,7 +41,7 @@ analysis_model:
   kind: consistency
   selected: [FR-063:hollow-ratio]
   bindings: []
-  profile: quire.analysis-model/v1
+  profile: filament.analysis-model/v1
 ```
 
 The value types, observations, definedness, bounds, expression tree, owner, and source identity stay

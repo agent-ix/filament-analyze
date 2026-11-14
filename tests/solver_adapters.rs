@@ -14,14 +14,14 @@ use std::{
     time::{Duration, Instant},
 };
 
-use quire_analyze::{
+use filament_analyze::{
     execute_solver, lower_boolean_statements, AdapterLimits, CancellationToken, SolverConfig,
     SolverEngine, SolverOutcome, MAX_SOLVER_CLEANUP_TIME_MS, MAX_SOLVER_GRACEFUL_CLEANUP_MS,
     MAX_SOLVER_MODEL_BYTES, MAX_SOLVER_MONITOR_INTERVAL_MS, MAX_SOLVER_PATH_BYTES,
     MAX_SOLVER_STDERR_BYTES, MAX_SOLVER_STDIN_BYTES, MAX_SOLVER_STDOUT_BYTES,
     MAX_SOLVER_VERSION_BYTES, MAX_SOLVER_WALL_TIME_MS,
 };
-use quire_contract_model::{
+use filament_contract_model::{
     AnchorName, Clause, ClauseId, ClauseKind, ContractPackage, DeclarationEnvironment,
     ExecutionPoint, Expression, ExpressionKind, PackageId, Requirement, RequirementId,
     RequirementRef, RequirementRevision, SchemaVersion, SourceDocumentId, SourceIdentity,
@@ -37,7 +37,7 @@ impl TempDirectory {
     fn new(label: &str) -> Self {
         let counter = TEMP_COUNTER.fetch_add(1, Ordering::Relaxed);
         let path = std::env::temp_dir().join(format!(
-            "quire-analyze-{label}-{}-{counter}",
+            "filament-analyze-{label}-{}-{counter}",
             std::process::id()
         ));
         fs::create_dir(&path).expect("create temporary directory");
@@ -67,7 +67,7 @@ fn span() -> SourceSpan {
     .expect("span")
 }
 
-fn statement(index: usize) -> quire_analyze::StatementInput {
+fn statement(index: usize) -> filament_analyze::StatementInput {
     let package_id = PackageId::new("agent-ix/adapter-test").expect("package");
     let requirement_id = RequirementId::new(format!("REQ-adapter-{index}")).expect("requirement");
     let revision = RequirementRevision::new(1).expect("revision");
@@ -100,7 +100,7 @@ fn statement(index: usize) -> quire_analyze::StatementInput {
     let source = span().source().clone();
     let package = ContractPackage::new(package_id, SchemaVersion::V1_1, source, vec![requirement])
         .expect("package");
-    quire_analyze::StatementInput::from_clause(
+    filament_analyze::StatementInput::from_clause(
         &package,
         &package.requirements()[0],
         &package.requirements()[0].clauses()[0],
@@ -109,11 +109,11 @@ fn statement(index: usize) -> quire_analyze::StatementInput {
     .expect("statement")
 }
 
-fn query() -> quire_analyze::QueryBundle {
+fn query() -> filament_analyze::QueryBundle {
     lower_boolean_statements(&[statement(0)], &[]).expect("query")
 }
 
-fn large_query() -> quire_analyze::QueryBundle {
+fn large_query() -> filament_analyze::QueryBundle {
     let statements = (0..512).map(statement).collect::<Vec<_>>();
     let query = lower_boolean_statements(&statements, &[]).expect("large query");
     assert!(query.query().len() > 64 * 1024);
@@ -178,7 +178,7 @@ fn config(engine: SolverEngine, executable: &Path, limits: AdapterLimits) -> Sol
     SolverConfig::new(engine, executable, limits).expect("solver config")
 }
 
-fn execute_mode(mode: &str, limits: AdapterLimits) -> quire_analyze::SolverRecord {
+fn execute_mode(mode: &str, limits: AdapterLimits) -> filament_analyze::SolverRecord {
     let directory = TempDirectory::new(mode);
     let executable = make_script(directory.path(), "solver", mode, None);
     execute_solver(
@@ -221,7 +221,7 @@ fn exact_engine_contract_and_protocol_states() {
         let record = execute_solver(&query(), &solver_config, &CancellationToken::default());
         assert_eq!(record.outcome(), SolverOutcome::Sat);
         assert_eq!(record.engine(), engine);
-        assert_eq!(record.profile(), "quire.solver-process/v1");
+        assert_eq!(record.profile(), "filament.solver-process/v1");
         assert_eq!(record.limits(), AdapterLimits::default());
         assert_eq!(record.stdout(), b"sat\n");
         assert!(record.stderr().is_empty());

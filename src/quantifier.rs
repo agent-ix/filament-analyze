@@ -6,7 +6,7 @@
 //! quantifier nodes are [`RangeQuantifier`]s. A leaf names a quantifier's bound variable with
 //! `ExpressionKind::LocalReference`.
 
-use quire_contract_model::{Expression, IntegerType, QuantifierKind, SymbolName, ValueType};
+use filament_contract_model::{Expression, IntegerType, QuantifierKind, SymbolName, ValueType};
 
 /// Bound on the instances that expansion may produce in one request, summed over all clauses.
 pub const MAX_EXPANDED_INSTANCES: u128 = 1024;
@@ -92,7 +92,7 @@ pub enum DomainElement {
     Integer(i128),
 }
 
-/// The catalog constructor of a collection literal (`quire.op.collection.*`).
+/// The catalog constructor of a collection literal (`filament.op.collection.*`).
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum CollectionKind {
     Set,

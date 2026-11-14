@@ -1,7 +1,7 @@
 //! Requirement-backed tests for the specification and assurance foundation.
 
+use filament_analyze::{AnalysisStatus, SolverOutcome};
 use ix_trace_rs::trace;
-use quire_analyze::{AnalysisStatus, SolverOutcome};
 use std::collections::BTreeSet;
 
 const CARGO_MANIFEST: &str = include_str!("../Cargo.toml");

@@ -12,7 +12,7 @@ use std::{
     sync::atomic::{AtomicU64, Ordering},
 };
 
-use quire_analyze::{
+use filament_analyze::{
     classify_analysis, compare_solver_records, execute_solver, lower_analysis_request,
     lower_boolean_statements, render_differential_report, validate_differential_report,
     validate_report_document, AdapterLimits, AnalysisRequest, AnalysisStatus, CancellationToken,
@@ -20,7 +20,7 @@ use quire_analyze::{
     ReplayFailureReason, SolverConfig, SolverEngine, SolverOutcome, StatementInput,
     CAPABILITY_CONTRACT,
 };
-use quire_contract_model::{
+use filament_contract_model::{
     AnchorName, BooleanOperator, Clause, ClauseId, ClauseKind, CollectionType, ComparisonOperator,
     ContractPackage, DeclarationEnvironment, EnumDeclaration, EnumVariantDeclaration,
     ExecutionPoint, Expression, ExpressionKind, IntegerDomain, IntegerType, OverflowPolicy,
@@ -388,7 +388,7 @@ impl TempDirectory {
     fn new(label: &str) -> Self {
         let counter = TEMP_COUNTER.fetch_add(1, Ordering::Relaxed);
         let path = std::env::temp_dir().join(format!(
-            "quire-record-{label}-{}-{counter}",
+            "filament-record-{label}-{}-{counter}",
             std::process::id()
         ));
         fs::create_dir(&path).expect("temporary directory");
@@ -410,7 +410,7 @@ fn response_record(
     query: &QueryBundle,
     response: &str,
     engine: SolverEngine,
-) -> quire_analyze::SolverRecord {
+) -> filament_analyze::SolverRecord {
     let directory = TempDirectory::new("response");
     let path = directory.path().join("solver");
     let body = format!(
@@ -422,7 +422,7 @@ fn response_record(
 }
 
 /// Both fake engines answer `response`; the run and report are checked for agreement.
-fn decide(query: &QueryBundle, response: &str) -> quire_analyze::DifferentialRun {
+fn decide(query: &QueryBundle, response: &str) -> filament_analyze::DifferentialRun {
     let z3 = response_record(query, response, SolverEngine::Z3);
     let cvc5 = response_record(query, response, SolverEngine::Cvc5);
     compare_solver_records(query, &z3, &cvc5)
@@ -461,7 +461,7 @@ fn capability_contract_lists_record_and_option_constructs_as_exact() {
 #[test]
 fn record_fixture_lowers_to_the_golden_query() {
     let query = lower(record_sat_fixture());
-    assert_eq!(query.profile(), "quire.smtlib2/v2");
+    assert_eq!(query.profile(), "filament.smtlib2/v2");
     assert_eq!(query.logic(), "QF_UFDTLIA");
     assert_eq!(query.query(), include_str!("golden/record-sat-v2.smt2"));
     assert_eq!(query.query(), lower(record_sat_fixture()).query());
@@ -513,7 +513,7 @@ fn record_fixtures_are_decided_and_reported_under_the_datatype_logic() {
     assert_eq!(run.agreed_status(), Some(AnalysisStatus::Refuted));
     let report = render_differential_report(&query, &run).expect("report");
     let value: serde_json::Value = serde_json::from_slice(&report).expect("json");
-    assert_eq!(value["encodingProfile"], "quire.smtlib2/v2");
+    assert_eq!(value["encodingProfile"], "filament.smtlib2/v2");
     assert_eq!(value["logic"], "QF_UFDTLIA");
     validate_report_document(&report).expect("document valid");
     validate_differential_report(&report, &query, &run).expect("valid");
@@ -1292,10 +1292,11 @@ fn datatype_count_bound_is_exact() {
 /// FR-020-AC-3: real solvers decide the record and option fixtures; run only where installed.
 #[trace("TC-020", "FR-020-AC-3")]
 #[test]
-#[ignore = "requires official Z3 and cvc5 executables at QUIRE_Z3 and QUIRE_CVC5"]
+#[ignore = "requires official Z3 and cvc5 executables at FILAMENT_Z3 and FILAMENT_CVC5"]
 fn real_z3_cvc5_decide_record_and_option_fixtures() {
-    let z3_path = PathBuf::from(std::env::var_os("QUIRE_Z3").expect("QUIRE_Z3 is required"));
-    let cvc5_path = PathBuf::from(std::env::var_os("QUIRE_CVC5").expect("QUIRE_CVC5 is required"));
+    let z3_path = PathBuf::from(std::env::var_os("FILAMENT_Z3").expect("FILAMENT_Z3 is required"));
+    let cvc5_path =
+        PathBuf::from(std::env::var_os("FILAMENT_CVC5").expect("FILAMENT_CVC5 is required"));
     let z3 = SolverConfig::new(SolverEngine::Z3, z3_path, AdapterLimits::default()).expect("z3");
     let cvc5 =
         SolverConfig::new(SolverEngine::Cvc5, cvc5_path, AdapterLimits::default()).expect("cvc5");

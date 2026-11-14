@@ -1,13 +1,13 @@
-# Quire Analyze
+# Filament Analyze
 
 [![Discord](https://img.shields.io/badge/Discord-Join%20us-5865F2?logo=discord&logoColor=white)](https://discord.gg/k8DVhuYBR2)
-[![Quire](https://img.shields.io/badge/Quire-Specification%20Language-1F6FEB)](https://github.com/agent-ix/quire-spec-language)
+[![Filament](https://img.shields.io/badge/Filament-Specification%20Language-1F6FEB)](https://github.com/agent-ix/filament-spec-language)
 
-Quire Analyze is a Rust library and command-line tool that checks requirement
+Filament Analyze is a Rust library and command-line tool that checks requirement
 contracts with an SMT solver.
 
 It reads requirement contracts from
-[Contract IR](https://github.com/agent-ix/quire-contract-ir), checks whether
+[Contract IR](https://github.com/agent-ix/filament-contract-ir), checks whether
 they are consistent and whether one implies another, and returns a typed answer.
 A conflict comes with a model naming the clauses and values involved, re-checked
 before it is reported. Undecided, timed-out and wrong-solver runs are reported
@@ -15,7 +15,7 @@ as their own states.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/images/hero-dark.svg">
-  <img alt="Quire Analyze turns Contract IR clauses into an analysis request, lowers it to an SMT-LIB query over Booleans and linear integers, runs a configured solver (Z3 or cvc5) and classifies the reply. The answer is satisfied, refuted with a verified witness model, unknown, timeout, unsupported or tool-error." src="docs/images/hero-light.svg">
+  <img alt="Filament Analyze turns Contract IR clauses into an analysis request, lowers it to an SMT-LIB query over Booleans and linear integers, runs a configured solver (Z3 or cvc5) and classifies the reply. The answer is satisfied, refuted with a verified witness model, unknown, timeout, unsupported or tool-error." src="docs/images/hero-light.svg">
 </picture>
 
 > **Status: public prerelease.** The crate is at 0.1.0, its API is not stable
@@ -45,7 +45,7 @@ a negation, so `unsat` means satisfied and `sat` is a counterexample.
 
 ## Supported constructs
 
-Queries are in SMT-LIB 2.6 under profile `quire.smtlib2/v2`, logic `QF_LIA`, or `QF_UFDTLIA`
+Queries are in SMT-LIB 2.6 under profile `filament.smtlib2/v2`, logic `QF_LIA`, or `QF_UFDTLIA`
 when the query declares an enum, record or option datatype.
 Lowering accepts Boolean literals, value references, `not`, `and`, `or` (both
 short-circuit and total forms), implication, and Boolean equality and inequality,
@@ -157,7 +157,7 @@ records, and compares them.
 | `inconclusive` | Anything else, such as `unknown`, a timeout, or an unverified model. |
 
 `render_differential_report` writes the run as a canonical-JSON
-`quire.differential-report/v2` document (schema in
+`filament.differential-report/v2` document (schema in
 [`schemas/`](schemas/differential-report-v2.schema.json)). `validate_report_document`
 checks its closed shape, canonical bytes, request-to-query binding, and conclusions
 against retained solver output. `validate_differential_report` also compares it
@@ -170,7 +170,7 @@ The binary has one subcommand. It validates an existing differential report and
 publishes a copy to a new path:
 
 ```
-quire-analyze publish-report --input REPORT.json --output NEW_REPORT.json
+filament-analyze publish-report --input REPORT.json --output NEW_REPORT.json
 ```
 
 | Exit | Meaning |
@@ -188,19 +188,19 @@ return typed non-conclusions. `reach` returns a bounded enclosure, and `replay_h
 witness against the exact model and bound. `synthesize` searches a finite
 canonical space and returns a candidate that `validate_candidate` must confirm
 independently. Both report `incomplete`, `failed` or `refused` when they cannot succeed. Their shared result vocabulary lives in the small
-`quire-analyze-method-contract` crate in [`crates/method-contract`](crates/method-contract),
-which has no dependency on the rest of Quire.
+`filament-analyze-method-contract` crate in [`crates/method-contract`](crates/method-contract),
+which has no dependency on the rest of Filament.
 
-## Quire ecosystem
+## Filament ecosystem
 
-Quire Analyze is a backend. It reads the Contract IR that the language layer
+Filament Analyze is a backend. It reads the Contract IR that the language layer
 produces and answers questions about it. It depends on
-[quire-contract-ir](https://github.com/agent-ix/quire-contract-ir) for the
-contract model, and its method-outcome crate is shared with quire-verification, which plans which verification technique to use for each requirement.
+[filament-contract-ir](https://github.com/agent-ix/filament-contract-ir) for the
+contract model, and its method-outcome crate is shared with filament-verification, which plans which verification technique to use for each requirement.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/images/ecosystem-dark.svg">
-  <img alt="The Quire repositories. The main chain runs from the standard, quire-specification, to the compiler, quire-spec-language, then quire-contract-ir, quire-contract-codegen and quire-contract-runtime. quire-spec-language also feeds quire-protocol, and quire-contract-ir feeds quire-analyze. quire-observation feeds quire-protocol and quire-mltl. Above the chain, quire-driver runs it, quire-integration tests it and quire-verification plans verification. Below it, shared libraries used throughout: quire-eval, quire-exact, quire-semantic-value, quire-walk, quire-canonical and quire-verification-contracts." src="docs/images/ecosystem-light.svg">
+  <img alt="The Filament repositories. The main chain runs from the standard, filament-specification, to the compiler, filament-spec-language, then filament-contract-ir, filament-contract-codegen and filament-contract-runtime. filament-spec-language also feeds filament-protocol, and filament-contract-ir feeds filament-analyze. filament-observation feeds filament-protocol and filament-mltl. Above the chain, filament-driver runs it, filament-integration tests it and filament-verification plans verification. Below it, shared libraries used throughout: filament-eval, filament-exact, filament-semantic-value, filament-walk, quire-canonical and filament-verification-contracts." src="docs/images/ecosystem-light.svg">
 </picture>
 
 ## Building and testing
@@ -216,7 +216,7 @@ Everything runs through `make`; see `make help` for the full list.
 | `make ci` | Every gate: format, lint, test, license and advisory checks, unsafe-comment audit, spec, MSRV (Rust 1.98.1), rustdoc and the coverage floor. |
 
 One test, `official_z3_cvc5_differential_corpus_agrees`, is ignored by default.
-Run it with the real binaries by setting `QUIRE_Z3` and `QUIRE_CVC5` to their
+Run it with the real binaries by setting `FILAMENT_Z3` and `FILAMENT_CVC5` to their
 paths and passing `--ignored`.
 
 The specification that drives the crate is under [`spec/`](spec); start at

@@ -4,11 +4,11 @@ title: "Contract analysis assurance argument"
 type: AssuranceArgument
 status: proposed
 owner: human-release-owner
-profile: ix://agent-ix/quire-analyze/AP-001
+profile: ix://agent-ix/filament-analyze/AP-001
 top_claim:
   id: claim-analyze-v01
   statement: the identified analysis source candidate and dependency set are acceptable for bounded v0.1 use
-  subject: quire-analyze v0.1 source candidate
+  subject: filament-analyze v0.1 source candidate
   status: open
 reasoning:
   - id: reasoning-analysis-conformance
@@ -35,14 +35,14 @@ challenges:
     status: open
     owner: human-release-owner
 relationships:
-  - target: ix://agent-ix/quire-analyze/AP-001
+  - target: ix://agent-ix/filament-analyze/AP-001
     type: references
 ---
 # Contract analysis assurance argument
 
 ## Claim
 
-The exact `quire-analyze` v0.1 source candidate is suitable for its declared analysis/evidence-tool
+The exact `filament-analyze` v0.1 source candidate is suitable for its declared analysis/evidence-tool
 use with all limitations understood and accepted by the named human release authority.
 
 **Status: open.** No source candidate, tag, or human sufficiency decision exists in this foundation.

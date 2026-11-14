@@ -4,7 +4,7 @@ title: "Evidence integrity and authority boundary"
 type: NFR
 quality_attribute: compliance
 relationships:
-  - target: ix://agent-ix/quire-analyze/FR-005
+  - target: ix://agent-ix/filament-analyze/FR-005
     type: constrains
 ---
 # NFR-002: Evidence integrity and authority boundary

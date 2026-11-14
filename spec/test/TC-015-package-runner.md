@@ -3,9 +3,9 @@ id: TC-015
 title: "Verify the package runner"
 type: TC
 relationships:
-  - target: ix://agent-ix/quire-analyze/FR-009
+  - target: ix://agent-ix/filament-analyze/FR-009
     type: verifies
-  - target: ix://agent-ix/quire-analyze/NFR-003
+  - target: ix://agent-ix/filament-analyze/NFR-003
     type: verifies
 ---
 # TC-015: Verify the package runner
@@ -17,16 +17,16 @@ exit status, fails cleanly on every refused input, and behaves identically as a 
 
 ## Test Procedure
 
-Spawn the built binary as a child process. Provide `quire.contract-package/v1` fixtures, none of them
-committed (FR-009-AC-27): documents built at test time through the `quire-contract-*` APIs (a `quire.checked-package/v2` document built in test code and read with `CheckedPackageV2::read`, lowered with `CheckedPackageV2::lower` and taken as canonical bytes: consistent,
+Spawn the built binary as a child process. Provide `filament.contract-package/v1` fixtures, none of them
+committed (FR-009-AC-27): documents built at test time through the `filament-contract-*` APIs (a `filament.checked-package/v2` document built in test code and read with `CheckedPackageV2::read`, lowered with `CheckedPackageV2::lower` and taken as canonical bytes: consistent,
 contradictory, no analysable clause, non-Boolean claim, untranslatable claim), the malformed and
-oversized documents made by byte-level mutation of a built one, and one produced from QSL: run `quire-spec-language`'s `checked_handoff::write` over the
+oversized documents made by byte-level mutation of a built one, and one produced from FSL: run `filament-spec-language`'s `checked_handoff::write` over the
 `examples/checked-handoff/` units and model (referenced by checkout path, not copied), admit the written
 checked package, lower it with `CheckedPackageV2::lower` (requested keys: every claim node key of the package;
-profile: `CompleteLoweringProfileV2` with authority `quire-analyze`, identity `run-package-test`, no
+profile: `CompleteLoweringProfileV2` with authority `filament-analyze`, identity `run-package-test`, no
 required source selections, `supported_tags` `CheckedNodeTag::ALL`, `require_bounds` true and
 `work_limit` `u64::MAX`), and use the canonical bytes of the resulting `CompleteContractPackageV2`.
-Because QSL emits no `analysis_claim` today, this package has no analysable clause: the runner must
+Because FSL emits no `analysis_claim` today, this package has no analysable clause: the runner must
 exit `2` on it. The exit `0`/`1` cases use the built packages. Use a
 stub `producer-execute` script that logs each request and returns canned
 `producer-execution-result/v1` lines, and for the final case the real `engineering-assurance` executable

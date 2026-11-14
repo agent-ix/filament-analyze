@@ -4,9 +4,9 @@ title: "Deterministic and bounded analysis"
 type: NFR
 quality_attribute: reliability
 relationships:
-  - target: ix://agent-ix/quire-analyze/FR-002
+  - target: ix://agent-ix/filament-analyze/FR-002
     type: constrains
-  - target: ix://agent-ix/quire-analyze/FR-003
+  - target: ix://agent-ix/filament-analyze/FR-003
     type: constrains
 ---
 # NFR-001: Deterministic and bounded analysis

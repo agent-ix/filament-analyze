@@ -1,20 +1,20 @@
 ---
 type: master-requirements
-name: quire-analyze
+name: filament-analyze
 org: agent-ix
 component_type: rust-library
 implementation_language: rust
 tags: [contract-analysis, smt, z3, cvc5, assurance]
 depends_on:
-  - ix://agent-ix/quire-contract-ir/PGM-01
-  - ix://agent-ix/quire-contract-ir/issues/8
-  - ix://agent-ix/quire-contract-ir/issues/10
+  - ix://agent-ix/filament-contract-ir/PGM-01
+  - ix://agent-ix/filament-contract-ir/issues/8
+  - ix://agent-ix/filament-contract-ir/issues/10
 standards_alignment: [iso-iec-ieee-29148]
 relationships:
-  - target: ix://agent-ix/quire-contract-ir/PGM-01
+  - target: ix://agent-ix/filament-contract-ir/PGM-01
     type: depends_on
     cardinality: "1:1"
-  - target: ix://agent-ix/quire-contract-ir/issues/10
+  - target: ix://agent-ix/filament-contract-ir/issues/10
     type: depends_on
     cardinality: "1:1"
 ---
@@ -62,7 +62,7 @@ bounds. AP-001, AD-001, CAC-001, MP-001, and AA-001 define the assurance boundar
 foundation and native issues #6, #7, #3, #4, #5, and #33.
 ## References
 
-- [Program umbrella](https://github.com/agent-ix/quire-contract-ir/issues/1).
-- [Contract-IR expression gate](https://github.com/agent-ix/quire-contract-ir/issues/8).
-- [Contract-IR schema and corpus gate](https://github.com/agent-ix/quire-contract-ir/issues/10).
-- [Contract analysis epic](https://github.com/agent-ix/quire-analyze/issues/8).
+- [Program umbrella](https://github.com/agent-ix/filament-contract-ir/issues/1).
+- [Contract-IR expression gate](https://github.com/agent-ix/filament-contract-ir/issues/8).
+- [Contract-IR schema and corpus gate](https://github.com/agent-ix/filament-contract-ir/issues/10).
+- [Contract analysis epic](https://github.com/agent-ix/filament-analyze/issues/8).

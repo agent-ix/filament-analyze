@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (C) 2026 Agent-IX
 
-use ix_trace_rs::trace;
-use proptest::prelude::*;
-use quire_analyze::{
+use filament_analyze::{
     synthesis_method_outcome, synthesize, validate_candidate, CandidateValidator, SynthesisAtom,
     SynthesisIncompleteCode, SynthesisOutcome, SynthesisRefusalCode, SynthesisRequest,
     ValidationAttestation, ValidationDecision, ValidationFailureCode, ValidationRequest,
 };
-use quire_analyze_method_contract::{AnalyzeMethod, AnalyzeOutcome};
+use filament_analyze_method_contract::{AnalyzeMethod, AnalyzeOutcome};
+use ix_trace_rs::trace;
+use proptest::prelude::*;
 
 struct FixtureValidator(bool);
 
@@ -214,7 +214,7 @@ fn tc_014_distinguishes_delimited_atoms_and_stops_at_search_bound() {
     assert!(matches!(
         synthesize(&bounded),
         SynthesisOutcome::Refused {
-            code: quire_analyze::SynthesisRefusalCode::InputTooLarge,
+            code: filament_analyze::SynthesisRefusalCode::InputTooLarge,
             ..
         }
     ));

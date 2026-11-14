@@ -13,8 +13,8 @@ use crate::{
     ExplanationState, QueryBundle, SolverConfig, SolverEngine, SolverOutcome, SolverRecord,
 };
 
-pub const DIFFERENTIAL_REPORT_SCHEMA: &str = "quire.differential-report/v2";
-pub const PGM01_ENVELOPE_DEPENDENCY: &str = "agent-ix/quire-contract-ir#20";
+pub const DIFFERENTIAL_REPORT_SCHEMA: &str = "filament.differential-report/v2";
+pub const PGM01_ENVELOPE_DEPENDENCY: &str = "agent-ix/filament-contract-ir#20";
 pub const MAX_REPORT_BYTES: usize = 64 * 1024 * 1024;
 static PUBLICATION_COUNTER: AtomicU64 = AtomicU64::new(0);
 
@@ -334,8 +334,8 @@ pub fn validate_report_document(bytes: &[u8]) -> Result<DifferentialDisposition,
             return Err("report schema is absent or unsupported".to_owned());
         }
         for (field, expected) in [
-            ("analysisModelProfile", "quire.analysis-model/v1"),
-            ("encodingProfile", "quire.smtlib2/v2"),
+            ("analysisModelProfile", "filament.analysis-model/v1"),
+            ("encodingProfile", "filament.smtlib2/v2"),
         ] {
             if object.get(field).and_then(Value::as_str) != Some(expected) {
                 return Err(format!("report {field} is absent or unsupported"));
@@ -553,7 +553,7 @@ fn publish_report_with(
         .unwrap_or_else(|| Path::new("."));
     let counter = PUBLICATION_COUNTER.fetch_add(1, Ordering::Relaxed);
     let staging = parent.join(format!(
-        ".quire-analyze-report-{}-{counter}.tmp",
+        ".filament-analyze-report-{}-{counter}.tmp",
         std::process::id()
     ));
 
@@ -625,7 +625,7 @@ fn publish_report_with(
 
 #[cfg(test)]
 fn publication_test_termination(point: &str) {
-    if std::env::var("QUIRE_ANALYZE_TEST_PUBLICATION_TERMINATE").as_deref() == Ok(point) {
+    if std::env::var("FILAMENT_ANALYZE_TEST_PUBLICATION_TERMINATE").as_deref() == Ok(point) {
         std::process::exit(86);
     }
 }
@@ -732,7 +732,7 @@ fn rename_no_replace(source: &Path, destination: &Path) -> io::Result<()> {
     }
 }
 
-fn source_value(source: &quire_contract_model::SourceSpan) -> Value {
+fn source_value(source: &filament_contract_model::SourceSpan) -> Value {
     json!({
         "document": source.source().document().as_str(),
         "end": {"byte": source.end().byte_offset(), "column": source.end().column(), "line": source.end().line()},
@@ -1127,7 +1127,7 @@ mod tests {
 
     #[test]
     fn publication_termination_helper() {
-        let Some(destination) = std::env::var_os("QUIRE_ANALYZE_TEST_PUBLICATION_DESTINATION")
+        let Some(destination) = std::env::var_os("FILAMENT_ANALYZE_TEST_PUBLICATION_DESTINATION")
         else {
             return;
         };
@@ -1140,7 +1140,7 @@ mod tests {
     #[test]
     fn publication_process_termination_boundaries_have_defined_state() {
         let root = std::env::temp_dir().join(format!(
-            "quire-publication-crash-{}-{}",
+            "filament-publication-crash-{}-{}",
             std::process::id(),
             PUBLICATION_COUNTER.fetch_add(1, Ordering::Relaxed)
         ));
@@ -1161,8 +1161,11 @@ mod tests {
                     "report::tests::publication_termination_helper",
                     "--nocapture",
                 ])
-                .env("QUIRE_ANALYZE_TEST_PUBLICATION_TERMINATE", point)
-                .env("QUIRE_ANALYZE_TEST_PUBLICATION_DESTINATION", &destination)
+                .env("FILAMENT_ANALYZE_TEST_PUBLICATION_TERMINATE", point)
+                .env(
+                    "FILAMENT_ANALYZE_TEST_PUBLICATION_DESTINATION",
+                    &destination,
+                )
                 .status()
                 .expect("termination subprocess");
             assert_eq!(status.code(), Some(86), "termination point {point}");
@@ -1174,7 +1177,7 @@ mod tests {
                     entry
                         .file_name()
                         .to_string_lossy()
-                        .starts_with(".quire-analyze-report-")
+                        .starts_with(".filament-analyze-report-")
                 })
                 .collect::<Vec<_>>();
             if matches!(point, "after-create" | "after-write" | "after-file-sync") {

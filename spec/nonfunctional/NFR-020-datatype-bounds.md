@@ -4,9 +4,9 @@ title: "Bounded and deterministic datatype encoding"
 type: NFR
 quality_attribute: reliability
 relationships:
-  - target: ix://agent-ix/quire-analyze/FR-020
+  - target: ix://agent-ix/filament-analyze/FR-020
     type: constrains
-  - target: ix://agent-ix/quire-analyze/FR-021
+  - target: ix://agent-ix/filament-analyze/FR-021
     type: constrains
 ---
 # NFR-020: Bounded and deterministic datatype encoding

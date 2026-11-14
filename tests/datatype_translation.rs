@@ -5,15 +5,15 @@
 //! claims translate and then need the record and option lowering, so their success-path tests
 //! are ignored until that lowering lands.
 
-use ix_trace_rs::trace;
-use quire_analyze::{
+use filament_analyze::{
     execute_differential, lower_analysis_request, translate_analysis_claims, AdapterLimits,
     AnalysisStatus, CancellationToken, SolverConfig, SolverEngine, TranslationErrorKind,
 };
-use quire_contract_model::{
+use filament_contract_model::{
     BooleanOperator, ComparisonOperator, ContractPackageV1, Expression, ExpressionKind,
     TypeDeclaration, ValueDeclarationKind, ValueType,
 };
+use ix_trace_rs::trace;
 use serde_json::json;
 
 mod common;
@@ -129,7 +129,7 @@ fn the_same_package_translates_to_the_same_clauses_declarations_and_query() {
     let second = translate_analysis_claims(&read_package(&bytes)).expect("second");
     assert_eq!(first.package(), second.package());
     assert_eq!(first.environment(), second.environment());
-    let query = |translation: &quire_analyze::AnalysisTranslation| {
+    let query = |translation: &filament_analyze::AnalysisTranslation| {
         format!(
             "{:?}",
             lower_analysis_request(translation.request()).expect("query")
@@ -293,9 +293,9 @@ fn a_record_that_nests_a_collection_or_rational_is_refused_at_that_type() {
 #[test]
 fn an_identity_outside_the_table_is_refused_at_the_application() {
     for identity in [
-        "quire.op.collection.contains",
-        "quire.op.enum.lt",
-        "quire.op.text.eq",
+        "filament.op.collection.contains",
+        "filament.op.enum.lt",
+        "filament.op.text.eq",
     ] {
         let mut document = Document::new();
         let role = document.enum_type("Role", &["Admin", "Guest"]);
@@ -355,17 +355,21 @@ fn an_enum_comparison_under_a_deep_not_chain_is_refused_at_the_depth_bound() {
 }
 
 /// FR-022-AC-1 on the official engines: the contradictory membership is refuted, and the
-/// satisfiable one is never refuted. Run with `QUIRE_Z3` and `QUIRE_CVC5` set to the executables.
+/// satisfiable one is never refuted. Run with `FILAMENT_Z3` and `FILAMENT_CVC5` set to the executables.
 #[trace("FR-022-AC-1", "TC-020")]
 #[test]
-#[ignore = "requires official Z3 and cvc5 executables at QUIRE_Z3 and QUIRE_CVC5"]
+#[ignore = "requires official Z3 and cvc5 executables at FILAMENT_Z3 and FILAMENT_CVC5"]
 fn the_official_engines_decide_the_enum_membership_fixtures() {
     let path = |name: &str| std::path::PathBuf::from(std::env::var_os(name).expect(name));
-    let z3 = SolverConfig::new(SolverEngine::Z3, path("QUIRE_Z3"), AdapterLimits::default())
-        .expect("Z3 configuration");
+    let z3 = SolverConfig::new(
+        SolverEngine::Z3,
+        path("FILAMENT_Z3"),
+        AdapterLimits::default(),
+    )
+    .expect("Z3 configuration");
     let cvc5 = SolverConfig::new(
         SolverEngine::Cvc5,
-        path("QUIRE_CVC5"),
+        path("FILAMENT_CVC5"),
         AdapterLimits::default(),
     )
     .expect("cvc5 configuration");
@@ -396,7 +400,7 @@ fn projection_bytes() -> (Vec<u8>, String, String) {
     let project = document
         .nodes
         .iter()
-        .find(|node| node["body"]["operation"]["identity"] == "quire.op.record.project")
+        .find(|node| node["body"]["operation"]["identity"] == "filament.op.record.project")
         .map(|node| {
             node["node_id"]["path"][0]
                 .as_str()
@@ -459,7 +463,7 @@ fn an_identity_applied_to_an_operand_of_another_sort_is_refused_at_the_node() {
 
     // A projection of a record, read as `option.value`.
     let (bytes, project, _) = projection_bytes();
-    let edited = with_identity(&bytes, &project, "quire.op.option.value");
+    let edited = with_identity(&bytes, &project, "filament.op.option.value");
     let package = read_package(&edited);
     let error = translate_analysis_claims(&package).expect_err("record under option.value");
     assert_eq!(error.node(), Some(index(&package, &project)), "{error}");
@@ -528,7 +532,7 @@ fn a_record_chain_nested_past_the_depth_bound_is_refused_at_a_type_node() {
 #[trace("FR-022-AC-1", "FR-020-AC-10", "FR-021-AC-1", "TC-020")]
 #[test]
 fn a_satisfiable_translated_enum_claim_has_a_verified_model() {
-    use quire_analyze::{classify_analysis, execute_solver, ExplanationState};
+    use filament_analyze::{classify_analysis, execute_solver, ExplanationState};
 
     let (document, claims) = membership(false);
     let (_, translation) = translate(&document, &labels(&claims));

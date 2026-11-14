@@ -3,7 +3,7 @@ id: FR-008
 title: "Provide bounded canonical synthesis candidates"
 type: FR
 relationships:
-  - target: "ix://agent-ix/quire-analyze/StR-001"
+  - target: "ix://agent-ix/filament-analyze/StR-001"
     type: implements
 ---
 # FR-008: Provide bounded canonical synthesis candidates

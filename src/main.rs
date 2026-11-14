@@ -1,12 +1,12 @@
 use std::{env, ffi::OsString, fs, path::PathBuf, process::ExitCode};
 
+use filament_analyze::{
+    parse_run_package_arguments, publish_report_new, run_package, run_package_help,
+    validate_report_document, DifferentialDisposition, RunPackageCommand, MAX_REPORT_BYTES,
+};
 use ix_cli_kit::{
     exit::caller_exit_code,
     streams::{write_primary_stdout, Diagnostics, Record},
-};
-use quire_analyze::{
-    parse_run_package_arguments, publish_report_new, run_package, run_package_help,
-    validate_report_document, DifferentialDisposition, RunPackageCommand, MAX_REPORT_BYTES,
 };
 use serde_json::Value;
 
@@ -28,7 +28,7 @@ fn main() -> ExitCode {
 }
 
 fn emit_error(message: &str) {
-    Record::error("QuireAnalyze", &format!("quire-analyze: {message}"))
+    Record::error("FilamentAnalyze", &format!("filament-analyze: {message}"))
         .emit(Diagnostics::default());
 }
 
@@ -41,7 +41,7 @@ fn run() -> Result<u8, (u8, String)> {
         _ => {
             return Err((
                 2,
-                format!("{}\n       quire-analyze run-package --help", usage()),
+                format!("{}\n       filament-analyze run-package --help", usage()),
             ))
         }
     }
@@ -64,7 +64,7 @@ fn run() -> Result<u8, (u8, String)> {
     let disposition = validate_report_document(&bytes).map_err(|error| (2, error))?;
     let exit_class = report_exit_class(&bytes, disposition).map_err(|error| (2, error))?;
     publish_report_new(&output, &bytes).map_err(|error| (4, error.to_string()))?;
-    eprintln!("quire-analyze: published {}", output.display());
+    eprintln!("filament-analyze: published {}", output.display());
     Ok(exit_class)
 }
 
@@ -96,5 +96,5 @@ fn report_exit_class(bytes: &[u8], disposition: DifferentialDisposition) -> Resu
 }
 
 fn usage() -> String {
-    "usage: quire-analyze publish-report --input REPORT.json --output NEW_REPORT.json".to_owned()
+    "usage: filament-analyze publish-report --input REPORT.json --output NEW_REPORT.json".to_owned()
 }

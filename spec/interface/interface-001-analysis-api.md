@@ -12,9 +12,9 @@ name: ContractAnalysis
 version: current-library-v1
 status: accepted under IR-1294; callable library stages and publication-only CLI
 input:
-  package: typed statements and clause identities from quire-contract-model in the quire-contract-ir repository
+  package: typed statements and clause identities from filament-contract-model in the filament-contract-ir repository
   request: closed analysis kind, kind-specific ordered statement groups and explicit bindings; statements carry execution points
-  profiles_and_limits: lowering uses fixed `quire.smtlib2/v2` profile and ceilings; execution receives caller-supplied SolverConfig
+  profiles_and_limits: lowering uses fixed `filament.smtlib2/v2` profile and ceilings; execution receives caller-supplied SolverConfig
 analysis_kinds: [consistency, contradiction, implication, redundancy, dead-antecedent]
 operations:
   - name: prepare
@@ -24,7 +24,7 @@ operations:
     semantics: constructors validate required groups and duplicate identities; lowering performs remaining checks before solver execution
   - name: lower
     entry_point: src/analysis.rs lower_analysis_request; src/smt.rs lower_boolean_statements
-    current: implemented library `quire.smtlib2/v2` lowering
+    current: implemented library `filament.smtlib2/v2` lowering
     output: "Result<QueryBundle, Vec<LoweringError>>"
     semantics: canonical exact SMT-LIB2 plus assertion and symbol maps; approximation is non-conclusive
   - name: execute
@@ -67,7 +67,7 @@ resource_limits:
   adapter: [wall_time_ms, cleanup_time_ms, graceful_cleanup_ms, monitor_interval_ms, stdin_bytes, stdout_bytes, stderr_bytes, model_bytes, version_bytes, path_bytes]
 lowering_v2:
   request_kind: boolean_conjunction
-  profile: quire.smtlib2/v2
+  profile: filament.smtlib2/v2
   logic: QF_LIA for queries without datatype declarations; QF_UFDTLIA with datatypes; LIA or UFDTLIA for a query that holds a bounded solver quantifier (FR-032)
   identities: [binding_set_digest, analysis_request_digest, query_digest]
   maps: [named_assertion_to_clause_and_span, variable_to_complete_origins_and_binding, quantifier_to_source_domain_encoding_instances_and_domain_data]
@@ -83,7 +83,7 @@ compatibility:
 
 | Feature | Kind |
 |---|---|
-| `quire.smtlib2/v2` analysis stages | Library API |
+| `filament.smtlib2/v2` analysis stages | Library API |
 | Differential evidence and existing-report publication | Library API and publish-only CLI |
 
 ## Invariants
@@ -101,11 +101,11 @@ currently composes prepare through compare.
 Hybrid reachability and canonical synthesis are separate providers in `src/hybrid_synthesis.rs`,
 returning method outcomes through `crates/method-contract`; they are outside this Boolean SMT
 classification contract. The PGM-01 shared envelope remains unavailable pending
-`quire-contract-ir#20`, so a local placeholder cannot establish full evidence compliance.
+`filament-contract-ir#20`, so a local placeholder cannot establish full evidence compliance.
 
-Cargo.toml and Cargo.lock declare and resolve the `quire-contract-model` crate from the
-`quire-contract-ir` repository. The runtime
-report uses `quire.differential-report/v2`, a closed contract without `contractIrRevision`. It
+Cargo.toml and Cargo.lock declare and resolve the `filament-contract-model` crate from the
+`filament-contract-ir` repository. The runtime
+report uses `filament.differential-report/v2`, a closed contract without `contractIrRevision`. It
 retains producer application name/version and canonical clause, binding, request and query
 identities plus raw solver-stream bytes. The standalone validator accepts v2 only; the bound
 validator also reconstructs identities from the authoritative query and differential run. No v1

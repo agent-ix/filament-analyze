@@ -3,11 +3,11 @@ id: TC-010
 title: "Verify the exact Boolean SMT-LIB2 v1 lowering slice"
 type: TC
 relationships:
-  - target: ix://agent-ix/quire-analyze/FR-001
+  - target: ix://agent-ix/filament-analyze/FR-001
     type: verifies
-  - target: ix://agent-ix/quire-analyze/FR-002
+  - target: ix://agent-ix/filament-analyze/FR-002
     type: verifies
-  - target: ix://agent-ix/quire-analyze/NFR-001
+  - target: ix://agent-ix/filament-analyze/NFR-001
     type: verifies
 ---
 # TC-010: Verify the exact Boolean SMT-LIB2 v1 lowering slice

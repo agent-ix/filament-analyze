@@ -25,7 +25,7 @@ independent approval, PGM-01 evidence authority, or a release decision.
 | EVI-F07 | high | Rendering a legacy non-analysis query could panic. | Closed: rendering is fallible and rejects a query without an analysis kind. |
 | EVI-F08 | high | Atomic publication boundary failures are not individually injectable. | Open as defense-in-depth QA issue #23; existing-destination refusal, unchanged bytes, and staging residue are tested now. |
 | EVI-F09 | high | The direct analysis CLI and complete retained real-engine corpus are not implemented. | Open as QA issue #24. V1 is explicitly library-first and the CLI validates/publishes authoritative library bytes. |
-| EVI-F10 | critical | The shared PGM-01 envelope/integrity component remains undecided upstream. | Open and fail-closed on `quire-contract-ir#20`; reports say `unavailable`, and FR-005-AC-2/Task-007 cannot complete. |
+| EVI-F10 | critical | The shared PGM-01 envelope/integrity component remains undecided upstream. | Open and fail-closed on `filament-contract-ir#20`; reports say `unavailable`, and FR-005-AC-2/Task-007 cannot complete. |
 
 ## Verdict
 

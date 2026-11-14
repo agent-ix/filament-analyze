@@ -3,9 +3,9 @@ id: TC-001
 title: "Verify analysis algebra and truth table"
 type: TC
 relationships:
-  - target: ix://agent-ix/quire-analyze/FR-001
+  - target: ix://agent-ix/filament-analyze/FR-001
     type: verifies
-  - target: ix://agent-ix/quire-analyze/FR-004
+  - target: ix://agent-ix/filament-analyze/FR-004
     type: verifies
 ---
 # TC-001: Verify analysis algebra and truth table

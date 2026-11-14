@@ -3,13 +3,13 @@ id: TC-020
 title: "Verify enum, record and option analysis"
 type: TC
 relationships:
-  - target: ix://agent-ix/quire-analyze/FR-020
+  - target: ix://agent-ix/filament-analyze/FR-020
     type: verifies
-  - target: ix://agent-ix/quire-analyze/FR-021
+  - target: ix://agent-ix/filament-analyze/FR-021
     type: verifies
-  - target: ix://agent-ix/quire-analyze/FR-022
+  - target: ix://agent-ix/filament-analyze/FR-022
     type: verifies
-  - target: ix://agent-ix/quire-analyze/NFR-020
+  - target: ix://agent-ix/filament-analyze/NFR-020
     type: verifies
 ---
 # TC-020: Verify enum, record and option analysis
@@ -28,7 +28,7 @@ installed. Parse hand-written model text in the spelling of each solver for ever
 for invalid values (unknown constructor, wrong arity, wrong sort, abstract element, malformed
 text), and replay them. Permute environment, variant, field and statement order. Exceed each
 NFR-020 bound by one. Build contract-package fixtures at test time for an enum-membership claim, a
-record-field claim, an option-access claim under a `quire.op.option.present` guard, and each refused term, and run `run-package` as a child process.
+record-field claim, an option-access claim under a `filament.op.option.present` guard, and each refused term, and run `run-package` as a child process.
 
 ## Expected Results
 

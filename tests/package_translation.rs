@@ -1,19 +1,19 @@
 //! FR-009 translation of `analysis_claim` nodes into analysis statements (TC-015 case 19).
 //!
 //! Every contract package here is built at test time through the public path:
-//! a `quire.checked-package/v2` document built in this file, `CheckedPackageV2::read`,
+//! a `filament.checked-package/v2` document built in this file, `CheckedPackageV2::read`,
 //! `CheckedPackageV2::lower` with `CompleteLoweringProfileV2`, the canonical bytes of the
 //! `CompleteContractPackageV2`, and `ContractPackageWireV1::read`.
 
-use ix_trace_rs::trace;
-use quire_analyze::{
+use filament_analyze::{
     lower_analysis_request, translate_analysis_claims, TranslationError, TranslationErrorKind,
 };
-use quire_contract_model::{
+use filament_contract_model::{
     BooleanOperator, CheckedPackageReadLimits, ComparisonOperator, ContractPackageReadResult,
     ContractPackageV1, ContractPackageWireV1, ExecutionPoint, ExpressionKind, ValueDeclarationKind,
     ValueType,
 };
+use ix_trace_rs::trace;
 use serde_json::{json, Value};
 
 mod common;
@@ -198,7 +198,7 @@ fn spans_come_from_the_first_region_of_the_first_occurrence() {
     let claim = document.claim(&not);
     let (package, translation) = translate(&document, &[&claim]);
 
-    let check = |span: &quire_contract_model::SourceSpan, label: &str| {
+    let check = |span: &filament_contract_model::SourceSpan, label: &str| {
         let (start, end) = document.region(label);
         assert_eq!((span.start().line(), span.start().column()), (1, 1));
         assert_eq!((span.end().line(), span.end().column()), (1, 1));
@@ -295,10 +295,18 @@ fn an_operation_outside_the_supported_subset_is_refused_at_its_node() {
     let range = document.range();
     let a = document.parameter_of(&range);
     let b = document.parameter_of(&range);
-    let other = document.application("quire.op.integer.add", &[&a, &b], &range);
-    let less = document.application("quire.op.integer.lt", &[&other, &b], "scalar_type/boolean");
+    let other = document.application("filament.op.integer.add", &[&a, &b], &range);
+    let less = document.application(
+        "filament.op.integer.lt",
+        &[&other, &b],
+        "scalar_type/boolean",
+    );
     let claim = document.claim(&less);
-    let bytes = with_identity(&document.bytes(&[&claim]), &other, "quire.op.integer.min");
+    let bytes = with_identity(
+        &document.bytes(&[&claim]),
+        &other,
+        "filament.op.integer.min",
+    );
     let package = read_package(&bytes);
     let error = translate_analysis_claims(&package).expect_err("refused");
     assert_refused_at(&package, &error, TranslationErrorKind::CannotLower, &other);

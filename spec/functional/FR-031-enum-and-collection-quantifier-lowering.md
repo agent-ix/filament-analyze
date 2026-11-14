@@ -3,13 +3,13 @@ id: FR-031
 title: "Lower quantifiers over enum domains and finite collections by expansion"
 type: FR
 relationships:
-  - target: ix://agent-ix/quire-analyze/FR-030
+  - target: ix://agent-ix/filament-analyze/FR-030
     type: depends_on
-  - target: ix://agent-ix/quire-analyze/FR-002
+  - target: ix://agent-ix/filament-analyze/FR-002
     type: depends_on
-  - target: ix://agent-ix/quire-analyze/FR-020
+  - target: ix://agent-ix/filament-analyze/FR-020
     type: depends_on
-  - target: ix://agent-ix/quire-analyze/StR-001
+  - target: ix://agent-ix/filament-analyze/StR-001
     type: implements
 ---
 # FR-031: Lower quantifiers over enum domains and finite collections by expansion
@@ -45,9 +45,9 @@ universal and by disjunction for an existential quantifier.
   type; [FR-030-AC-6](./FR-030-bounded-quantifier-domains.md) defines the permitted empty collection
   element sorts.
 - Instances appear in domain order. An enum domain uses declaration order. For a collection, a
-  `quire.op.collection.set` and a `quire.op.collection.bag` are enumerated in ascending canonical
+  `filament.op.collection.set` and a `filament.op.collection.bag` are enumerated in ascending canonical
   element order (false before true, enum declaration order, ascending integer), and a
-  `quire.op.collection.ordered_set` and a `quire.op.collection.sequence` in written order. In a
+  `filament.op.collection.ordered_set` and a `filament.op.collection.sequence` in written order. In a
   `set` and an `ordered_set` a repeated literal collapses to its first occurrence; in a `bag` and a
   `sequence` every occurrence is an instance. The instance count is the number of elements after this
   rule, and an empty collection is an empty domain.

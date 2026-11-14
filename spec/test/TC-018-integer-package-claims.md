@@ -3,7 +3,7 @@ id: TC-018
 title: "Verify integer analysis_claim translation in the package runner"
 type: TC
 relationships:
-  - target: ix://agent-ix/quire-analyze/FR-012
+  - target: ix://agent-ix/filament-analyze/FR-012
     type: verifies
 ---
 # TC-018: Verify integer analysis_claim translation in the package runner
@@ -14,7 +14,7 @@ Verify that `run-package` translates integer `analysis_claim` terms and still re
 
 ## Test Procedure
 
-Build contract-package fixtures at test time through the `quire-contract-*` APIs, as TC-015 does, with
+Build contract-package fixtures at test time through the `filament-contract-*` APIs, as TC-015 does, with
 integer parameters and linear claims, contradictory claims, a product of parameters, a division, a
 reference cycle, and size-bound boundary trees. Spawn the built binary with a stub `producer-execute`
 returning controlled results, and assert exit statuses, stderr naming, and report validity. Translate

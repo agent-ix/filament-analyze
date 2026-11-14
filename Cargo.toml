@@ -1,5 +1,5 @@
 [package]
-name = "quire-analyze"
+name = "filament-analyze"
 version = "0.1.0"
 edition = "2021"
 rust-version = "1.98.1"
@@ -7,10 +7,10 @@ description = "SMT-backed consistency and implication analysis for versioned req
 authors = ["Peter Krenesky <kreneskyp@gmail.com>"]
 license = "AGPL-3.0-or-later"
 publish = false
-repository = "https://github.com/agent-ix/quire-analyze"
+repository = "https://github.com/agent-ix/filament-analyze"
 
 [lib]
-name = "quire_analyze"
+name = "filament_analyze"
 path = "src/lib.rs"
 
 [workspace]
@@ -27,11 +27,11 @@ workspace = true
 ix-cli-kit = { git = "https://github.com/agent-ix/ix-cli-kit", branch = "main" }
 jsonschema = { version = "=0.17.1", default-features = false }
 libc = "=0.2.189"
-quire-contract-model = { git = "https://github.com/agent-ix/quire-contract-ir", branch = "main", version = "=0.1.0" }
+filament-contract-model = { git = "https://github.com/agent-ix/filament-contract-ir", branch = "main", version = "=0.1.0" }
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.151"
 sha2 = "=0.10.9"
-quire-analyze-method-contract = { path = "crates/method-contract", version = "=0.1.0" }
+filament-analyze-method-contract = { path = "crates/method-contract", version = "=0.1.0" }
 
 [dev-dependencies]
 ix-trace-rs = { git = "https://github.com/agent-ix/ix-trace-rs", branch = "main" }

@@ -1,7 +1,7 @@
 //! Shared, dependency-light outcome contract for Analyze providers.
 
 /// Version of the shared method-outcome contract.
-pub const METHOD_RESULT_VERSION: &str = "quire.method-result/v1";
+pub const METHOD_RESULT_VERSION: &str = "filament.method-result/v1";
 
 /// Analyze method whose terminal outcome is being retained.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]

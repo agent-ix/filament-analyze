@@ -10,7 +10,7 @@ use std::{
     time::{Duration, SystemTime, UNIX_EPOCH},
 };
 
-use quire_contract_model::{
+use filament_contract_model::{
     CheckedPackageReadLimits, ContractPackageReadResult, ContractPackageWireV1,
 };
 
@@ -83,7 +83,7 @@ pub fn run_package(arguments: &RunPackageArguments) -> Result<u8, RunnerError> {
     publish_with(&output, &bytes, publish_report_new)?;
     drop(root);
     eprint!("{}", render_differential_summary(&run));
-    eprintln!("quire-analyze: published {}", output.display());
+    eprintln!("filament-analyze: published {}", output.display());
     Ok(exit_status(run.disposition(), run.agreed_status()))
 }
 
@@ -208,7 +208,7 @@ impl CapabilityRoot {
             .map_or(0, |elapsed| elapsed.as_nanos());
         let counter = ROOT_COUNTER.fetch_add(1, Ordering::Relaxed);
         let path = parent.join(format!(
-            ".quire-analyze-run-{}-{nanos}-{counter}",
+            ".filament-analyze-run-{}-{nanos}-{counter}",
             std::process::id()
         ));
         fs::DirBuilder::new().mode(0o700).create(&path)?;
@@ -237,7 +237,7 @@ impl Drop for CapabilityRoot {
         if let Err(error) = fs::remove_dir_all(&self.path) {
             if error.kind() != io::ErrorKind::NotFound {
                 eprintln!(
-                    "quire-analyze: cannot remove the capability root {}: {error}",
+                    "filament-analyze: cannot remove the capability root {}: {error}",
                     self.path.display()
                 );
             }

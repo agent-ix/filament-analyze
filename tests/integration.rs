@@ -1,4 +1,4 @@
-use quire_analyze::hello;
+use filament_analyze::hello;
 
 #[test]
 fn hello_is_non_empty() {

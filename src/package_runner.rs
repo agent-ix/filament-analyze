@@ -1,8 +1,8 @@
 //! The `run-package` runner (FR-009, NFR-003).
 //!
-//! The runner reads one `quire.contract-package/v1` document, takes one consistency
+//! The runner reads one `filament.contract-package/v1` document, takes one consistency
 //! request from its `analysis_claim` nodes, runs Z3 and cvc5 over the lowered query
-//! only through `producer-execute`, and publishes one `quire.differential-report/v2`
+//! only through `producer-execute`, and publishes one `filament.differential-report/v2`
 //! report. The exit status follows the report: `0` satisfied, `1` refuted, `2` usage or
 //! input error, `3` non-conclusive, `4` publication or executor failure.
 
@@ -30,7 +30,7 @@ pub const EXIT_NON_CONCLUSIVE: u8 = 3;
 /// Exit status of a publication or executor failure.
 pub const EXIT_FAILURE: u8 = 4;
 
-const USAGE: &str = "usage: quire-analyze run-package --package FILE --output NEW_REPORT.json \
+const USAGE: &str = "usage: filament-analyze run-package --package FILE --output NEW_REPORT.json \
 --z3 PATH --cvc5 PATH --producer-execute PATH";
 
 /// The help text of `run-package`: the five arguments and the exit classes.
@@ -38,11 +38,11 @@ pub fn run_package_help() -> String {
     [
         USAGE,
         "",
-        "Run one differential consistency analysis over a quire.contract-package/v1 document",
-        "and publish one quire.differential-report/v2 report.",
+        "Run one differential consistency analysis over a filament.contract-package/v1 document",
+        "and publish one filament.differential-report/v2 report.",
         "",
         "Arguments:",
-        "  --package FILE            the quire.contract-package/v1 document",
+        "  --package FILE            the filament.contract-package/v1 document",
         "  --output NEW_REPORT.json  the report destination, which must not exist beforehand",
         "  --z3 PATH                 the absolute path of the Z3 executable",
         "  --cvc5 PATH               the absolute path of the cvc5 executable",

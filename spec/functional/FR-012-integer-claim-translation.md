@@ -1,22 +1,22 @@
 ---
 id: FR-012
-title: "Translate integer analysis_claim terms from QSL contract packages"
+title: "Translate integer analysis_claim terms from FSL contract packages"
 type: FR
 relationships:
-  - target: ix://agent-ix/quire-analyze/FR-009
+  - target: ix://agent-ix/filament-analyze/FR-009
     type: depends_on
-  - target: ix://agent-ix/quire-analyze/FR-010
+  - target: ix://agent-ix/filament-analyze/FR-010
     type: depends_on
-  - target: ix://agent-ix/quire-analyze/StR-001
+  - target: ix://agent-ix/filament-analyze/StR-001
     type: implements
 ---
-# FR-012: Translate integer analysis_claim terms from QSL contract packages
+# FR-012: Translate integer analysis_claim terms from FSL contract packages
 
 ## Description
 
 The `run-package` runner of [FR-009](./FR-009-package-runner.md) shall translate an `analysis_claim`
 whose body uses integer values, linear arithmetic or ordering into an analysis statement that
-FR-010 lowers, instead of exiting `2` for it. The runner stays QSL-fed: the terms come from the
+FR-010 lowers, instead of exiting `2` for it. The runner stays FSL-fed: the terms come from the
 contract package, and the runner adds no source language and no solver.
 
 ## Behavior
@@ -30,18 +30,18 @@ contract package, and the runner adds no source language and no solver.
 |---|---|
 | `Literal` of integer value kind with an integer type | `ExpressionKind::IntegerLiteral` with that integer type |
 | `Reference` to a `value/parameter` node whose `semantic_type` is an `integer_range` | `ExpressionKind::ValueReference`, name `nN`, observation `Current` |
-| `Application` of `quire.op.integer.negate` | `ExpressionKind::NumericNegate` |
-| `Application` of `quire.op.integer.add` | `ExpressionKind::Numeric` with `NumericOperator::Add` |
-| `Application` of `quire.op.integer.sub` | `ExpressionKind::Numeric` with `NumericOperator::Subtract` |
-| `Application` of `quire.op.integer.mul` | `ExpressionKind::Numeric` with `NumericOperator::Multiply` |
-| `Application` of `quire.op.integer.eq` | `ExpressionKind::Compare` with `ComparisonOperator::Equal` |
-| `Application` of `quire.op.integer.ne` | `ExpressionKind::Compare` with `ComparisonOperator::NotEqual` |
-| `Application` of `quire.op.integer.lt` | `ExpressionKind::Compare` with `ComparisonOperator::Less` |
-| `Application` of `quire.op.integer.le` | `ExpressionKind::Compare` with `ComparisonOperator::LessEqual` |
-| `Application` of `quire.op.integer.gt` | `ExpressionKind::Compare` with `ComparisonOperator::Greater` |
-| `Application` of `quire.op.integer.ge` | `ExpressionKind::Compare` with `ComparisonOperator::GreaterEqual` |
+| `Application` of `filament.op.integer.negate` | `ExpressionKind::NumericNegate` |
+| `Application` of `filament.op.integer.add` | `ExpressionKind::Numeric` with `NumericOperator::Add` |
+| `Application` of `filament.op.integer.sub` | `ExpressionKind::Numeric` with `NumericOperator::Subtract` |
+| `Application` of `filament.op.integer.mul` | `ExpressionKind::Numeric` with `NumericOperator::Multiply` |
+| `Application` of `filament.op.integer.eq` | `ExpressionKind::Compare` with `ComparisonOperator::Equal` |
+| `Application` of `filament.op.integer.ne` | `ExpressionKind::Compare` with `ComparisonOperator::NotEqual` |
+| `Application` of `filament.op.integer.lt` | `ExpressionKind::Compare` with `ComparisonOperator::Less` |
+| `Application` of `filament.op.integer.le` | `ExpressionKind::Compare` with `ComparisonOperator::LessEqual` |
+| `Application` of `filament.op.integer.gt` | `ExpressionKind::Compare` with `ComparisonOperator::Greater` |
+| `Application` of `filament.op.integer.ge` | `ExpressionKind::Compare` with `ComparisonOperator::GreaterEqual` |
 
-- **Integer types of terms.** The IR (FR-014 of `quire-contract-ir`) gives every integer expression one
+- **Integer types of terms.** The IR (FR-014 of `filament-contract-ir`) gives every integer expression one
   complete `IntegerType` and requires the operands of a numeric operation or a comparison to carry equal
   types. The translation assigns types as follows.
   - A `Reference` to an `integer_range` parameter has the integer type of that range:
@@ -60,7 +60,7 @@ contract package, and the runner adds no source language and no solver.
     range of its type. An operation passes the check only when its result interval lies inside the
     range: any operation over a range of one point, `x + 0`, `x * 1` and negation over a symmetric
     range pass; `x + 1`, `x + y`, `x - y` and `5 * x` over a wider range do not. Admitting linear
-    arithmetic over a wider range needs an upstream `quire-contract-ir` capability (operands of
+    arithmetic over a wider range needs an upstream `filament-contract-ir` capability (operands of
     different ranges with a stated result type, or range facts supplied to `check_expression`); the
     runner does not work around it. Until that capability exists, a claim that needs it exits `2`
     naming `claim-N` and the IR message (a clause-level refusal of FR-009, not
@@ -70,7 +70,7 @@ contract package, and the runner adds no source language and no solver.
   apply. Claims that reference the same
   node share one declaration, as FR-009 states for Boolean parameters.
 - **Non-linear and other integer terms.** A multiplication whose operands both contain a parameter, a
-  `quire.op.integer.div`, `quire.op.integer.rem` or `quire.op.integer.mod` application, and any integer operation not listed above
+  `filament.op.integer.div`, `filament.op.integer.rem` or `filament.op.integer.mod` application, and any integer operation not listed above
   still make the runner exit `2` naming the node as `semantic_graph.nodes[N]`, with no report.
 - **Same bounds.** The depth, node-count and shared-subterm bounds of FR-009 apply unchanged to the
   integer terms.
@@ -78,7 +78,7 @@ contract package, and the runner adds no source language and no solver.
   declarations, integer bounds and source spans.
 - **End to end.** A package with an integer claim runs through lowering, both solvers executed by
   `producer-execute`, integer witness replay (FR-011) and report publication as FR-009 describes, and
-  the published report is a `quire.differential-report/v2` document.
+  the published report is a `filament.differential-report/v2` document.
 
 ## Acceptance Criteria
 
@@ -86,7 +86,7 @@ contract package, and the runner adds no source language and no solver.
 |---|---|---|
 | FR-012-AC-1 | A package fixture whose `analysis_claims` bound a dose by a maximum and the maximum by a weight (`dose <= max` and `max <= 1 * weight` over three integer parameters of one `integer_range`, the form the upstream limitation admits) runs end to end with controlled solver results and exits `0` with a report that `validate_report_document` accepts. | Test (TC-018) |
 | FR-012-AC-2 | The same fixture with contradictory claims exits `1` with agreed status `refuted`. | Test (TC-018) |
-| FR-012-AC-3 | A claim whose body multiplies two parameters, one that applies `quire.op.integer.div`, `.rem` or `.mod`, and one with a reference cycle each exit `2` naming `semantic_graph.nodes[N]` of the node where translation stopped, with no report; the library refusal and the spawned `run-package` binary both show it. | Test (TC-018) |
+| FR-012-AC-3 | A claim whose body multiplies two parameters, one that applies `filament.op.integer.div`, `.rem` or `.mod`, and one with a reference cycle each exit `2` naming `semantic_graph.nodes[N]` of the node where translation stopped, with no report; the library refusal and the spawned `run-package` binary both show it. | Test (TC-018) |
 | FR-012-AC-4 | Each row of the Terms added table translates to the stated expression kind and operator, a comparison nests under a Boolean operation, and an integer operand of a Boolean operation exits `2` naming the node. | Test (TC-018) |
 | FR-012-AC-5 | Two claims that reference the same integer parameter node yield one declaration with the integer bounds of its type; two distinct parameter nodes yield two. | Test (TC-018) |
 | FR-012-AC-6 | Two translations of the same package bytes yield equal clause order, identifiers, declarations, bounds and spans. | Test (TC-018) |

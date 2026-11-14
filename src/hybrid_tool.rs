@@ -11,7 +11,7 @@ use std::{
     time::Duration,
 };
 
-use quire_analyze_method_contract::{AnalyzeMethod, AnalyzeOutcome};
+use filament_analyze_method_contract::{AnalyzeMethod, AnalyzeOutcome};
 use serde::{Deserialize, Serialize};
 
 use crate::{
@@ -20,7 +20,7 @@ use crate::{
     MAX_SOLVER_WALL_TIME_MS,
 };
 
-const RESULT_SCHEMA: &str = "quire-analyze.hybrid-tool-result/v1";
+const RESULT_SCHEMA: &str = "filament-analyze.hybrid-tool-result/v1";
 const MAX_MODE_BYTES: usize = 128;
 const MAX_TRANSITIONS: usize = 100_000;
 const MAX_RESULT_ENTRIES: usize = 4_000_000;
@@ -741,8 +741,10 @@ struct CapabilityRoot(PathBuf);
 impl CapabilityRoot {
     fn create() -> Result<Self, ()> {
         let id = ROOT_COUNTER.fetch_add(1, Ordering::Relaxed);
-        let root =
-            std::env::temp_dir().join(format!("quire-analyze-phaver-{}-{id}", std::process::id()));
+        let root = std::env::temp_dir().join(format!(
+            "filament-analyze-phaver-{}-{id}",
+            std::process::id()
+        ));
         #[cfg(unix)]
         {
             use std::os::unix::fs::DirBuilderExt;
@@ -815,7 +817,7 @@ mod tests {
         fn from_script(script: String) -> Self {
             let id = STUB_COUNTER.fetch_add(1, AtomicOrdering::Relaxed);
             let root = std::env::temp_dir().join(format!(
-                "quire-analyze-hybrid-stub-{}-{id}",
+                "filament-analyze-hybrid-stub-{}-{id}",
                 std::process::id()
             ));
             fs::create_dir(&root).expect("create stub directory");

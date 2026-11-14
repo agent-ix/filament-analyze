@@ -5,7 +5,7 @@ type: MeasurementPlan
 status: proposed
 owner: analyze-maintainers
 metric: analysis_semantic_fault_differential_and_evidence_conformance
-definition_version: quire-analyze.measurement-v1
+definition_version: filament-analyze.measurement-v1
 stage: gate
 ground_truth_kind: mechanical
 statistical_design:
@@ -25,7 +25,7 @@ negative_controls:
   - kind: selective-reporting
     description: Retain all three repetitions and all Z3 and cvc5 outcomes, including unavailable and inconclusive results.
 relationships:
-  - target: ix://agent-ix/quire-analyze/AP-001
+  - target: ix://agent-ix/filament-analyze/AP-001
     type: measures
 ---
 # Contract analysis measurement plan

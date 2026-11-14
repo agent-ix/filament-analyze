@@ -18,7 +18,7 @@ controls:
 isolation: no dependency on Quoin Quire or engineering-assurance repositories at runtime
 replacement: preserve semantics outcomes identities bounds evidence and differential contracts
 relationships:
-  - target: ix://agent-ix/quire-analyze/AP-001
+  - target: ix://agent-ix/filament-analyze/AP-001
     type: references
 ---
 # Contract analysis component assurance contract

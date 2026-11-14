@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://agent-ix.github.io/quire-analyze/schemas/differential-report-v2.schema.json",
-  "title": "quire.differential-report/v2",
+  "$id": "https://agent-ix.github.io/filament-analyze/schemas/differential-report-v2.schema.json",
+  "title": "filament.differential-report/v2",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -22,7 +22,7 @@
   ],
   "properties": {
     "analysisKind": { "enum": ["consistency", "contradiction", "implication", "redundancy", "dead-antecedent"] },
-    "analysisModelProfile": { "const": "quire.analysis-model/v1" },
+    "analysisModelProfile": { "const": "filament.analysis-model/v1" },
     "assertions": {
       "type": "array",
       "minItems": 1,
@@ -50,7 +50,7 @@
         "disposition": { "enum": ["agreement", "disagreement", "unavailable", "inconclusive"] }
       }
     },
-    "encodingProfile": { "const": "quire.smtlib2/v2" },
+    "encodingProfile": { "const": "filament.smtlib2/v2" },
     "engines": {
       "type": "array",
       "minItems": 2,
@@ -63,7 +63,7 @@
       "additionalProperties": false,
       "required": ["dependency", "status"],
       "properties": {
-        "dependency": { "const": "agent-ix/quire-contract-ir#20" },
+        "dependency": { "const": "agent-ix/filament-contract-ir#20" },
         "status": { "const": "unavailable" }
       }
     },
@@ -72,14 +72,14 @@
       "additionalProperties": false,
       "required": ["name", "version"],
       "properties": {
-        "name": { "const": "quire-analyze" },
+        "name": { "const": "filament-analyze" },
         "version": { "type": "string", "minLength": 1 }
       }
     },
     "queryDigest": { "$ref": "#/definitions/digest" },
     "queryHex": { "$ref": "#/definitions/hexBytes" },
     "requestDigest": { "$ref": "#/definitions/digest" },
-    "schema": { "const": "quire.differential-report/v2" }
+    "schema": { "const": "filament.differential-report/v2" }
   },
   "definitions": {
     "digest": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
@@ -157,7 +157,7 @@
         "modelHex": { "$ref": "#/definitions/hexBytes" },
         "outcome": { "enum": ["sat", "unsat", "unknown", "timed-out", "cancelled", "missing-executable", "spawn-error", "identity-error", "solver-error", "malformed-output", "contradictory-output", "nonzero-exit", "signaled", "stdin-limit", "stdout-limit", "stderr-limit", "diagnostic-output", "model-limit", "cleanup-failed", "unsupported-platform", "io-error"] },
         "processExit": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/processExit" }] },
-        "profile": { "const": "quire.solver-process/v1" },
+        "profile": { "const": "filament.solver-process/v1" },
         "queryDigest": { "$ref": "#/definitions/digest" },
         "status": { "enum": ["satisfied", "refuted", "unknown", "unsupported", "timeout", "tool-error"] },
         "stderrHex": { "$ref": "#/definitions/hexBytes" },

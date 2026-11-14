@@ -17,9 +17,9 @@ the PGM-01 human owner and is not decided here.
 The original ADR-0010 in `quire-rs` decided process-based SMT-LIB2 and separation from LLM
 formalization, but left Q2—IR shape, cross-requirement shared-variable identity, and encoding
 versioning—to spike `agent-ix/quire-rs#164`. That issue is closed and explicitly superseded by
-`agent-ix/quire-analyze#6`.
+`agent-ix/filament-analyze#6`.
 
-The premise changed materially: accepted `quire-contract-ir` now supplies a typed expression tree,
+The premise changed materially: accepted `filament-contract-ir` now supplies a typed expression tree,
 closed value types, definedness obligations, complete requirement/dependency identities, execution
 points, canonical semantic bytes, and clause digests. Recreating that expression algebra here would
 create two semantic authorities. Emitting solver strings directly from an upstream formalizer would
@@ -34,7 +34,7 @@ identity alternatives directly and discloses that limitation.
 
 ### 1. Reuse the contract IR and add only an analysis algebra
 
-`quire.analysis-model/v1` is a minimal engine-neutral algebra over already validated contract-IR
+`filament.analysis-model/v1` is a minimal engine-neutral algebra over already validated contract-IR
 clauses. It contains:
 
 - one of the five closed analysis kinds from FR-001;
@@ -51,7 +51,7 @@ It does not copy the contract expression tree into a second guard/obligation AST
 walks the authoritative typed expression under this analysis context. It does not accept raw
 SMT-LIB2 as a statement representation.
 
-`quire.smtlib2/v1` is the first backend encoding-profile identity. Issue #7 owns its exact lowering
+`filament.smtlib2/v1` is the first backend encoding-profile identity. Issue #7 owns its exact lowering
 and capability table. A future backend can consume the same analysis model without changing its
 selection, binding, or source identities.
 
@@ -112,23 +112,23 @@ algorithm: correctness still depends on the workflow and human review that autho
 ### 3. Statement, binding, request, and query identities are separate
 
 The source statement identity contains the complete clause reference (including requirement
-revision), `quire.contract.canonical-json/v1`, and the accepted clause canonical digest.
+revision), `filament.contract.canonical-json/v1`, and the accepted clause canonical digest.
 
 The v1 identities are domain-separated SHA-256 values over canonical length-delimited fields:
 
 ```text
-binding-set digest = H("quire-analyze", "bindings", analysis-model profile,
+binding-set digest = H("filament-analyze", "bindings", analysis-model profile,
                        sorted complete binding groups)
 
-analysis-statement digest = H("quire-analyze", "statement", analysis-model profile,
+analysis-statement digest = H("filament-analyze", "statement", analysis-model profile,
                               source statement identity, execution point,
                               type-shape digests, binding-set digest)
 
-analysis-request digest = H("quire-analyze", "request", analysis-model profile,
+analysis-request digest = H("filament-analyze", "request", analysis-model profile,
                             analysis kind, canonical statement groups, semantic limits,
                             binding-set digest)
 
-query digest = H("quire-analyze", "query", encoding-profile identity,
+query digest = H("filament-analyze", "query", encoding-profile identity,
                  analysis-request digest, exact query bytes)
 ```
 
@@ -165,7 +165,7 @@ than a retry-to-consensus loop. Choosing a sample count remains outside this det
 ## Consequences
 
 - Issue #7 implements the analysis-model validator, canonical identity encoding, capability table,
-  type-shape projection, and exact `quire.smtlib2/v1` lowering before any adapter executes.
+  type-shape projection, and exact `filament.smtlib2/v1` lowering before any adapter executes.
 - Every report carries binding coverage: selected dependencies, explicitly shared dependencies, and
   unbound cross-requirement name candidates. Missing bindings weaken scope and remain visible.
 - A human or upstream workflow owns proposed bindings; the analyzer owns structural validation and

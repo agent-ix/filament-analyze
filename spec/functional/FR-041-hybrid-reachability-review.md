@@ -3,7 +3,7 @@ id: FR-041
 title: Review the hybrid reachability module and record one disposition
 type: FR
 relationships:
-  - target: ix://agent-ix/quire-analyze/StR-001
+  - target: ix://agent-ix/filament-analyze/StR-001
     type: implements
 ---
 # FR-041: Review the hybrid reachability module and record one disposition

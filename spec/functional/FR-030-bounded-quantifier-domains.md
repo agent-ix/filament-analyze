@@ -3,13 +3,13 @@ id: FR-030
 title: "Refuse quantifiers over unbounded domains"
 type: FR
 relationships:
-  - target: ix://agent-ix/quire-analyze/FR-002
+  - target: ix://agent-ix/filament-analyze/FR-002
     type: depends_on
-  - target: ix://agent-ix/quire-analyze/FR-020
+  - target: ix://agent-ix/filament-analyze/FR-020
     type: depends_on
-  - target: ix://agent-ix/quire-analyze/StR-001
+  - target: ix://agent-ix/filament-analyze/StR-001
     type: implements
-  - target: ix://agent-ix/quire-analyze/interface_001
+  - target: ix://agent-ix/filament-analyze/interface_001
     type: implements
 ---
 # FR-030: Refuse quantifiers over unbounded domains
@@ -23,13 +23,13 @@ expanded or enumerated over a finite bound; the analyzer never approximates an u
 ## Behavior
 
 - Admitted domains (amending [FR-002](./FR-002-smt-lowering.md), which lists quantifiers as
-  unsupported, under the same profile `quire.smtlib2/v2`):
+  unsupported, under the same profile `filament.smtlib2/v2`):
   - an enum domain: every declared member of the enum, in declaration order. Enum sorts are those of
-    [FR-020](./FR-020-datatype-lowering.md). From a QSL package an enum domain is a finite collection
+    [FR-020](./FR-020-datatype-lowering.md). From a FSL package an enum domain is a finite collection
     whose elements are enum literals ([FR-034](./FR-034-quantifier-package-translation.md));
   - a finite collection: a collection literal whose elements are literals fixed at translation time
-    (the catalog constructors `quire.op.collection.set`, `quire.op.collection.ordered_set`,
-    `quire.op.collection.sequence` and `quire.op.collection.bag`), with element sorts limited to
+    (the catalog constructors `filament.op.collection.set`, `filament.op.collection.ordered_set`,
+    `filament.op.collection.sequence` and `filament.op.collection.bag`), with element sorts limited to
     Boolean, enum and bounded integer. It has no SMT collection sort and is consumed only as a
     quantifier domain. Its members are the elements in the order and with the duplicate rule of
     [FR-031](./FR-031-enum-and-collection-quantifier-lowering.md). A collection that is a reference to
@@ -40,8 +40,8 @@ expanded or enumerated over a finite bound; the analyzer never approximates an u
     declared bounds of bounded integer inputs of [FR-010](./FR-010-linear-integer-arithmetic.md). The
     analysis model carries it as the `RangeQuantifier` input of
     [FR-032](./FR-032-bounded-integer-range-quantifier-lowering.md), which also defines a declared
-    bound. The checked operation catalog and `quire-contract-model`
-    currently have no range-domain quantifier form, so a QSL package supplies an integer range only
+    bound. The checked operation catalog and `filament-contract-model`
+    currently have no range-domain quantifier form, so a FSL package supplies an integer range only
     as a literal integer collection ([FR-034](./FR-034-quantifier-package-translation.md)); When
     the lower bound exceeds the upper bound the range is empty.
 - Closed set of reason classes for `unsupported` on a quantifier: `unbounded-domain` (an integer with

@@ -3,9 +3,9 @@ id: TC-007
 title: "Verify evidence schemas, identities, and truthfulness"
 type: TC
 relationships:
-  - target: ix://agent-ix/quire-analyze/FR-005
+  - target: ix://agent-ix/filament-analyze/FR-005
     type: verifies
-  - target: ix://agent-ix/quire-analyze/NFR-002
+  - target: ix://agent-ix/filament-analyze/NFR-002
     type: verifies
 ---
 # TC-007: Verify evidence schemas, identities, and truthfulness
@@ -22,9 +22,9 @@ and declared outcomes, and alter the artifact census.
 
 Runtime report validation checks canonical JSON, canonical query identity, and differential
 disposition. The PGM-01 envelope lane must return
-unavailable until the component selected by `quire-contract-ir#20` is adopted.
+unavailable until the component selected by `filament-contract-ir#20` is adopted.
 
-For the `quire.differential-report/v2` lane, validate a genuine v2 document both standalone
+For the `filament.differential-report/v2` lane, validate a genuine v2 document both standalone
 and against its authoritative query and differential run. Omit each required producer field,
 `assertions[].clause`, `assertions[].source`, every canonical proof-input identity, and every
 retained-byte field; standalone validation must reject each omission. Mutate retained query bytes

@@ -4,26 +4,26 @@
 //! Integer operands must share one integer type, so every literal here is typed by the same
 //! `integer_range` as the parameters.
 
-use ix_trace_rs::trace;
-use quire_analyze::{translate_analysis_claims, TranslationErrorKind};
-use quire_contract_model::{
+use filament_analyze::{translate_analysis_claims, TranslationErrorKind};
+use filament_contract_model::{
     ComparisonOperator, ContractPackageV1, Expression, ExpressionKind, IntegerDomain,
     NumericOperator, OverflowPolicy, ValueDeclarationKind, ValueType,
 };
+use ix_trace_rs::trace;
 
 mod common;
 
 use common::*;
 
 const BOOLEAN: &str = "scalar_type/boolean";
-const NEGATE: &str = "quire.op.integer.negate";
-const ADD: &str = "quire.op.integer.add";
-const SUB: &str = "quire.op.integer.sub";
-const MUL: &str = "quire.op.integer.mul";
+const NEGATE: &str = "filament.op.integer.negate";
+const ADD: &str = "filament.op.integer.add";
+const SUB: &str = "filament.op.integer.sub";
+const MUL: &str = "filament.op.integer.mul";
 
 fn assert_refused_at(
     package: &ContractPackageV1,
-    error: &quire_analyze::TranslationError,
+    error: &filament_analyze::TranslationError,
     label: &str,
 ) {
     let node = index(package, label);
@@ -80,7 +80,7 @@ fn each_integer_operation_translates_to_its_expression_kind() {
         let zero = document.int_literal(&range, 0);
         let application = document.int_op(identity, &[&a, &zero], &range);
         let b = document.parameter_of(&range);
-        let compare = document.int_op("quire.op.integer.le", &[&application, &b], BOOLEAN);
+        let compare = document.int_op("filament.op.integer.le", &[&application, &b], BOOLEAN);
         let claim = document.claim(&compare);
         let (package, translation) = translate(&document, &[&claim]);
         let (numeric, _) = operands(expression(&translation, 0));
@@ -114,7 +114,7 @@ fn each_integer_operation_translates_to_its_expression_kind() {
     let a = document.parameter_of(&range);
     let negated = document.int_op(NEGATE, &[&a], &range);
     let b = document.parameter_of(&range);
-    let compare = document.int_op("quire.op.integer.eq", &[&negated, &b], BOOLEAN);
+    let compare = document.int_op("filament.op.integer.eq", &[&negated, &b], BOOLEAN);
     let claim = document.claim(&compare);
     let (package, translation) = translate(&document, &[&claim]);
     let (negate, _) = operands(expression(&translation, 0));
@@ -135,7 +135,7 @@ fn an_addition_over_a_wider_range_is_refused_by_the_ir_naming_the_claim() {
     let a = document.parameter_of(&range);
     let one = document.int_literal(&range, 1);
     let sum = document.int_op(ADD, &[&a, &one], &range);
-    let compare = document.int_op("quire.op.integer.le", &[&sum, &a], BOOLEAN);
+    let compare = document.int_op("filament.op.integer.le", &[&sum, &a], BOOLEAN);
     let claim = document.claim(&compare);
     let (package, error) = refusal(&document, &[&claim]);
     assert_eq!(
@@ -153,7 +153,7 @@ fn a_literal_of_the_bare_integer_type_has_the_signed_128_bit_range() {
     let mut document = Document::new();
     let five = document.int_literal("scalar_type/integer", 5);
     let also_five = document.int_literal("scalar_type/integer", 5);
-    let compare = document.int_op("quire.op.integer.eq", &[&five, &also_five], BOOLEAN);
+    let compare = document.int_op("filament.op.integer.eq", &[&five, &also_five], BOOLEAN);
     let claim = document.claim(&compare);
     let (_, translation) = translate(&document, &[&claim]);
     let (left, _) = operands(expression(&translation, 0));
@@ -194,7 +194,7 @@ fn each_integer_comparison_translates_to_its_operator() {
         let range = document.range();
         let a = document.parameter_of(&range);
         let b = document.parameter_of(&range);
-        let identity = format!("quire.op.integer.{name}");
+        let identity = format!("filament.op.integer.{name}");
         let compare = document.int_op(&identity, &[&a, &b], BOOLEAN);
         let claim = document.claim(&compare);
         let (package, translation) = translate(&document, &[&claim]);
@@ -220,7 +220,7 @@ fn a_comparison_nests_under_a_boolean_operation() {
     let a = document.parameter_of(&range);
     let b = document.parameter_of(&range);
     let p = document.parameter();
-    let less = document.int_op("quire.op.integer.lt", &[&a, &b], BOOLEAN);
+    let less = document.int_op("filament.op.integer.lt", &[&a, &b], BOOLEAN);
     let and = document.op(AND, &[&less, &p]);
     let claim = document.claim(&and);
     let (_, translation) = translate(&document, &[&claim]);
@@ -269,7 +269,7 @@ fn a_boolean_operand_of_an_integer_operation_is_refused_at_the_node() {
     let range = document.range();
     let a = document.parameter_of(&range);
     let b = document.parameter_of(&range);
-    let less = document.int_op("quire.op.integer.lt", &[&a, &b], BOOLEAN);
+    let less = document.int_op("filament.op.integer.lt", &[&a, &b], BOOLEAN);
     let claim = document.claim(&less);
     let bytes = with_node(&document.bytes(&[&claim]), &b, |node| {
         node["semantic_type"] = id(BOOLEAN);
@@ -288,7 +288,7 @@ fn a_product_of_two_parameters_is_refused_at_the_product() {
     let b = document.parameter_of(&range);
     let product = document.int_op(MUL, &[&a, &b], &range);
     let c = document.parameter_of(&range);
-    let compare = document.int_op("quire.op.integer.le", &[&product, &c], BOOLEAN);
+    let compare = document.int_op("filament.op.integer.le", &[&product, &c], BOOLEAN);
     let claim = document.claim(&compare);
     let (package, error) = refusal(&document, &[&claim]);
     assert_refused_at(&package, &error, &product);
@@ -302,7 +302,7 @@ fn a_product_of_two_parameters_is_refused_at_the_product() {
     let left = document.int_op(ADD, &[&a, &zero], &range);
     let right = document.int_op(SUB, &[&b, &zero], &range);
     let product = document.int_op(MUL, &[&left, &right], &range);
-    let compare = document.int_op("quire.op.integer.le", &[&product, &a], BOOLEAN);
+    let compare = document.int_op("filament.op.integer.le", &[&product, &a], BOOLEAN);
     let claim = document.claim(&compare);
     let (package, error) = refusal(&document, &[&claim]);
     assert_refused_at(&package, &error, &product);
@@ -316,7 +316,7 @@ fn a_product_with_a_constant_operand_is_linear() {
     let a = document.parameter_of(&range);
     let one = document.int_literal(&range, 1);
     let product = document.int_op(MUL, &[&one, &a], &range);
-    let compare = document.int_op("quire.op.integer.le", &[&product, &a], BOOLEAN);
+    let compare = document.int_op("filament.op.integer.le", &[&product, &a], BOOLEAN);
     let claim = document.claim(&compare);
     translate(&document, &[&claim]);
 }
@@ -329,9 +329,9 @@ fn division_remainder_and_modulus_are_refused_at_the_application() {
         let range = document.range();
         let a = document.parameter_of(&range);
         let b = document.parameter_of(&range);
-        let identity = format!("quire.op.integer.{name}");
+        let identity = format!("filament.op.integer.{name}");
         let quotient = document.int_op(ADD, &[&a, &b], &range);
-        let compare = document.int_op("quire.op.integer.le", &[&quotient, &a], BOOLEAN);
+        let compare = document.int_op("filament.op.integer.le", &[&quotient, &a], BOOLEAN);
         let claim = document.claim(&compare);
         let bytes = with_identity(&document.bytes(&[&claim]), &quotient, &identity);
         let package = read_package(&bytes);
@@ -359,8 +359,8 @@ fn integer_parameters_are_declared_once_with_their_bounds() {
     let range = document.range();
     let a = document.parameter_of(&range);
     let b = document.parameter_of(&range);
-    let first = document.int_op("quire.op.integer.le", &[&a, &b], BOOLEAN);
-    let second = document.int_op("quire.op.integer.ge", &[&a, &b], BOOLEAN);
+    let first = document.int_op("filament.op.integer.le", &[&a, &b], BOOLEAN);
+    let second = document.int_op("filament.op.integer.ge", &[&a, &b], BOOLEAN);
     let claim_a = document.claim(&first);
     let claim_b = document.claim(&second);
     let (package, translation) = translate(&document, &[&claim_a, &claim_b]);
@@ -399,7 +399,7 @@ fn two_translations_of_the_same_integer_bytes_agree() {
     let weight = document.parameter_of(&range);
     let one = document.int_literal(&range, 1);
     let scaled = document.int_op(MUL, &[&weight, &one], &range);
-    let bounded = document.int_op("quire.op.integer.le", &[&dose, &scaled], BOOLEAN);
+    let bounded = document.int_op("filament.op.integer.le", &[&dose, &scaled], BOOLEAN);
     let claim = document.claim(&bounded);
     let package = document.package(&[&claim]);
     let first = translate_analysis_claims(&package).expect("first");
@@ -421,7 +421,7 @@ fn the_depth_bound_over_integer_sums_is_128_against_129() {
         for _ in 1..additions {
             top = document.int_op(ADD, &[&top, &zero], &range);
         }
-        let compare = document.int_op("quire.op.integer.le", &[&top, &a], BOOLEAN);
+        let compare = document.int_op("filament.op.integer.le", &[&top, &a], BOOLEAN);
         let claim = document.claim(&compare);
         (document, claim, innermost)
     };
@@ -447,7 +447,7 @@ fn the_node_bound_over_integer_sums_is_10000_against_10001() {
         let range = document.range_between("point", 0, 0);
         let mut sized = Sized::sums(&mut document, &range);
         let sum = sized.node(&mut document, size);
-        let compare = document.int_op("quire.op.integer.le", &[&sum, &sized.parameter], BOOLEAN);
+        let compare = document.int_op("filament.op.integer.le", &[&sum, &sized.parameter], BOOLEAN);
         let claim = document.claim(&compare);
         (document, claim)
     };
@@ -474,7 +474,7 @@ fn a_shared_integer_sum_chain_of_61_nodes_is_refused_without_expanding_it() {
     for _ in 1..61 {
         top = document.int_op(ADD, &[&top, &top], &range);
     }
-    let compare = document.int_op("quire.op.integer.le", &[&top, &a], BOOLEAN);
+    let compare = document.int_op("filament.op.integer.le", &[&top, &a], BOOLEAN);
     let claim = document.claim(&compare);
     let package = document.package(&[&claim]);
     let started = std::time::Instant::now();

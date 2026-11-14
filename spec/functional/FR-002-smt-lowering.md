@@ -3,9 +3,9 @@ id: FR-002
 title: "Lower deterministic SMT-LIB2 with capability contracts"
 type: FR
 relationships:
-  - target: ix://agent-ix/quire-analyze/FR-001
+  - target: ix://agent-ix/filament-analyze/FR-001
     type: depends_on
-  - target: ix://agent-ix/quire-analyze/interface_001
+  - target: ix://agent-ix/filament-analyze/interface_001
     type: implements
 ---
 # FR-002: Lower deterministic SMT-LIB2 with capability contracts
@@ -21,12 +21,12 @@ construct has a declared exact encoding under the selected profile.
 - Symbols use injective encoding of complete semantic identities.
 - Each named assertion maps to its complete package, requirement, revision, clause digest, and source
   span identity; each variable map retains all complete declaration origins and any explicit binding.
-- The live profile is `quire.smtlib2/v2` ([FR-010](./FR-010-linear-integer-arithmetic.md)). Literals,
+- The live profile is `filament.smtlib2/v2` ([FR-010](./FR-010-linear-integer-arithmetic.md)). Literals,
   typed Boolean input/state references, negation, short-circuit and total conjunction/disjunction,
   implication, and Boolean equality or inequality lower exactly to SMT-LIB 2.6, and every query,
   including a query with no integer construct, declares logic `QF_LIA` when it has no datatype declarations;
   a query that declares datatypes declares the logic its feature set requires, as FR-020 specifies. The Boolean-only profile
-  `quire.smtlib2/v1` (logic `QF_UF`) is replaced; it is not selectable and no fallback to it exists.
+  `filament.smtlib2/v1` (logic `QF_UF`) is replaced; it is not selectable and no fallback to it exists.
 - Enum, record, option and field/option access are admitted by
   [FR-020](./FR-020-datatype-lowering.md) under the live profile.
 - Bounded quantifiers over enum domains, finite collections and bounded integer ranges are admitted
@@ -47,7 +47,7 @@ construct has a declared exact encoding under the selected profile.
   operands and discharges definedness obligations.
 - The profile declares supported and unsupported constructs, logic and SMT-LIB version,
   statement/expression/query byte limits, and named-assertion/model features. `Cargo.toml` declares
-  the `quire-contract-ir` dependency and `Cargo.lock` records its resolved source; the public
+  the `filament-contract-ir` dependency and `Cargo.lock` records its resolved source; the public
   capability profile does not repeat that source revision.
 - Domain-separated statement, binding-set, analysis-request, and query digests bind sorted canonical
   identities, public limits, the encoding profile, and exact query bytes.

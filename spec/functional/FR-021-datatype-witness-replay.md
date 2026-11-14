@@ -3,11 +3,11 @@ id: FR-021
 title: "Replay enum, record and option witness models"
 type: FR
 relationships:
-  - target: ix://agent-ix/quire-analyze/FR-004
+  - target: ix://agent-ix/filament-analyze/FR-004
     type: depends_on
-  - target: ix://agent-ix/quire-analyze/FR-020
+  - target: ix://agent-ix/filament-analyze/FR-020
     type: depends_on
-  - target: ix://agent-ix/quire-analyze/interface_001
+  - target: ix://agent-ix/filament-analyze/interface_001
     type: implements
 ---
 # FR-021: Replay enum, record and option witness models

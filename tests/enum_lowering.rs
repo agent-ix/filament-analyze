@@ -11,7 +11,7 @@ use std::{
     sync::atomic::{AtomicU64, Ordering},
 };
 
-use quire_analyze::{
+use filament_analyze::{
     classify_analysis, compare_solver_records, execute_solver, lower_analysis_request,
     lower_boolean_statements, render_differential_report, validate_differential_report,
     validate_report_document, AdapterLimits, AnalysisRequest, AnalysisStatus, CancellationToken,
@@ -19,7 +19,7 @@ use quire_analyze::{
     ReplayFailureReason, SolverConfig, SolverEngine, SolverOutcome, StatementInput, WitnessValue,
     CAPABILITY_CONTRACT,
 };
-use quire_contract_model::{
+use filament_contract_model::{
     AnchorName, BooleanOperator, Clause, ClauseId, ClauseKind, ComparisonOperator, ContractPackage,
     DeclarationEnvironment, EnumDeclaration, EnumVariantDeclaration, ExecutionPoint, Expression,
     ExpressionKind, PackageId, Requirement, RequirementId, RequirementRef, RequirementRevision,
@@ -294,7 +294,7 @@ impl TempDirectory {
     fn new(label: &str) -> Self {
         let counter = TEMP_COUNTER.fetch_add(1, Ordering::Relaxed);
         let path = std::env::temp_dir().join(format!(
-            "quire-enum-{label}-{}-{counter}",
+            "filament-enum-{label}-{}-{counter}",
             std::process::id()
         ));
         fs::create_dir(&path).expect("temporary directory");
@@ -316,7 +316,7 @@ fn response_record(
     query: &QueryBundle,
     response: &str,
     engine: SolverEngine,
-) -> quire_analyze::SolverRecord {
+) -> filament_analyze::SolverRecord {
     let directory = TempDirectory::new("response");
     let path = directory.path().join("solver");
     let body = format!(
@@ -351,7 +351,7 @@ fn capability_contract_lists_enum_constructs_as_exact() {
 #[test]
 fn membership_fixture_lowers_to_the_golden_query() {
     let query = lower(sat_fixture());
-    assert_eq!(query.profile(), "quire.smtlib2/v2");
+    assert_eq!(query.profile(), "filament.smtlib2/v2");
     assert_eq!(query.logic(), "QF_UFDTLIA");
     assert_eq!(query.query(), include_str!("golden/enum-sat-v2.smt2"));
     assert_eq!(query.query(), lower(sat_fixture()).query());
@@ -397,7 +397,7 @@ fn unsatisfiable_membership_agrees_and_reports_the_datatype_logic() {
     assert_eq!(run.agreed_status(), Some(AnalysisStatus::Refuted));
     let report = render_differential_report(&query, &run).expect("report");
     let value: serde_json::Value = serde_json::from_slice(&report).expect("json");
-    assert_eq!(value["encodingProfile"], "quire.smtlib2/v2");
+    assert_eq!(value["encodingProfile"], "filament.smtlib2/v2");
     assert_eq!(value["logic"], "QF_UFDTLIA");
     validate_report_document(&report).expect("document valid");
     validate_differential_report(&report, &query, &run).expect("valid");
@@ -469,7 +469,7 @@ fn reports_naming_a_logic_the_feature_set_does_not_require_are_refused() {
         (
             lower(unsat_fixture()),
             [
-                ("encodingProfile", "quire.smtlib2/v1"),
+                ("encodingProfile", "filament.smtlib2/v1"),
                 ("logic", "QF_UF"),
                 ("logic", "QF_LIA"),
                 ("logic", "UFDTLIA"),
@@ -478,7 +478,7 @@ fn reports_naming_a_logic_the_feature_set_does_not_require_are_refused() {
         (
             lower(plain),
             [
-                ("encodingProfile", "quire.smtlib2/v1"),
+                ("encodingProfile", "filament.smtlib2/v1"),
                 ("logic", "QF_UF"),
                 ("logic", "QF_UFDTLIA"),
                 ("logic", "LIA"),
@@ -720,10 +720,11 @@ fn datatype_count_bound_is_exact() {
 /// FR-020-AC-1: real solvers decide both membership fixtures; run only where installed.
 #[trace("TC-020", "FR-020-AC-1")]
 #[test]
-#[ignore = "requires official Z3 and cvc5 executables at QUIRE_Z3 and QUIRE_CVC5"]
+#[ignore = "requires official Z3 and cvc5 executables at FILAMENT_Z3 and FILAMENT_CVC5"]
 fn real_z3_cvc5_decide_membership_fixtures() {
-    let z3_path = PathBuf::from(std::env::var_os("QUIRE_Z3").expect("QUIRE_Z3 is required"));
-    let cvc5_path = PathBuf::from(std::env::var_os("QUIRE_CVC5").expect("QUIRE_CVC5 is required"));
+    let z3_path = PathBuf::from(std::env::var_os("FILAMENT_Z3").expect("FILAMENT_Z3 is required"));
+    let cvc5_path =
+        PathBuf::from(std::env::var_os("FILAMENT_CVC5").expect("FILAMENT_CVC5 is required"));
     let z3 = SolverConfig::new(SolverEngine::Z3, z3_path, AdapterLimits::default()).expect("z3");
     let cvc5 =
         SolverConfig::new(SolverEngine::Cvc5, cvc5_path, AdapterLimits::default()).expect("cvc5");
@@ -733,10 +734,10 @@ fn real_z3_cvc5_decide_membership_fixtures() {
         let record = execute_solver(&sat, config, &token);
         assert_eq!(record.outcome(), SolverOutcome::Sat);
     }
-    let run = quire_analyze::execute_differential(&sat, &z3, &cvc5, &token).expect("run");
+    let run = filament_analyze::execute_differential(&sat, &z3, &cvc5, &token).expect("run");
     assert_eq!(run.disposition(), DifferentialDisposition::Agreement);
     let unsat = lower(unsat_fixture());
-    let run = quire_analyze::execute_differential(&unsat, &z3, &cvc5, &token).expect("run");
+    let run = filament_analyze::execute_differential(&unsat, &z3, &cvc5, &token).expect("run");
     assert_eq!(run.disposition(), DifferentialDisposition::Agreement);
     assert_eq!(run.agreed_status(), Some(AnalysisStatus::Refuted));
 }

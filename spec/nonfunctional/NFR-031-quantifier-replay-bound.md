@@ -4,7 +4,7 @@ title: "Quantifier replay is bounded by an instance limit"
 type: NFR
 quality_attribute: reliability
 relationships:
-  - target: ix://agent-ix/quire-analyze/FR-033
+  - target: ix://agent-ix/filament-analyze/FR-033
     type: constrains
 ---
 # NFR-031: Quantifier replay is bounded by an instance limit

@@ -3,11 +3,11 @@ id: FR-020
 title: "Lower enums, records and options to SMT datatypes"
 type: FR
 relationships:
-  - target: ix://agent-ix/quire-analyze/FR-002
+  - target: ix://agent-ix/filament-analyze/FR-002
     type: depends_on
-  - target: ix://agent-ix/quire-analyze/FR-010
+  - target: ix://agent-ix/filament-analyze/FR-010
     type: depends_on
-  - target: ix://agent-ix/quire-analyze/interface_001
+  - target: ix://agent-ix/filament-analyze/interface_001
     type: implements
 ---
 # FR-020: Lower enums, records and options to SMT datatypes
@@ -16,7 +16,7 @@ relationships:
 
 The analyzer shall lower enum, record and option values, and the expressions over them, to
 SMT-LIB 2.6 algebraic datatypes, so Z3 and cvc5 decide equality, membership, field access and option
-access over data-classification and role rules. `quire-analyze` is a QSL-fed runner: Z3 and cvc5 stay
+access over data-classification and role rules. `filament-analyze` is a FSL-fed runner: Z3 and cvc5 stay
 external solvers, and this requirement adds an encoding, not a prover. Collections and text stay
 unsupported.
 
@@ -73,7 +73,7 @@ unsupported.
 ### Logic
 
 [FR-010](./FR-010-linear-integer-arithmetic.md) replaces the Boolean-only profile with
-`quire.smtlib2/v2`, which is the only profile; `quire.smtlib2/v1` and `QF_UF` are no longer emitted or
+`filament.smtlib2/v2`, which is the only profile; `filament.smtlib2/v1` and `QF_UF` are no longer emitted or
 accepted, there is no fallback, and a query is never emitted under two profiles. The profile's logic
 follows the feature set of the query, and this requirement owns the datatype case:
 
@@ -85,9 +85,9 @@ follows the feature set of the query, and this requirement owns the datatype cas
 | Holds a bounded solver quantifier and declares at least one datatype | `UFDTLIA` |
 
 The logic is determined by whether the query declares a datatype and whether it holds a bounded solver quantifier, never by a solver or host. A report
-for a datatype query without a bounded solver quantifier names `quire.smtlib2/v2` and `QF_UFDTLIA`, and report validation
+for a datatype query without a bounded solver quantifier names `filament.smtlib2/v2` and `QF_UFDTLIA`, and report validation
 ([FR-005](./FR-005-evidence-cli.md)) accepts exactly the logic the query's feature set requires and
-refuses `quire.smtlib2/v1` and `QF_UF`.
+refuses `filament.smtlib2/v1` and `QF_UF`.
 
 ### Expressions
 
@@ -149,14 +149,14 @@ the nine [FR-011](./FR-011-integer-witness-replay.md) reasons.
 | FR-020-AC-3 | A record-field constraint fixture and an option-access fixture (`IsPresent` in the antecedent of an implication, `Unwrap` in the consequent) each lower and are decided correctly by both solvers. | Test (real solvers where installed) |
 | FR-020-AC-4 | An `Unwrap` with no presence proof is refused by `check_expression` as `InvalidStatement` at statement build and nothing is lowered; an `Unwrap` under the proof lowers to the selector. | Test |
 | FR-020-AC-5 | A record or option nesting a collection or text returns `UnsupportedType`, an enum ordering comparison and a mixed-sort comparison are refused at statement build as `InvalidStatement` (path `statement.expression`) and, over an unchecked expression, by the lowering as `UnsupportedConstruct`, and a self-containing record fails at `DeclarationEnvironment::new` with `RecursiveType`. None yields a query. | Test |
-| FR-020-AC-6 | The capability contract of `quire.smtlib2/v2` lists the constructs above as exact and `collection`, `collection_access` and `text` as unsupported, and no construct appears in both lists. | Test |
+| FR-020-AC-6 | The capability contract of `filament.smtlib2/v2` lists the constructs above as exact and `collection`, `collection_access` and `text` as unsupported, and no construct appears in both lists. | Test |
 | FR-020-AC-7 | Permuting environment type order, variant order, field order and statement order yields byte-identical queries and maps, and two enums with identical variant names produce distinct sorts. | Test |
 | FR-020-AC-8 | A membership disjunction with a repeated literal is lowered as written, and a `CollectionLiteral` or any other collection expression returns `UnsupportedConstruct`, except a collection literal consumed as a quantifier domain per [FR-030](./FR-030-bounded-quantifier-domains.md) and [FR-034](./FR-034-quantifier-package-translation.md). | Test |
-| FR-020-AC-9 | The `(set-logic ...)` of a query declaring no datatype is `QF_LIA` and of a query declaring at least one datatype is `QF_UFDTLIA`, in both cases under `quire.smtlib2/v2`, that of a query holding a bounded solver quantifier is `LIA` without and `UFDTLIA` with a datatype, and a report naming `quire.smtlib2/v1`, `QF_UF`, or a logic other than the one the feature set requires is refused by validation. | Test |
+| FR-020-AC-9 | The `(set-logic ...)` of a query declaring no datatype is `QF_LIA` and of a query declaring at least one datatype is `QF_UFDTLIA`, in both cases under `filament.smtlib2/v2`, that of a query holding a bounded solver quantifier is `LIA` without and `UFDTLIA` with a datatype, and a report naming `filament.smtlib2/v1`, `QF_UF`, or a logic other than the one the feature set requires is refused by validation. | Test |
 | FR-020-AC-10 | A satisfiable model for a query declaring any datatype (enum, record or option), including one whose terms are only datatype literals, is replayed by FR-021: it is verified when every assertion holds under the typed evaluation and is incomplete, with one of the FR-011 reasons, when it does not; no datatype kind is refused as unreplayable. | Test |
 
 ## Dependencies
 
-FR-002 and FR-010 (the `quire.smtlib2/v2` profile and the integer capability contract). Integer
+FR-002 and FR-010 (the `filament.smtlib2/v2` profile and the integer capability contract). Integer
 record fields are exact only where the selected profile lists integers as exact. Quantification and
 collection membership are owned by other requirements and stay Unsupported here.

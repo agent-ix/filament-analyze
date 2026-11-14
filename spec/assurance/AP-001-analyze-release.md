@@ -6,7 +6,7 @@ status: proposed
 owner: human-release-owner
 schema_version: 0.2
 profile_kind: general
-scope: one quire-analyze v0.1 source candidate
+scope: one filament-analyze v0.1 source candidate
 impact_assessments:
   - id: impact-false-conclusion
     scenario: a semantic adapter or evidence failure is reported as a conclusive analysis
@@ -16,12 +16,12 @@ impact_assessments:
       stochastic_dependency: none
     detect_before_harm:
       expected: true
-      control_ref: ix://agent-ix/quire-analyze/CAC-001
+      control_ref: ix://agent-ix/filament-analyze/CAC-001
 review_policy:
   mode: require
   operations: [code-review, gap-analysis]
 relationships:
-  - target: ix://agent-ix/quire-contract-ir/PGM-01
+  - target: ix://agent-ix/filament-contract-ir/PGM-01
     type: references
 ---
 # Contract analysis v0.1 decision profile
@@ -33,7 +33,7 @@ consuming-project qualification, accreditation, certification, or release author
 
 ## Intended Use
 
-`quire-analyze` is an analysis/evidence tool that assists reviewers by producing bounded,
+`filament-analyze` is an analysis/evidence tool that assists reviewers by producing bounded,
 reproducible consistency and implication evidence for one contract package. It does not
 replace source review, solver qualification, system verification, or a human release decision.
 

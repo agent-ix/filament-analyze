@@ -1,33 +1,33 @@
 ---
 id: FR-009
-title: "Run analysis over a QSL contract package and write a report"
+title: "Run analysis over a FSL contract package and write a report"
 type: FR
 relationships:
-  - target: ix://agent-ix/quire-analyze/FR-005
+  - target: ix://agent-ix/filament-analyze/FR-005
     type: depends_on
-  - target: ix://agent-ix/quire-analyze/StR-001
+  - target: ix://agent-ix/filament-analyze/StR-001
     type: implements
   - target: ix://agent-ix/engineering-assurance/FR-029
     type: depends_on
 ---
-# FR-009: Run analysis over a QSL contract package and write a report
+# FR-009: Run analysis over a FSL contract package and write a report
 
 ## Description
 
-The `quire-analyze` CLI shall provide a `run-package` subcommand that runs one differential consistency
-analysis over one QSL package in its lowered form and publishes one `quire.differential-report/v2`
+The `filament-analyze` CLI shall provide a `run-package` subcommand that runs one differential consistency
+analysis over one FSL package in its lowered form and publishes one `filament.differential-report/v2`
 report, so a caller obtains a report and a pass/fail exit status from a single invocation. The
 subcommand runs the Z3 and cvc5 solvers only through `producer-execute`.
 
-## Input: the QSL package as a contract package
+## Input: the FSL package as a contract package
 
-QSL source (in fences of spec documents or in standalone files) is parsed and checked by
-`quire-spec-language` into a checked package. `quire-contract-ir` lowers a checked package
-(`CheckedPackageV2::lower` in `quire-contract-model`) into the target-neutral contract package
-`quire.contract-package/v1`.
+FSL source (in fences of spec documents or in standalone files) is parsed and checked by
+`filament-spec-language` into a checked package. `filament-contract-ir` lowers a checked package
+(`CheckedPackageV2::lower` in `filament-contract-model`) into the target-neutral contract package
+`filament.contract-package/v1`.
 
-The runner input `--package FILE` is that `quire.contract-package/v1` document. The runner reads it
-with `ContractPackageWireV1::read(bytes, limits, dependencies)` of `quire-contract-model`, with
+The runner input `--package FILE` is that `filament.contract-package/v1` document. The runner reads it
+with `ContractPackageWireV1::read(bytes, limits, dependencies)` of `filament-contract-model`, with
 `limits = CheckedPackageReadLimits::bounded()` (1,048,576 canonical bytes, 10,000 nodes) and
 `dependencies` empty. The reader returns `Admitted`, `Refused`, `Incomplete` or `CatalogUnavailable`:
 `Admitted` proceeds, `Refused` and `Incomplete` exit `2` naming the refusal or the exhausted limit, and
@@ -35,7 +35,7 @@ with `ContractPackageWireV1::read(bytes, limits, dependencies)` of `quire-contra
 package that names dependencies is refused by the empty dependency map and exits `2`.
 
 A contract package names no analysis request: it holds a semantic graph, a source map and per-request
-lowering accounting. This requirement therefore fixes the request, and no QSL-side declaring field is
+lowering accounting. This requirement therefore fixes the request, and no FSL-side declaring field is
 needed. The analysable clauses are the nodes of `semantic_graph.nodes` of kind `claim` with form
 `analysis_claim`. If a package holds none, or an `analysis_claim` has a body that is not a
 Boolean-typed term, the runner exits `2`. The runner builds ONE consistency request whose selected
@@ -107,15 +107,15 @@ exits `2` as the Input section states. For every other term:
 | `Literal` of value kind `boolean` and Boolean type | `ExpressionKind::BooleanLiteral` |
 | `Reference` to a node of `expression` family or of `value/literal` | the translation of that node's body |
 | `Reference` to a `value/parameter` node whose `semantic_type` is Boolean | `ExpressionKind::ValueReference`, name `nN`, observation `StateObservation::Current` |
-| `Application` of `quire.op.boolean.not` | `ExpressionKind::BooleanNot` |
-| `Application` of `quire.op.boolean.and` | `ExpressionKind::Boolean` with `BooleanOperator::TotalAnd` |
-| `Application` of `quire.op.boolean.or` | `ExpressionKind::Boolean` with `BooleanOperator::TotalOr` |
-| `Application` of `quire.op.boolean.implies` | `ExpressionKind::Boolean` with `BooleanOperator::Implication` |
-| `Application` of `quire.op.boolean.eq` | `ExpressionKind::Compare` with `ComparisonOperator::Equal` |
-| `Application` of `quire.op.boolean.ne` | `ExpressionKind::Compare` with `ComparisonOperator::NotEqual` |
+| `Application` of `filament.op.boolean.not` | `ExpressionKind::BooleanNot` |
+| `Application` of `filament.op.boolean.and` | `ExpressionKind::Boolean` with `BooleanOperator::TotalAnd` |
+| `Application` of `filament.op.boolean.or` | `ExpressionKind::Boolean` with `BooleanOperator::TotalOr` |
+| `Application` of `filament.op.boolean.implies` | `ExpressionKind::Boolean` with `BooleanOperator::Implication` |
+| `Application` of `filament.op.boolean.eq` | `ExpressionKind::Compare` with `ComparisonOperator::Equal` |
+| `Application` of `filament.op.boolean.ne` | `ExpressionKind::Compare` with `ComparisonOperator::NotEqual` |
 
 The operation identity is `CheckedApplicationOperation::identity()`, an entry of
-`quire.checked-operation-catalog/v1` of `quire-verification-contracts` (`CheckedApplicationOperation::read()` returns `NotAdmitted` for a package read by `ContractPackageWireV1::read`, which installs no admitted operation views; an application with no identity is one the translation cannot lower), and the arguments of an
+`filament.checked-operation-catalog/v1` of `filament-verification-contracts` (`CheckedApplicationOperation::read()` returns `NotAdmitted` for a package read by `ContractPackageWireV1::read`, which installs no admitted operation views; an application with no identity is one the translation cannot lower), and the arguments of an
 application are translated in order as left and right (the one argument of `not` as the operand).
 This Boolean subset is the Boolean part of the `exact_constructs` of `CAPABILITY_CONTRACT` in `src/smt.rs`; the integer terms are those of [FR-012](./FR-012-integer-claim-translation.md). `and` and `or`
 become the total operators because this subset has no partial operation, so evaluation order carries no
@@ -134,7 +134,7 @@ target and so a node shared by several references expands once per reference: a 
 
 - **Node bound.** The translation shall count every `Expression` it produces, each inlined copy counted
   again, and shall stop at the first count above 10,000, the node limit of `check_expression` in
-  `quire-contract-model` (smaller than `MAX_EXPRESSION_NODES` (100,000) of `src/smt.rs`). The translation
+  `filament-contract-model` (smaller than `MAX_EXPRESSION_NODES` (100,000) of `src/smt.rs`). The translation
   shall do work proportional to this bound, never to the size of the expansion it refuses. The runner
   shall exit `2` naming the node `semantic_graph.nodes[N]` whose translation produced the 10,001st
   `Expression`. `Expression` nodes are counted in pre-order, an application before its operands, and a
@@ -178,11 +178,11 @@ producer-execution component of the `engineering-assurance` repository. Its cont
 `FR-019` (bounded producer execution) and `FR-029` (the command) of that repository, and its request and
 result protocols are `engineering-assurance.producer-execution-request/v1` and
 `engineering-assurance.producer-execution-result/v1`. This spec cites that contract and does not restate
-it. `quire-analyze` is the runner that executes the solvers.
+it. `filament-analyze` is the runner that executes the solvers.
 
 ## Inputs
 
-- `--package FILE`: the `quire.contract-package/v1` document.
+- `--package FILE`: the `filament.contract-package/v1` document.
 - `--z3 PATH` and `--cvc5 PATH`: the solver executables, each an absolute path.
 - `--producer-execute PATH`: the absolute path of the `engineering-assurance` executable; it is never
   searched for on `PATH`.
@@ -192,7 +192,7 @@ Solver limits are `AdapterLimits::default()` of [NFR-001](../nonfunctional/NFR-0
 
 ## Outputs
 
-- One report in the `quire.differential-report/v2` contract of [FR-005](./FR-005-evidence-cli.md),
+- One report in the `filament.differential-report/v2` contract of [FR-005](./FR-005-evidence-cli.md),
   rendered by the library renderer and published by the FR-005 publication discipline. The runner
   neither converts from nor accepts any other report version.
 - Exit status: `0` satisfied, `1` refuted, `2` usage or input error, `3` non-conclusive, `4`
@@ -210,10 +210,10 @@ Solver limits are `AdapterLimits::default()` of [NFR-001](../nonfunctional/NFR-0
   `producer-execute --request -` on its stdin, and read its stdout.
 - The runner shall fill the request fields as follows: `protocol` is the request protocol constant;
   `procedure` is `direct`; `producer.executable` is the absolute solver path and `producer.name` is
-  `z3` or `cvc5`; `caller` is kind `quire-analyze.run-package`, version `1`; `arguments` are the literal
+  `z3` or `cvc5`; `caller` is kind `filament-analyze.run-package`, version `1`; `arguments` are the literal
   query arguments (`-in -smt2` for Z3, `--lang=smt2 --no-incremental` for cvc5) or version arguments
   (`-version`, `--version`) of the engine; `environment` is empty; `outputs` and `outputTrees` are
-  empty; `containment` is `process-group-v1` with contract kind `quire.solver-process`, version
+  empty; `containment` is `process-group-v1` with contract kind `filament.solver-process`, version
   `v1`; `cancellation` is `disabled`; `response` is protocol `engineering-assurance.process-evidence`
   version `1`, adapter `engineering-assurance.cli-process-evidence-adapter` version `1`, exit codes `any`.
 - The runner shall run the version invocation of an engine first, with `producer.version` `unprobed`,
@@ -239,7 +239,7 @@ Solver limits are `AdapterLimits::default()` of [NFR-001](../nonfunctional/NFR-0
 - When `producer-execute` returns state `completed`, the runner shall take the solver's exit code,
   stdout and stderr from the retained process evidence.
 - For every `producer-execute` result state the runner shall record the engine outcome given by the
-  table below, a value of the closed `quire.differential-report/v2` engine outcome set, and shall never
+  table below, a value of the closed `filament.differential-report/v2` engine outcome set, and shall never
   record `sat` or `unsat` from a state other than `completed`.
 
 | Result state | Engine outcome recorded | Differential disposition |
@@ -295,7 +295,7 @@ Solver limits are `AdapterLimits::default()` of [NFR-001](../nonfunctional/NFR-0
 
 | ID | Constraint | Type | Validation |
 |---|---|---|---|
-| FR-009-CON-1 | The runner shall emit `quire.differential-report/v2` as defined by [FR-005](./FR-005-evidence-cli.md) and `schemas/differential-report-v2.schema.json`; this requirement leaves that schema unchanged. | Interface | Inspection |
+| FR-009-CON-1 | The runner shall emit `filament.differential-report/v2` as defined by [FR-005](./FR-005-evidence-cli.md) and `schemas/differential-report-v2.schema.json`; this requirement leaves that schema unchanged. | Interface | Inspection |
 
 ## Acceptance Criteria
 
@@ -318,14 +318,14 @@ Solver limits are `AdapterLimits::default()` of [NFR-001](../nonfunctional/NFR-0
 | FR-009-AC-18 | A symlinked component in `--z3`, `--cvc5`, `--producer-execute` or the `--output` parent each exits `2` and writes no report. | Test |
 | FR-009-AC-19 | A package whose Boolean `analysis_claim` term the translation cannot lower exits `2` naming the node as `semantic_graph.nodes[N]`, with no report. | Test |
 | FR-009-AC-20 | For a package with analysis claims at nodes `i` and `j`, the statements the translation builds have `ClauseRef` (`source.name`, `analysis`, `1`) with clause ids `claim-i` and `claim-j` in node order, one `RequirementRef` for both, and the execution point `Handler` named `analysis`; `from_clause` accepts both. A `source.name` that `PackageId::new` refuses exits `2` naming the package name. | Test |
-| FR-009-AC-21 | Each of `quire.op.boolean.not`, `and`, `or`, `implies`, `eq` and `ne`, applied to Boolean parameters, translates to the `ExpressionKind` and operator of the Terms table, and a Boolean `Literal` to `BooleanLiteral`; a claim that is a `Reference` to an expression node translates to the body of that node. | Test |
+| FR-009-AC-21 | Each of `filament.op.boolean.not`, `and`, `or`, `implies`, `eq` and `ne`, applied to Boolean parameters, translates to the `ExpressionKind` and operator of the Terms table, and a Boolean `Literal` to `BooleanLiteral`; a claim that is a `Reference` to an expression node translates to the body of that node. | Test |
 | FR-009-AC-22 | Two claims that reference the same Boolean `value/parameter` node `N` yield one `ValueDeclaration` named `nN` of kind `Input` and type Boolean, referenced with observation `Current`, and the lowered query holds one variable symbol for it; two distinct parameter nodes yield two declarations. | Test |
-| FR-009-AC-23 | Each of a quantifier over a text domain or an unbounded integer domain, a `quire.op.integer.div`, `quire.op.integer.rem` or `quire.op.integer.mod` application, an integer-typed operand of a Boolean operation (`not`, `and`, `or`, `implies`, Boolean `eq` or `ne`), a reference to a node that is neither an expression, a literal nor a parameter, a reference cycle, a tree deeper than 128 (128 nested `not` applications over a Boolean parameter, depth 129, are refused; 127, depth 128, are not) and a shared-subterm chain `x1 = and(p, p)`, `xk = and(x(k-1), x(k-1))` of 61 nodes (about 2^61 expanded `Expression` nodes; a tree of 10,000 `Expression` nodes is not refused for size and one of 10,001 is) and claims sharing one 10,000-node tree (the 11th, whose first `Expression` is the 100,001st in total, is refused) each exit `2` naming `semantic_graph.nodes[N]` of the node where translation stopped, with no report. The shared-subterm run finishes within the time of a normal run. | Test |
+| FR-009-AC-23 | Each of a quantifier over a text domain or an unbounded integer domain, a `filament.op.integer.div`, `filament.op.integer.rem` or `filament.op.integer.mod` application, an integer-typed operand of a Boolean operation (`not`, `and`, `or`, `implies`, Boolean `eq` or `ne`), a reference to a node that is neither an expression, a literal nor a parameter, a reference cycle, a tree deeper than 128 (128 nested `not` applications over a Boolean parameter, depth 129, are refused; 127, depth 128, are not) and a shared-subterm chain `x1 = and(p, p)`, `xk = and(x(k-1), x(k-1))` of 61 nodes (about 2^61 expanded `Expression` nodes; a tree of 10,000 `Expression` nodes is not refused for size and one of 10,001 is) and claims sharing one 10,000-node tree (the 11th, whose first `Expression` is the 100,001st in total, is refused) each exit `2` naming `semantic_graph.nodes[N]` of the node where translation stopped, with no report. The shared-subterm run finishes within the time of a normal run. | Test |
 | FR-009-AC-24 | The `SourceSpan` of a claim is built from `source_map.nodes[N].occurrences[0].regions[0]` of its node: line `1`, column `1`, byte offsets the region start and end, document `contract-package`, revision `1`. A claim node whose `source_map.nodes[N].occurrences` is empty exits `2` naming the node. | Test |
 | FR-009-AC-25 | By inspection, an error from `check_expression`, `from_clause` or `lower_boolean_statements` for a clause maps to exit `2` naming `claim-N`, the path and the message, with no report; a Boolean claim does not reach these errors, because the translation bounds are tighter, but an integer claim can: the IR refuses, for example, an addition over a range of more than one point (FR-012), which exits `2` naming `claim-N`. | Inspection |
 | FR-009-AC-26 | Two translations of the same package bytes yield equal clause order, ids, declarations and spans. | Test |
 | FR-009-AC-28 | When the capability root cannot be removed (an entry inside it is unreadable), the runner names the root path on stderr and exits with the status the run would otherwise have had, and the report is still published. | Test |
-| FR-009-AC-27 | Every contract-package document that a test of `run-package` reads is built at test time through the public APIs of the `quire-contract-*` dependencies and the QSL crates (a `quire.checked-package/v2` document built in test code, read with `CheckedPackageV2::read`, lowered with `CheckedPackageV2::lower`, and the canonical bytes of the resulting `CompleteContractPackageV2`), or by byte-level mutation of such a built document (malformed, oversized, at-limit); no contract-package document or copy of another repository's file is committed to this repository. | Inspection |
+| FR-009-AC-27 | Every contract-package document that a test of `run-package` reads is built at test time through the public APIs of the `&es (a `filament.checked-package/v2` document built in test code, read with `CheckedPackageV2::read`, lowered with `CheckedPackageV2::lower`, and the canonical bytes of the resulting `CompleteContractPackageV2`), or by byte-level mutation of such a built document (malformed, oversized, at-limit); no contract-package document or copy of another repository's file is committed to this repository. | Inspection |
 | FR-009-AC-15 | Every request the runner logs validates against the request schema published by `producer-execute --schema request`, and the budget it carries has `maxStdoutBytes` and `maxStderrBytes` at most 8,388,608, `maxOutputArtifacts` and `maxOutputBytes` `0`, `maxDescendants` `16` and `maxConcurrency` `1`. | Test |
 | FR-009-AC-16 | The version request of an engine carries `producer.version` `unprobed` and stdin `null`; its query request carries the trimmed version stdout of the version result; a version result that is not `completed` or is empty yields no query request, the engine is recorded with the outcome the result-state table gives for that version result (`identity-error` when the text is empty), and the exit status is `3`. | Test |
 | FR-009-AC-14 | A run with the real `engineering-assurance` executable and real Z3 and cvc5 on a contract-package fixture built at test time (FR-009-AC-27) exits `0` or `1` and its report validates; the test is skipped with a stated reason when either solver or the executable is absent. | Test |
@@ -333,8 +333,8 @@ Solver limits are `AdapterLimits::default()` of [NFR-001](../nonfunctional/NFR-0
 ## Dependencies
 
  [FR-005](./FR-005-evidence-cli.md) for report rendering, validation and publication;
-`engineering-assurance` FR-019 and FR-029 for `producer-execute`; `quire-contract-ir` for
-`quire.contract-package/v1` and `ContractPackageWireV1::read`; `quire-spec-language` for the QSL checked
+`engineering-assurance` FR-019 and FR-029 for `producer-execute`; `filament-contract-ir` for
+`filament.contract-package/v1` and `ContractPackageWireV1::read`; `filament-spec-language` for the FSL checked
 package that is lowered to the contract package.
 
 ### Gaps
@@ -342,12 +342,12 @@ package that is lowered to the contract package.
 The following gaps were measured against the current code. They are preconditions of an implementing
 change, and none is closed by invented behaviour here.
 
-1. `quire-spec-language` has no production step that produces a contract package. The only call of
-   `CheckedPackageV2::lower` in its `qsl-package` sources is the `cfg(test)` module
-   `qsl-package/src/emit/extent_agreement.rs`, and no `quire.contract-package/v1` document is committed.
-   QSL's `checked_handoff::write` writes a checked-package handoff directory. QSL emits no `analysis_claim` node today: the only use of `ClaimForm::AnalysisClaim` in its sources
-   is the admission-corpus test `qsl-package/src/emit/tests/admission_corpus.rs`, so a package lowered
-   from QSL's `examples/checked-handoff/` units has no analysable clause and the runner exits `2` on
+1. `filament-spec-language` has no production step that produces a contract package. The only call of
+   `CheckedPackageV2::lower` in its `fsl-package` sources is the `cfg(test)` module
+   `fsl-package/src/emit/extent_agreement.rs`, and no `filament.contract-package/v1` document is committed.
+   FSL's `checked_handoff::write` writes a checked-package handoff directory. FSL emits no `analysis_claim` node today: the only use of `ClaimForm::AnalysisClaim` in its sources
+   is the admission-corpus test `fsl-package/src/emit/tests/admission_corpus.rs`, so a package lowered
+   from FSL's `examples/checked-handoff/` units has no analysable clause and the runner exits `2` on
    it. Fixtures that reach exit `0` or `1` are built at test time (FR-009-AC-27) and are not
    committed.
 2. The analysis API takes `StatementInput` built from `ContractPackage<TypedExpression>` and a
@@ -362,7 +362,7 @@ change, and none is closed by invented behaviour here.
    only, with no Cargo dependency on `engineering-assurance`.
 5. Integer types, operation rows and overflow policy are defined by FR-010 and FR-012, which extend this
    requirement; the package has no overflow policy field, and FR-012 states the mapping.
-6. The `quire-contract-model` revision in `Cargo.lock` predates the `CatalogUnavailable` variant of
+6. The `filament-contract-model` revision in `Cargo.lock` predates the `CatalogUnavailable` variant of
    `ContractPackageReadResult` that `Cargo.toml` (branch `main`) delivers. The implementing change updates
-   the lock to current `main` of `quire-contract-ir` so the reader has the four variants the Input section
+   the lock to current `main` of `filament-contract-ir` so the reader has the four variants the Input section
    handles.

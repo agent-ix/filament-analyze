@@ -4,11 +4,11 @@ title: "Solver exhaustion on a quantified query is inconclusive"
 type: NFR
 quality_attribute: reliability
 relationships:
-  - target: ix://agent-ix/quire-analyze/FR-032
+  - target: ix://agent-ix/filament-analyze/FR-032
     type: constrains
-  - target: ix://agent-ix/quire-analyze/FR-003
+  - target: ix://agent-ix/filament-analyze/FR-003
     type: constrains
-  - target: ix://agent-ix/quire-analyze/StR-001
+  - target: ix://agent-ix/filament-analyze/StR-001
     type: implements
 ---
 # NFR-032: Solver exhaustion on a quantified query is inconclusive

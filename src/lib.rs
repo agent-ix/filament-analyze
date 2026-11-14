@@ -26,7 +26,7 @@ pub use solver::*;
 
 /// Placeholder entry point.
 pub fn hello() -> &'static str {
-    "hello from quire_analyze"
+    "hello from filament_analyze"
 }
 
 #[cfg(test)]
@@ -35,6 +35,6 @@ mod tests {
 
     #[test]
     fn hello_returns_greeting() {
-        assert!(hello().contains("quire_analyze"));
+        assert!(hello().contains("filament_analyze"));
     }
 }

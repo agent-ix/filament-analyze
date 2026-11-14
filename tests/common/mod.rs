@@ -1,12 +1,12 @@
 //! Test-time contract-package fixtures for the FR-009 tests (FR-009-AC-27).
 //!
-//! Every document is built here through the public path: a `quire.checked-package/v2` document,
+//! Every document is built here through the public path: a `filament.checked-package/v2` document,
 //! `CheckedPackageV2::read`, `CheckedPackageV2::lower` with `CompleteLoweringProfileV2` and the
 //! canonical bytes of the resulting `CompleteContractPackageV2`. Nothing is committed.
 #![allow(dead_code)]
 
-use quire_analyze::{translate_analysis_claims, AnalysisTranslation, TranslationError};
-use quire_contract_model::{
+use filament_analyze::{translate_analysis_claims, AnalysisTranslation, TranslationError};
+use filament_contract_model::{
     CheckedNodeId, CheckedNodeTag, CheckedPackageEvidence, CheckedPackageReadLimits,
     CheckedPackageV2, CheckedPackageV2ReadResult, CompleteLoweringProfileV2,
     CompleteLoweringRecordV2, ContractPackageReadResult, ContractPackageV1, ContractPackageWireV1,
@@ -15,16 +15,16 @@ use quire_contract_model::{
 use serde_json::{json, Value};
 
 pub const PACKAGE: &str = "test/pkg";
-pub const FEATURE: &str = "quire.value.complete/v1";
-pub const AND: &str = "quire.op.boolean.and";
-pub const OR: &str = "quire.op.boolean.or";
-pub const NOT: &str = "quire.op.boolean.not";
-pub const IMPLIES: &str = "quire.op.boolean.implies";
-pub const EQ: &str = "quire.op.boolean.eq";
-pub const NE: &str = "quire.op.boolean.ne";
-pub const ENUM_EQ: &str = "quire.op.enum.eq";
-pub const ENUM_NE: &str = "quire.op.enum.ne";
-pub const STRUCTURAL_EQ: &str = "quire.op.structural.eq";
+pub const FEATURE: &str = "filament.value.complete/v1";
+pub const AND: &str = "filament.op.boolean.and";
+pub const OR: &str = "filament.op.boolean.or";
+pub const NOT: &str = "filament.op.boolean.not";
+pub const IMPLIES: &str = "filament.op.boolean.implies";
+pub const EQ: &str = "filament.op.boolean.eq";
+pub const NE: &str = "filament.op.boolean.ne";
+pub const ENUM_EQ: &str = "filament.op.enum.eq";
+pub const ENUM_NE: &str = "filament.op.enum.ne";
+pub const STRUCTURAL_EQ: &str = "filament.op.structural.eq";
 
 pub fn id(label: &str) -> Value {
     json!({"package": PACKAGE, "path": [label], "ordinal": 0})
@@ -85,7 +85,7 @@ impl Document {
         let position = self.nodes.len() as u64;
         self.nodes.push(json!({
             "node_id": id(label),
-            "schema_version": "quire.checked-semantic-graph/v2",
+            "schema_version": "filament.checked-semantic-graph/v2",
             "node_tag": tag,
             "semantic_form": form,
             "semantic_type": id(semantic_type),
@@ -231,7 +231,7 @@ impl Document {
         let node = self.nodes.last_mut().expect("enum node");
         node["declaration"] = json!({"qualified_name": [name]});
         node["owner"] = json!({"kind": "source", "authority": "agent-ix",
-            "identity": "quire.fixture.source/v1"});
+            "identity": "filament.fixture.source/v1"});
         for member in sorted {
             let label = format!("{name}/{member}");
             let body = literal(name, "enum", json!(member));
@@ -409,11 +409,11 @@ impl Document {
         label
     }
 
-    /// `operand.field`, a `quire.op.record.project` over a record of type `record`.
+    /// `operand.field`, a `filament.op.record.project` over a record of type `record`.
     pub fn project(&mut self, record: &str, field: &str, operand: &str, result: &str) -> String {
         let member = json!({"kind": "field", "declaration": id(record), "name": field});
         self.shaped(
-            "quire.op.record.project",
+            "filament.op.record.project",
             "query",
             "query",
             member,
@@ -423,11 +423,11 @@ impl Document {
         )
     }
 
-    /// `quire.op.option.present` of `option`.
+    /// `filament.op.option.present` of `option`.
     pub fn present(&mut self, option: &str) -> String {
         let result = "scalar_type/boolean";
         self.shaped(
-            "quire.op.option.present",
+            "filament.op.option.present",
             "present",
             "presence_read",
             Value::Null,
@@ -437,10 +437,10 @@ impl Document {
         )
     }
 
-    /// `quire.op.option.value` of `option`, typed `result`.
+    /// `filament.op.option.value` of `option`, typed `result`.
     pub fn option_value(&mut self, option: &str, result: &str) -> String {
         self.shaped(
-            "quire.op.option.value",
+            "filament.op.option.value",
             "value",
             "value_read",
             Value::Null,
@@ -509,7 +509,7 @@ impl Document {
     }
 
     pub fn value(&self) -> Value {
-        let source = json!({"authority": "agent-ix", "identity": "quire.fixture.source/v1"});
+        let source = json!({"authority": "agent-ix", "identity": "filament.fixture.source/v1"});
         let definition = |identity: &str| json!({"authority": "agent-ix", "identity": identity});
         let source_map = self
             .nodes
@@ -525,24 +525,24 @@ impl Document {
             })
             .collect::<Vec<_>>();
         json!({
-            "contract_version": "quire.checked-package/v2",
+            "contract_version": "filament.checked-package/v2",
             "name": self.name,
             "lock": {
                 "sources": [source],
-                "edition": {"role": "edition", "definition": definition("quire.fixture.edition/v1")},
+                "edition": {"role": "edition", "definition": definition("filament.fixture.edition/v1")},
                 "profile_selections": [],
                 "definition_selections": [],
                 "required_features": [FEATURE],
                 "dependency_selections": [],
             },
             "semantic_graph": {
-                "graph_version": "quire.checked-semantic-graph/v2",
+                "graph_version": "filament.checked-semantic-graph/v2",
                 "nodes": self.nodes,
                 "operand_rows": self.nodes.iter().map(|_| json!([])).collect::<Vec<_>>(),
             },
             "source_map": source_map,
             "capability_report": [{"feature": FEATURE, "disposition": "available"}],
-            "diagnostics": {"catalog": definition("quire.fixture.diagnostics-catalog/v1"), "entries": []},
+            "diagnostics": {"catalog": definition("filament.fixture.diagnostics-catalog/v1"), "entries": []},
         })
     }
 
@@ -577,7 +577,7 @@ impl Document {
             .collect();
         let profile = CompleteLoweringProfileV2 {
             reference: LoweringProfileRef {
-                authority: "quire-analyze".into(),
+                authority: "filament-analyze".into(),
                 identity: "run-package-test".into(),
             },
             required_source_selections: Vec::new(),
@@ -641,7 +641,7 @@ pub fn refusal(document: &Document, claims: &[&str]) -> (ContractPackageV1, Tran
 pub fn expression(
     translation: &AnalysisTranslation,
     position: usize,
-) -> &quire_contract_model::Expression {
+) -> &filament_contract_model::Expression {
     translation.package().requirements()[0].clauses()[position]
         .body()
         .expression()
@@ -653,7 +653,7 @@ pub fn symbol(package: &ContractPackageV1, label: &str) -> String {
 
 pub fn value_reference(package: &ContractPackageV1, label: &str) -> ExpressionKind {
     ExpressionKind::ValueReference {
-        name: quire_contract_model::SymbolName::new(symbol(package, label)).expect("symbol"),
+        name: filament_contract_model::SymbolName::new(symbol(package, label)).expect("symbol"),
         observation: StateObservation::Current,
     }
 }
@@ -699,7 +699,7 @@ impl TempDir {
         let counter = TEMP_COUNTER.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
         let base = std::fs::canonicalize(std::env::temp_dir()).expect("temporary directory");
         let path = base.join(format!(
-            "quire-analyze-{label}-{}-{counter}",
+            "filament-analyze-{label}-{}-{counter}",
             std::process::id()
         ));
         std::fs::create_dir(&path).expect("create temporary directory");
@@ -768,8 +768,8 @@ impl Sized {
         Self {
             chains: vec![parameter.clone()],
             parameter,
-            combine: "quire.op.integer.add",
-            wrap: "quire.op.integer.negate",
+            combine: "filament.op.integer.add",
+            wrap: "filament.op.integer.negate",
             ty: ty.to_owned(),
         }
     }
@@ -831,7 +831,7 @@ pub fn cycle_document() -> (Document, String, [String; 2]) {
 
 /// A claim over a two-node cycle of integer sums; returns the document, the claim and the cycle.
 pub fn integer_cycle_document() -> (Document, String, [String; 2]) {
-    const ADD: &str = "quire.op.integer.add";
+    const ADD: &str = "filament.op.integer.add";
     let mut document = Document::new();
     let range = document.range();
     let a = document.parameter_of(&range);
@@ -857,7 +857,11 @@ pub fn integer_cycle_document() -> (Document, String, [String; 2]) {
             .expect("node");
         node["recursion_group"] = json!("loop");
     }
-    let compare = document.int_op("quire.op.integer.le", &[&second, &a], "scalar_type/boolean");
+    let compare = document.int_op(
+        "filament.op.integer.le",
+        &[&second, &a],
+        "scalar_type/boolean",
+    );
     let claim = document.claim(&compare);
     (document, claim, [first, second])
 }
@@ -868,10 +872,10 @@ pub fn product_document() -> (Document, String, String) {
     let range = document.range();
     let a = document.parameter_of(&range);
     let b = document.parameter_of(&range);
-    let product = document.int_op("quire.op.integer.mul", &[&a, &b], &range);
+    let product = document.int_op("filament.op.integer.mul", &[&a, &b], &range);
     let c = document.parameter_of(&range);
     let compare = document.int_op(
-        "quire.op.integer.le",
+        "filament.op.integer.le",
         &[&product, &c],
         "scalar_type/boolean",
     );

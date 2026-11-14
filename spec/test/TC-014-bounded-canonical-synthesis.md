@@ -3,7 +3,7 @@ id: TC-014
 title: "Verify bounded canonical synthesis"
 type: TC
 relationships:
-  - target: ix://agent-ix/quire-analyze/FR-008
+  - target: ix://agent-ix/filament-analyze/FR-008
     type: verifies
 ---
 # TC-014: Verify bounded canonical synthesis

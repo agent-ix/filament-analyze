@@ -16,7 +16,7 @@ use std::{
     thread,
 };
 
-use quire_analyze::{
+use filament_analyze::{
     classify_analysis, compare_solver_records, execute_differential, execute_solver,
     lower_analysis_request, publish_report_new, render_differential_report,
     render_differential_summary, validate_differential_report, validate_report_document,
@@ -25,7 +25,7 @@ use quire_analyze::{
     ExplanationState, ModelPurpose, QueryBundle, SolverConfig, SolverEngine, SolverOutcome,
     StatementInput, StatementRole,
 };
-use quire_contract_model::{
+use filament_contract_model::{
     AnchorName, BooleanOperator, Clause, ClauseId, ClauseKind, ContractPackage,
     DeclarationEnvironment, ExecutionPoint, Expression, ExpressionKind, PackageId, Requirement,
     RequirementId, RequirementRef, RequirementRevision, SchemaVersion, SourceDocumentId,
@@ -43,7 +43,7 @@ impl TempDirectory {
     fn new(label: &str) -> Self {
         let counter = TEMP_COUNTER.fetch_add(1, Ordering::Relaxed);
         let path = std::env::temp_dir().join(format!(
-            "quire-analysis-{label}-{}-{counter}",
+            "filament-analysis-{label}-{}-{counter}",
             std::process::id()
         ));
         fs::create_dir(&path).expect("temporary directory");
@@ -186,8 +186,8 @@ fn expected_query_digest(request_digest: &str, query: &[u8]) -> String {
         })
         .collect::<Vec<_>>();
     let mut hasher = Sha256::new();
-    hasher.update(b"quire-analyze\0query\0");
-    for field in [b"quire.smtlib2/v2".as_slice(), request.as_slice(), query] {
+    hasher.update(b"filament-analyze\0query\0");
+    for field in [b"filament.smtlib2/v2".as_slice(), request.as_slice(), query] {
         hasher.update((field.len() as u64).to_be_bytes());
         hasher.update(field);
     }
@@ -208,7 +208,7 @@ fn write_solver(directory: &Path, response: &str, slow: bool) -> PathBuf {
     path
 }
 
-fn execute_response(query: &QueryBundle, response: &str) -> quire_analyze::SolverRecord {
+fn execute_response(query: &QueryBundle, response: &str) -> filament_analyze::SolverRecord {
     execute_engine_response(query, response, SolverEngine::Z3)
 }
 
@@ -216,7 +216,7 @@ fn execute_engine_response(
     query: &QueryBundle,
     response: &str,
     engine: SolverEngine,
-) -> quire_analyze::SolverRecord {
+) -> filament_analyze::SolverRecord {
     let directory = TempDirectory::new("response");
     let executable = write_solver(directory.path(), response, false);
     let config = SolverConfig::new(engine, &executable, AdapterLimits::default()).expect("config");
@@ -555,9 +555,9 @@ fn model_decode_mapping_and_replay_are_fail_closed() {
     assert_eq!(conclusion.binding_set_digest(), query.binding_set_digest());
     assert_eq!(
         conclusion.analysis_model_profile(),
-        "quire.analysis-model/v1"
+        "filament.analysis-model/v1"
     );
-    assert_eq!(conclusion.encoding_profile(), "quire.smtlib2/v2");
+    assert_eq!(conclusion.encoding_profile(), "filament.smtlib2/v2");
     assert_eq!(conclusion.logic(), "QF_LIA");
     assert_eq!(
         conclusion.solver().query_digest(),
@@ -740,10 +740,11 @@ fn differential_disposition_requires_two_verified_conclusive_results() {
 /// FR-005-AC-3: official engines agree on independently selected sat and unsat cases.
 #[trace("TC-006", "FR-005-AC-3", "MP-001-M-06")]
 #[test]
-#[ignore = "requires official Z3 and cvc5 executables at QUIRE_Z3 and QUIRE_CVC5"]
+#[ignore = "requires official Z3 and cvc5 executables at FILAMENT_Z3 and FILAMENT_CVC5"]
 fn official_z3_cvc5_differential_corpus_agrees() {
-    let z3_path = PathBuf::from(std::env::var_os("QUIRE_Z3").expect("QUIRE_Z3 is required"));
-    let cvc5_path = PathBuf::from(std::env::var_os("QUIRE_CVC5").expect("QUIRE_CVC5 is required"));
+    let z3_path = PathBuf::from(std::env::var_os("FILAMENT_Z3").expect("FILAMENT_Z3 is required"));
+    let cvc5_path =
+        PathBuf::from(std::env::var_os("FILAMENT_CVC5").expect("FILAMENT_CVC5 is required"));
     let z3 = SolverConfig::new(SolverEngine::Z3, z3_path, AdapterLimits::default())
         .expect("Z3 configuration");
     let cvc5 = SolverConfig::new(SolverEngine::Cvc5, cvc5_path, AdapterLimits::default())
@@ -865,7 +866,7 @@ fn report_bytes_are_canonical_reconstructed_and_published_without_overwrite() {
             .expect("entry")
             .file_name()
             .to_string_lossy()
-            .starts_with(".quire-analyze-report-")));
+            .starts_with(".filament-analyze-report-")));
 
     let race_directory = TempDirectory::new("atomic-report-race");
     let race_destination = race_directory.path().join("winner.json");
@@ -901,12 +902,12 @@ fn report_bytes_are_canonical_reconstructed_and_published_without_overwrite() {
             .expect("entry")
             .file_name()
             .to_string_lossy()
-            .starts_with(".quire-analyze-report-")));
+            .starts_with(".filament-analyze-report-")));
 
     let cli_input = directory.path().join("cli-input.json");
     let cli_output = directory.path().join("cli-output.json");
     fs::write(&cli_input, &first).expect("CLI input");
-    let cli = Command::new(env!("CARGO_BIN_EXE_quire-analyze"))
+    let cli = Command::new(env!("CARGO_BIN_EXE_filament-analyze"))
         .args([
             "publish-report",
             "--input",
@@ -923,7 +924,7 @@ fn report_bytes_are_canonical_reconstructed_and_published_without_overwrite() {
         .contains("published"));
     assert_eq!(fs::read(&cli_output).expect("CLI output"), first);
 
-    let refused = Command::new(env!("CARGO_BIN_EXE_quire-analyze"))
+    let refused = Command::new(env!("CARGO_BIN_EXE_filament-analyze"))
         .args([
             "publish-report",
             "--input",
@@ -955,7 +956,7 @@ fn report_bytes_are_canonical_reconstructed_and_published_without_overwrite() {
         render_differential_report(&refuted_query, &refuted_run).expect("refuted report"),
     )
     .expect("refuted input");
-    let refuted_cli = Command::new(env!("CARGO_BIN_EXE_quire-analyze"))
+    let refuted_cli = Command::new(env!("CARGO_BIN_EXE_filament-analyze"))
         .args([
             "publish-report",
             "--input",
@@ -970,7 +971,7 @@ fn report_bytes_are_canonical_reconstructed_and_published_without_overwrite() {
     let invalid_input = directory.path().join("invalid.json");
     let invalid_output = directory.path().join("invalid-output.json");
     fs::write(&invalid_input, b"{}").expect("invalid input");
-    let invalid_cli = Command::new(env!("CARGO_BIN_EXE_quire-analyze"))
+    let invalid_cli = Command::new(env!("CARGO_BIN_EXE_filament-analyze"))
         .args([
             "publish-report",
             "--input",
@@ -1075,7 +1076,7 @@ fn differential_v2_requires_retained_identities_and_rejects_v1() {
     );
     let report = render_differential_report(&query, &run).expect("v2 report");
     let value: serde_json::Value = serde_json::from_slice(&report).expect("report JSON");
-    assert_eq!(value["schema"], "quire.differential-report/v2");
+    assert_eq!(value["schema"], "filament.differential-report/v2");
     assert_eq!(value["producer"]["name"], env!("CARGO_PKG_NAME"));
     assert_eq!(value["producer"]["version"], env!("CARGO_PKG_VERSION"));
     assert_eq!(
@@ -1309,7 +1310,10 @@ fn differential_v2_requires_retained_identities_and_rejects_v1() {
     let historical = include_bytes!("fixtures/differential-report-v1.json");
     let historical_value: serde_json::Value =
         serde_json::from_slice(historical).expect("historical v1 fixture");
-    assert_eq!(historical_value["schema"], "quire.differential-report/v1");
+    assert_eq!(
+        historical_value["schema"],
+        "filament.differential-report/v1"
+    );
     assert!(historical_value["contractIrRevision"].is_string());
     assert_eq!(canonical_report(historical_value.clone()), historical);
     assert!(validate_report_document(historical).is_err());

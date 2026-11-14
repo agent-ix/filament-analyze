@@ -3,9 +3,9 @@ id: TC-005
 title: "Verify adapter resource and failure isolation"
 type: TC
 relationships:
-  - target: ix://agent-ix/quire-analyze/FR-003
+  - target: ix://agent-ix/filament-analyze/FR-003
     type: verifies
-  - target: ix://agent-ix/quire-analyze/NFR-001
+  - target: ix://agent-ix/filament-analyze/NFR-001
     type: verifies
 ---
 # TC-005: Verify adapter resource and failure isolation

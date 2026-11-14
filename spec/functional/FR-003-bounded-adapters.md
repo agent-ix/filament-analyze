@@ -3,9 +3,9 @@ id: FR-003
 title: "Run bounded Z3 and cvc5 process adapters"
 type: FR
 relationships:
-  - target: ix://agent-ix/quire-analyze/FR-002
+  - target: ix://agent-ix/filament-analyze/FR-002
     type: depends_on
-  - target: ix://agent-ix/quire-analyze/interface_001
+  - target: ix://agent-ix/filament-analyze/interface_001
     type: implements
 ---
 # FR-003: Run bounded Z3 and cvc5 process adapters
@@ -22,7 +22,7 @@ and normalize their protocol responses without shell interpretation.
   query content cannot select or modify a path.
 - No Z3 or cvc5 library is linked; engines remain external processes and therefore do not become
   transitive libraries in a consumer binary.
-- The `quire.solver-process/v1` default profile has exact finite ceilings: 5,000 ms wall time,
+- The `filament.solver-process/v1` default profile has exact finite ceilings: 5,000 ms wall time,
   1,000 ms total termination/cleanup time (including a 100 ms graceful interval), 16,777,216 query
   bytes, 16,777,216 stdout bytes, 1,048,576 stderr bytes, 8,388,608 model bytes within stdout,
   65,536 version-output bytes, and a 4,096-byte canonical executable path. The monitor interval is

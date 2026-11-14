@@ -1,26 +1,26 @@
 ---
 id: FR-034
-title: "Translate bounded quantifiers from QSL contract packages"
+title: "Translate bounded quantifiers from FSL contract packages"
 type: FR
 relationships:
-  - target: ix://agent-ix/quire-analyze/FR-030
+  - target: ix://agent-ix/filament-analyze/FR-030
     type: depends_on
-  - target: ix://agent-ix/quire-analyze/FR-009
+  - target: ix://agent-ix/filament-analyze/FR-009
     type: depends_on
-  - target: ix://agent-ix/quire-analyze/FR-012
+  - target: ix://agent-ix/filament-analyze/FR-012
     type: depends_on
-  - target: ix://agent-ix/quire-analyze/FR-022
+  - target: ix://agent-ix/filament-analyze/FR-022
     type: depends_on
-  - target: ix://agent-ix/quire-analyze/StR-001
+  - target: ix://agent-ix/filament-analyze/StR-001
     type: implements
 ---
-# FR-034: Translate bounded quantifiers from QSL contract packages
+# FR-034: Translate bounded quantifiers from FSL contract packages
 
 ## Description
 
 The `run-package` translation of [FR-009](./FR-009-package-runner.md) shall translate quantifier
-expressions of an admitted `quire.contract-package/v1` document into the analysis model's bounded
-quantifiers, so that `run-package` analyses quantified QSL clauses without a separate quantifier
+expressions of an admitted `filament.contract-package/v1` document into the analysis model's bounded
+quantifiers, so that `run-package` analyses quantified FSL clauses without a separate quantifier
 request. This amends FR-009, which lists quantifiers among the terms that exit `2`, for the domains
 that [FR-030](./FR-030-bounded-quantifier-domains.md) admits.
 
@@ -30,10 +30,10 @@ that [FR-030](./FR-030-bounded-quantifier-domains.md) admits.
   existential quantifier with its domain classified by FR-030, its bound variable, its Boolean body
   and its source span. The quantifier is a Boolean term that Boolean operations may combine. Its
   operation row extends the Terms table of FR-009 and uses the same operation-identity rule.
-- **Quantifier identities.** The checked operation catalog (`quire-verification-contracts`) defines
-  `quire.op.collection.forall` and `quire.op.collection.exists`, each with a first operand typed
+- **Quantifier identities.** The checked operation catalog (`filament-verification-contracts`) defines
+  `filament.op.collection.forall` and `filament.op.collection.exists`, each with a first operand typed
   `collection_kind` (`sequence`, `set`, `bag` or `ordered_set`) and a Boolean-bodied binder as second
-  operand; `quire-contract-model` holds them as a quantifier over a collection expression with an
+  operand; `filament-contract-model` holds them as a quantifier over a collection expression with an
   elements or indices domain. They are the identities of the universal and existential quantifier.
   The catalog has no enum-domain or range-domain quantifier identity, so the package path has no
   separate enum or range domain.
@@ -48,8 +48,8 @@ that [FR-030](./FR-030-bounded-quantifier-domains.md) admits.
   over the budget it exits `2` with reason `expansion-ceiling` and is never turned into a solver
   quantifier. A range-domain operand or identity needs an upstream form that does not exist; a
   quantifier with a range-domain operand that no upstream form supplies exits `2` naming the node.
-- **Collection domains.** A first operand that is an `Application` of `quire.op.collection.set`,
-  `quire.op.collection.ordered_set`, `quire.op.collection.sequence` or `quire.op.collection.bag`
+- **Collection domains.** A first operand that is an `Application` of `filament.op.collection.set`,
+  `filament.op.collection.ordered_set`, `filament.op.collection.sequence` or `filament.op.collection.bag`
   whose arguments are all `Literal` terms of Boolean, enum or integer-range type (an enum's literals for an enum domain, integer literals for a range) translates to a
   finite-collection domain with those elements and no collection value or sort; the collection exists
   only as the quantifier's domain. A first operand that is a `Reference` to a parameter, a
@@ -84,7 +84,7 @@ that [FR-030](./FR-030-bounded-quantifier-domains.md) admits.
 | FR-034-AC-4 | A quantified package run through `run-package` yields the same report bytes, except `elapsedMs`, on repeated runs. | Test (TC-030) |
 | FR-034-AC-5 | For the fixtures of FR-009-AC-21 and FR-012-AC-4, which hold no quantifier node, the lowered queries equal their golden queries. | Test (TC-030) |
 | FR-034-AC-6 | A quantifier whose body is a 10,000-node tree is not refused for size and one whose body is 10,001 nodes exits `2`, as FR-009-AC-23 states for other trees; an integer-literal collection of 1,024 elements translates, and its 1,024 expanded instances do not count toward that node bound. | Test (TC-030) |
-| FR-034-AC-7 | A collection with a non-literal element, a collection of text, rational, record or nested-collection elements, a `Reference` to a collection parameter, `quire.op.collection.contains`, `size` or `index` applied to a literal collection, and a collection literal outside a quantifier domain each exit `2` naming `semantic_graph.nodes[N]`, with no report. | Test (TC-030) |
+| FR-034-AC-7 | A collection with a non-literal element, a collection of text, rational, record or nested-collection elements, a `Reference` to a collection parameter, `filament.op.collection.contains`, `size` or `index` applied to a literal collection, and a collection literal outside a quantifier domain each exit `2` naming `semantic_graph.nodes[N]`, with no report. | Test (TC-030) |
 | FR-034-AC-8 | An integer-literal collection of 1,025 elements exits `2` with reason `expansion-ceiling` and emits no solver quantifier, and a quantifier with a range-domain operand for which no upstream form exists exits `2` naming `semantic_graph.nodes[N]` with no report. | Test (TC-030) |
 
 ## Dependencies

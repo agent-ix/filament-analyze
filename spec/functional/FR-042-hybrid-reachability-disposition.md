@@ -3,11 +3,11 @@ id: FR-042
 title: Apply the recorded hybrid reachability disposition
 type: FR
 relationships:
-  - target: ix://agent-ix/quire-analyze/FR-041
+  - target: ix://agent-ix/filament-analyze/FR-041
     type: depends_on
-  - target: ix://agent-ix/quire-analyze/FR-009
+  - target: ix://agent-ix/filament-analyze/FR-009
     type: depends_on
-  - target: ix://agent-ix/quire-analyze/StR-001
+  - target: ix://agent-ix/filament-analyze/StR-001
     type: implements
 ---
 # FR-042: Apply the recorded hybrid reachability disposition

@@ -3,9 +3,9 @@ id: TC-016
 title: "Verify linear integer lowering and solver agreement"
 type: TC
 relationships:
-  - target: ix://agent-ix/quire-analyze/FR-010
+  - target: ix://agent-ix/filament-analyze/FR-010
     type: verifies
-  - target: ix://agent-ix/quire-analyze/NFR-004
+  - target: ix://agent-ix/filament-analyze/NFR-004
     type: verifies
 ---
 # TC-016: Verify linear integer lowering and solver agreement

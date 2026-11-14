@@ -1,4 +1,4 @@
-# quire-analyze
+# filament-analyze
 
 SMT-backed consistency and implication analysis for versioned requirement contracts.
 

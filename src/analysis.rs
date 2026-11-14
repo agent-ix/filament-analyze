@@ -1386,15 +1386,15 @@ fn take_atom(tokens: &[ModelToken], cursor: &mut usize) -> Result<String, String
 #[cfg(test)]
 mod tests {
     use crate::smt::ReplayQuantifierElement;
+    use filament_contract_model::ComparisonOperator;
     use ix_trace_rs::trace;
-    use quire_contract_model::ComparisonOperator;
 
     use super::*;
     use crate::smt::{ReplayExpression, ReplayTerm};
 
     /// A query for `x >= 1` over `x` declared in `[0, 10]`, built from typed contract nodes.
     fn lower_positive_query() -> QueryBundle {
-        use quire_contract_model::{
+        use filament_contract_model::{
             AnchorName, Clause, ClauseId, ClauseKind, ContractPackage, DeclarationEnvironment,
             ExecutionPoint, Expression, ExpressionKind, IntegerDomain, IntegerType, OverflowPolicy,
             PackageId, Requirement, RequirementId, RequirementRef, RequirementRevision,
@@ -1861,7 +1861,7 @@ mod tests {
             name: "assertion-1".to_owned(),
             expression: ReplayExpression::Quantifier {
                 node_id: 2,
-                kind: quire_contract_model::QuantifierKind::ForAll,
+                kind: filament_contract_model::QuantifierKind::ForAll,
                 local: local.clone(),
                 source: "source-Q".to_owned(),
                 domain: ReplayQuantifierDomain::Elements(vec![

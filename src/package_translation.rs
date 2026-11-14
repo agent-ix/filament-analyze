@@ -12,7 +12,7 @@ use std::{
     fmt,
 };
 
-use quire_contract_model::{
+use filament_contract_model::{
     BooleanOperator, BoundedDomainForm, CheckedJson, CheckedLiteralValue, CheckedNodeId,
     CheckedNodeKind, CheckedSemanticNodeV2, CheckedTerm, ClaimForm, Clause, ClauseId, ClauseKind,
     ComparisonOperator, CompositeTypeForm, ContractPackage, ContractPackageV1,
@@ -34,32 +34,32 @@ const ANCHOR_NAME: &str = "analysis";
 /// The most `Expression` nodes the translation produces across all claims of a package.
 const MAX_TOTAL_EXPRESSIONS: u32 = 100_000;
 
-const OP_NOT: &str = "quire.op.boolean.not";
-const OP_AND: &str = "quire.op.boolean.and";
-const OP_OR: &str = "quire.op.boolean.or";
-const OP_IMPLIES: &str = "quire.op.boolean.implies";
-const OP_EQ: &str = "quire.op.boolean.eq";
-const OP_NE: &str = "quire.op.boolean.ne";
-const OP_INT_NEGATE: &str = "quire.op.integer.negate";
-const OP_INT_ADD: &str = "quire.op.integer.add";
-const OP_INT_SUB: &str = "quire.op.integer.sub";
-const OP_INT_MUL: &str = "quire.op.integer.mul";
-const OP_INT_EQ: &str = "quire.op.integer.eq";
-const OP_INT_NE: &str = "quire.op.integer.ne";
-const OP_INT_LT: &str = "quire.op.integer.lt";
-const OP_INT_LE: &str = "quire.op.integer.le";
-const OP_INT_GT: &str = "quire.op.integer.gt";
-const OP_INT_GE: &str = "quire.op.integer.ge";
-const OP_INT_DIV: &str = "quire.op.integer.div";
-const OP_INT_REM: &str = "quire.op.integer.rem";
-const OP_INT_MOD: &str = "quire.op.integer.mod";
-const OP_ENUM_EQ: &str = "quire.op.enum.eq";
-const OP_ENUM_NE: &str = "quire.op.enum.ne";
-const OP_STRUCTURAL_EQ: &str = "quire.op.structural.eq";
-const OP_STRUCTURAL_NE: &str = "quire.op.structural.ne";
-const OP_RECORD_PROJECT: &str = "quire.op.record.project";
-const OP_OPTION_PRESENT: &str = "quire.op.option.present";
-const OP_OPTION_VALUE: &str = "quire.op.option.value";
+const OP_NOT: &str = "filament.op.boolean.not";
+const OP_AND: &str = "filament.op.boolean.and";
+const OP_OR: &str = "filament.op.boolean.or";
+const OP_IMPLIES: &str = "filament.op.boolean.implies";
+const OP_EQ: &str = "filament.op.boolean.eq";
+const OP_NE: &str = "filament.op.boolean.ne";
+const OP_INT_NEGATE: &str = "filament.op.integer.negate";
+const OP_INT_ADD: &str = "filament.op.integer.add";
+const OP_INT_SUB: &str = "filament.op.integer.sub";
+const OP_INT_MUL: &str = "filament.op.integer.mul";
+const OP_INT_EQ: &str = "filament.op.integer.eq";
+const OP_INT_NE: &str = "filament.op.integer.ne";
+const OP_INT_LT: &str = "filament.op.integer.lt";
+const OP_INT_LE: &str = "filament.op.integer.le";
+const OP_INT_GT: &str = "filament.op.integer.gt";
+const OP_INT_GE: &str = "filament.op.integer.ge";
+const OP_INT_DIV: &str = "filament.op.integer.div";
+const OP_INT_REM: &str = "filament.op.integer.rem";
+const OP_INT_MOD: &str = "filament.op.integer.mod";
+const OP_ENUM_EQ: &str = "filament.op.enum.eq";
+const OP_ENUM_NE: &str = "filament.op.enum.ne";
+const OP_STRUCTURAL_EQ: &str = "filament.op.structural.eq";
+const OP_STRUCTURAL_NE: &str = "filament.op.structural.ne";
+const OP_RECORD_PROJECT: &str = "filament.op.record.project";
+const OP_OPTION_PRESENT: &str = "filament.op.option.present";
+const OP_OPTION_VALUE: &str = "filament.op.option.value";
 
 /// Why a package cannot be translated. Each kind is a distinct, stable cause.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -680,7 +680,7 @@ impl<'a> Walker<'a> {
         Ok(())
     }
 
-    /// The field named by the `field` member of the `quire.op.record.project` application at
+    /// The field named by the `field` member of the `filament.op.record.project` application at
     /// `node`, which must declare the record type of its operand. A package read by
     /// `ContractPackageWireV1::read` carries no admitted operation views, so the member is read
     /// from the wire body.
@@ -1131,11 +1131,11 @@ enum Operation {
     Not,
     Negate,
     Binary(Binary),
-    /// `quire.op.record.project`: the field of a record.
+    /// `filament.op.record.project`: the field of a record.
     Project,
-    /// `quire.op.option.present`.
+    /// `filament.op.option.present`.
     Present,
-    /// `quire.op.option.value`.
+    /// `filament.op.option.value`.
     Value,
 }
 

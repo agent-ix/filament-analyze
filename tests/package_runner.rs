@@ -23,17 +23,17 @@ use common::{
     cycle_document, id, integer_cycle_document, labels, not_chain, option_value, product_document,
     record_field, with_identity, Document, Sized, TempDir, AND, ENUM_EQ, NOT,
 };
-use ix_trace_rs::trace;
-use quire_analyze::{
+use filament_analyze::{
     lower_analysis_request, translate_analysis_claims, validate_report_document,
     DifferentialDisposition,
 };
-use quire_contract_model::{
+use filament_contract_model::{
     CheckedPackageReadLimits, ContractPackageReadResult, ContractPackageWireV1,
 };
+use ix_trace_rs::trace;
 use serde_json::{json, Value};
 
-const BINARY: &str = env!("CARGO_BIN_EXE_quire-analyze");
+const BINARY: &str = env!("CARGO_BIN_EXE_filament-analyze");
 const VERSION_Z3: &str = "Z3 version 4.13.0 - 64 bit\n";
 const VERSION_CVC5: &str = "This is cvc5 version 1.1.2\n";
 const RESULT_PROTOCOL: &str = "engineering-assurance.producer-execution-result/v1";
@@ -342,7 +342,7 @@ fn directory_names(path: &Path) -> Vec<String> {
 }
 
 fn finish(mut command: Command) -> Run {
-    let output = command.output().expect("run quire-analyze");
+    let output = command.output().expect("run filament-analyze");
     Run {
         code: output.status.code(),
         stdout: String::from_utf8_lossy(&output.stdout).into_owned(),
@@ -449,7 +449,7 @@ fn two_requests_per_engine_version_then_query_and_a_satisfied_report() {
         );
         assert_eq!(
             request["caller"],
-            json!({"kind": "quire-analyze.run-package", "version": "1"})
+            json!({"kind": "filament-analyze.run-package", "version": "1"})
         );
         assert_eq!(request["environment"], json!({}));
         assert_eq!(request["outputs"], json!([]));
@@ -1028,9 +1028,9 @@ fn untranslatable() -> (Vec<u8>, String) {
     let range = document.range();
     let a = document.parameter_of(&range);
     let b = document.parameter_of(&range);
-    let quotient = document.application("quire.op.integer.add", &[&a, &b], &range);
+    let quotient = document.application("filament.op.integer.add", &[&a, &b], &range);
     let less = document.application(
-        "quire.op.integer.lt",
+        "filament.op.integer.lt",
         &[&quotient, &b],
         "scalar_type/boolean",
     );
@@ -1038,7 +1038,7 @@ fn untranslatable() -> (Vec<u8>, String) {
     let bytes = with_identity(
         &document.bytes(&[&claim]),
         &quotient,
-        "quire.op.integer.div",
+        "filament.op.integer.div",
     );
     (bytes, quotient)
 }
@@ -1375,12 +1375,12 @@ fn dose_package(contradiction: bool) -> Built {
     let max = document.parameter_of(&range);
     let weight = document.parameter_of(&range);
     let one = document.int_literal(&range, 1);
-    let scaled = document.int_op("quire.op.integer.mul", &[&one, &weight], &range);
-    let within = document.int_op("quire.op.integer.le", &[&dose, &max], boolean);
-    let bounded = document.int_op("quire.op.integer.le", &[&max, &scaled], boolean);
+    let scaled = document.int_op("filament.op.integer.mul", &[&one, &weight], &range);
+    let within = document.int_op("filament.op.integer.le", &[&dose, &max], boolean);
+    let bounded = document.int_op("filament.op.integer.le", &[&max, &scaled], boolean);
     let mut claims = vec![document.claim(&within), document.claim(&bounded)];
     if contradiction {
-        let above = document.int_op("quire.op.integer.gt", &[&dose, &max], boolean);
+        let above = document.int_op("filament.op.integer.gt", &[&dose, &max], boolean);
         claims.push(document.claim(&above));
     }
     let labels = claims.iter().map(String::as_str).collect::<Vec<_>>();
@@ -1469,7 +1469,7 @@ fn integer_refusals_exit_two_naming_the_node_through_the_runner() {
 
     for name in ["div", "rem", "mod"] {
         let (bytes, node) = untranslatable();
-        let bytes = with_identity(&bytes, &node, &format!("quire.op.integer.{name}"));
+        let bytes = with_identity(&bytes, &node, &format!("filament.op.integer.{name}"));
         cases.push((bytes, node));
     }
 
@@ -1501,7 +1501,7 @@ fn guest_membership() -> Vec<u8> {
     let guest = document.enum_literal(&role, "Guest");
     let is_admin = document.op(ENUM_EQ, &[&r, &admin]);
     let is_auditor = document.op(ENUM_EQ, &[&r, &auditor]);
-    let member = document.op("quire.op.boolean.or", &[&is_admin, &is_auditor]);
+    let member = document.op("filament.op.boolean.or", &[&is_admin, &is_auditor]);
     let is_guest = document.op(ENUM_EQ, &[&r, &guest]);
     let first = document.claim(&member);
     let second = document.claim(&is_guest);
@@ -1566,7 +1566,7 @@ fn datatype_refusals_exit_two_through_the_runner_without_a_solver() {
     let bytes = with_identity(
         &document.bytes(&[&claim]),
         &is_admin,
-        "quire.op.collection.contains",
+        "filament.op.collection.contains",
     );
     cases.push((bytes, is_admin));
 
@@ -1577,7 +1577,7 @@ fn datatype_refusals_exit_two_through_the_runner_without_a_solver() {
     let admin = document.enum_literal(&role, "Admin");
     let mut top = document.op(ENUM_EQ, &[&r, &admin]);
     for _ in 0..60 {
-        top = document.op("quire.op.boolean.or", &[&top, &top]);
+        top = document.op("filament.op.boolean.or", &[&top, &top]);
     }
     let claim = document.claim(&top);
     let bytes = document.bytes(&[&claim]);
@@ -1609,7 +1609,7 @@ fn datatype_refusals_exit_two_through_the_runner_without_a_solver() {
     }
 }
 
-/// An unguarded `quire.op.option.value` exits `2` naming the clause and the validator's path.
+/// An unguarded `filament.op.option.value` exits `2` naming the clause and the validator's path.
 #[trace("FR-022-AC-3", "TC-020")]
 #[test]
 fn an_unguarded_option_value_exits_two_naming_the_clause_through_the_runner() {

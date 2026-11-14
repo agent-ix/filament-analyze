@@ -3,11 +3,11 @@ id: FR-001
 title: "Define analysis algebra, identity, and shared-variable semantics"
 type: FR
 relationships:
-  - target: ix://agent-ix/quire-analyze/StR-001
+  - target: ix://agent-ix/filament-analyze/StR-001
     type: satisfies
-  - target: ix://agent-ix/quire-analyze/interface_001
+  - target: ix://agent-ix/filament-analyze/interface_001
     type: implements
-  - target: ix://agent-ix/quire-analyze/ADR-0010
+  - target: ix://agent-ix/filament-analyze/ADR-0010
     type: references
 ---
 # FR-001: Define analysis algebra, identity, and shared-variable semantics
@@ -53,7 +53,7 @@ digests.
   non-identical execution point, unresolved member, duplicate member, or member assigned to two
   groups. V0.1 reports cross-execution-point binding unsupported.
 - The analysis surface accepts exactly the Boolean and linear integer constructs supported by
-  `quire.smtlib2/v2` ([FR-010](./FR-010-linear-integer-arithmetic.md)). It preserves contract-IR
+  `filament.smtlib2/v2` ([FR-010](./FR-010-linear-integer-arithmetic.md)). It preserves contract-IR
   short-circuit/total Boolean and observation identity; every non-linear arithmetic, rational, option,
   record, collection, or other unsupported construct rejects before a query instead of being
   approximated.

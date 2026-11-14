@@ -1,11 +1,10 @@
 //! Requirement-tagged tests for deterministic SMT-LIB2 lowering (issue #7).
 
-use ix_trace_rs::trace;
-use quire_analyze::{
+use filament_analyze::{
     lower_boolean_statements, type_shape_digest, BindingGroup, BindingMember, LoweringErrorCode,
     StatementInput, CAPABILITY_CONTRACT, MAX_QUERY_STATEMENTS, SMTLIB2_PROFILE,
 };
-use quire_contract_model::{
+use filament_contract_model::{
     AnchorName, BooleanOperator, Clause, ClauseId, ClauseKind, CollectionType, ComparisonOperator,
     ContractPackage, DeclarationEnvironment, EnumDeclaration, EnumVariantDeclaration,
     ExecutionPoint, Expression, ExpressionKind, IntegerDomain, IntegerType, OverflowPolicy,
@@ -15,6 +14,7 @@ use quire_contract_model::{
     StateObservation, SymbolName, TypeDeclaration, TypedExpression, ValueDeclaration,
     ValueDeclarationKind, ValueType,
 };
+use ix_trace_rs::trace;
 
 fn source_identity() -> SourceIdentity {
     SourceIdentity::new(
@@ -796,7 +796,7 @@ fn statement_resource_bound_is_enforced() {
 #[trace("TC-010", "FR-002-AC-2", "FR-002-AC-4", "FR-002-AC-5")]
 #[test]
 fn capability_contract_is_explicit() {
-    assert_eq!(CAPABILITY_CONTRACT.profile, "quire.smtlib2/v2");
+    assert_eq!(CAPABILITY_CONTRACT.profile, "filament.smtlib2/v2");
     assert!(CAPABILITY_CONTRACT
         .exact_constructs
         .contains(&"boolean_value_reference"));

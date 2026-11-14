@@ -3,7 +3,7 @@ use std::{
     fmt,
 };
 
-use quire_contract_model::{
+use filament_contract_model::{
     BooleanOperator, CanonicalProfile, Clause, ClauseRef, ComparisonOperator, ContractPackage,
     DeclarationEnvironment, EnumDeclaration, ExecutionPoint, Expression, ExpressionKind,
     IntegerDomain, IntegerType, NumericOperator, OverflowPolicy, QuantifierKind, RecordDeclaration,
@@ -20,9 +20,9 @@ use crate::quantifier::{
 };
 
 /// The accepted engine-neutral analysis model profile.
-pub const ANALYSIS_MODEL_PROFILE: &str = "quire.analysis-model/v1";
+pub const ANALYSIS_MODEL_PROFILE: &str = "filament.analysis-model/v1";
 /// The exact SMT-LIB2 encoding profile: Boolean and linear integer arithmetic.
-pub const SMTLIB2_PROFILE: &str = "quire.smtlib2/v2";
+pub const SMTLIB2_PROFILE: &str = "filament.smtlib2/v2";
 /// The logic of every query that declares no datatypes.
 pub const SMTLIB2_LOGIC: &str = "QF_LIA";
 /// The logic of every query that declares at least one datatype.
@@ -3292,7 +3292,7 @@ impl LowerState<'_> {
             _ => {
                 return Err(unsupported(
                     "expression.value_reference",
-                    "only Boolean, integer, enum, record and option value references are exact in quire.smtlib2/v2",
+                    "only Boolean, integer, enum, record and option value references are exact in filament.smtlib2/v2",
                 ));
             }
         };
@@ -4220,7 +4220,7 @@ fn valid_binding_id(value: &str) -> bool {
 
 fn hash_fields(domain: &str, fields: &[&[u8]]) -> AnalysisDigest {
     let mut hasher = Sha256::new();
-    hasher.update(b"quire-analyze\0");
+    hasher.update(b"filament-analyze\0");
     hasher.update(domain.as_bytes());
     hasher.update([0]);
     for field in fields {
@@ -4395,8 +4395,10 @@ pub(crate) fn derive_query_digest(
 
 #[cfg(test)]
 mod tests {
+    use filament_contract_model::{
+        SourceDocumentId, SourceIdentity, SourceLocation, SourceRevision,
+    };
     use ix_trace_rs::trace;
-    use quire_contract_model::{SourceDocumentId, SourceIdentity, SourceLocation, SourceRevision};
 
     use super::*;
 
@@ -4587,21 +4589,22 @@ mod tests {
 
     fn unchecked_statement(
         types: Vec<TypeDeclaration>,
-        values: Vec<quire_contract_model::ValueDeclaration>,
+        values: Vec<filament_contract_model::ValueDeclaration>,
         expression: Expression,
     ) -> StatementInput {
-        let package = quire_contract_model::PackageId::new("agent-ix/unit").expect("package");
-        let requirement = quire_contract_model::RequirementId::new("REQ-U").expect("requirement");
-        let revision = quire_contract_model::RequirementRevision::new(1).expect("revision");
+        let package = filament_contract_model::PackageId::new("agent-ix/unit").expect("package");
+        let requirement =
+            filament_contract_model::RequirementId::new("REQ-U").expect("requirement");
+        let revision = filament_contract_model::RequirementRevision::new(1).expect("revision");
         let owner = RequirementRef::new(package, requirement, revision);
         StatementInput {
             clause: ClauseRef::new(
                 owner.clone(),
-                quire_contract_model::ClauseId::new("C-U").expect("clause"),
+                filament_contract_model::ClauseId::new("C-U").expect("clause"),
             ),
             clause_digest: hash_fields("clause", &[b"unit"]),
             execution_point: ExecutionPoint::Pre {
-                operation: quire_contract_model::AnchorName::new("check")
+                operation: filament_contract_model::AnchorName::new("check")
                     .expect("anchor")
                     .into(),
             },
@@ -4616,14 +4619,14 @@ mod tests {
         let variants = ["A", "B"]
             .iter()
             .map(|name| {
-                quire_contract_model::EnumVariantDeclaration::new(
+                filament_contract_model::EnumVariantDeclaration::new(
                     SymbolName::new(*name).expect("symbol"),
                     span(),
                 )
             })
             .collect();
         TypeDeclaration::Enum {
-            declaration: quire_contract_model::EnumDeclaration::new(
+            declaration: filament_contract_model::EnumDeclaration::new(
                 SymbolName::new("E").expect("symbol"),
                 span(),
                 variants,
@@ -4676,7 +4679,7 @@ mod tests {
         let fields = fields
             .iter()
             .map(|(field, value_type)| {
-                quire_contract_model::RecordFieldDeclaration::new(
+                filament_contract_model::RecordFieldDeclaration::new(
                     SymbolName::new(*field).expect("symbol"),
                     value_type.clone(),
                     span(),
@@ -4703,10 +4706,10 @@ mod tests {
         )
     }
 
-    fn input(name: &str, value_type: ValueType) -> quire_contract_model::ValueDeclaration {
-        quire_contract_model::ValueDeclaration::new(
+    fn input(name: &str, value_type: ValueType) -> filament_contract_model::ValueDeclaration {
+        filament_contract_model::ValueDeclaration::new(
             SymbolName::new(name).expect("symbol"),
-            quire_contract_model::ValueDeclarationKind::Input,
+            filament_contract_model::ValueDeclarationKind::Input,
             value_type,
             span(),
         )
@@ -4810,7 +4813,7 @@ mod tests {
             items.remove(0)
         }
         let integer = IntegerType::new(
-            quire_contract_model::IntegerDomain::Signed,
+            filament_contract_model::IntegerDomain::Signed,
             0,
             100,
             OverflowPolicy::Reject,

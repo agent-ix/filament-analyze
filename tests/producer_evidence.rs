@@ -12,13 +12,13 @@ use std::{
     sync::atomic::{AtomicU64, Ordering},
 };
 
-use quire_analyze::{
+use filament_analyze::{
     compare_solver_records, execute_solver, lower_boolean_statements, parse_result_line,
     query_request, solver_record_from_evidence, version_request, version_text, AdapterLimits,
     CancellationToken, DifferentialDisposition, EvidenceErrorKind, ProducerExecutionResult,
     QueryBundle, SolverConfig, SolverEngine, SolverOutcome, SolverRecord,
 };
-use quire_contract_model::{
+use filament_contract_model::{
     AnchorName, Clause, ClauseId, ClauseKind, ContractPackage, DeclarationEnvironment,
     ExecutionPoint, Expression, ExpressionKind, PackageId, Requirement, RequirementId,
     RequirementRef, RequirementRevision, SchemaVersion, SourceDocumentId, SourceIdentity,
@@ -34,7 +34,7 @@ impl TempDirectory {
     fn new(label: &str) -> Self {
         let counter = TEMP_COUNTER.fetch_add(1, Ordering::Relaxed);
         let path = std::env::temp_dir().join(format!(
-            "quire-analyze-{label}-{}-{counter}",
+            "filament-analyze-{label}-{}-{counter}",
             std::process::id()
         ));
         fs::create_dir(&path).expect("create temporary directory");
@@ -60,7 +60,7 @@ fn span() -> SourceSpan {
     .expect("span")
 }
 
-fn statement(index: usize) -> quire_analyze::StatementInput {
+fn statement(index: usize) -> filament_analyze::StatementInput {
     let package_id = PackageId::new("agent-ix/evidence-test").expect("package");
     let requirement_id = RequirementId::new(format!("REQ-evidence-{index}")).expect("requirement");
     let revision = RequirementRevision::new(1).expect("revision");
@@ -93,7 +93,7 @@ fn statement(index: usize) -> quire_analyze::StatementInput {
     let source = span().source().clone();
     let package = ContractPackage::new(package_id, SchemaVersion::V1_1, source, vec![requirement])
         .expect("package");
-    quire_analyze::StatementInput::from_clause(
+    filament_analyze::StatementInput::from_clause(
         &package,
         &package.requirements()[0],
         &package.requirements()[0].clauses()[0],
@@ -276,12 +276,12 @@ fn version_and_query_requests_follow_fr_009() {
         assert_eq!(request["capabilityRoot"], "/out/.capability-1");
         assert_eq!(
             request["caller"],
-            json!({"kind": "quire-analyze.run-package", "version": "1"})
+            json!({"kind": "filament-analyze.run-package", "version": "1"})
         );
         assert_eq!(request["cancellation"], json!({"kind": "disabled"}));
         assert_eq!(
             request["containment"],
-            json!({"profile": "process-group-v1", "contract": {"kind": "quire.solver-process", "version": "v1"}})
+            json!({"profile": "process-group-v1", "contract": {"kind": "filament.solver-process", "version": "v1"}})
         );
         assert_eq!(request["response"]["exitCodes"], json!({"kind": "any"}));
         let budget = &request["budget"];

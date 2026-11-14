@@ -41,8 +41,8 @@ pub const MAX_PRODUCER_STREAM_BYTES: usize = 8_388_608;
 pub const MAX_PRODUCER_RESULT_LINE_BYTES: u64 =
     2 * MAX_PRODUCER_STREAM_BYTES as u64 * 4 + 1024 * 1024;
 
-const CALLER_KIND: &str = "quire-analyze.run-package";
-const CONTAINMENT_KIND: &str = "quire.solver-process";
+const CALLER_KIND: &str = "filament-analyze.run-package";
+const CONTAINMENT_KIND: &str = "filament.solver-process";
 const RESPONSE_PROTOCOL_KIND: &str = "engineering-assurance.process-evidence";
 const RESPONSE_ADAPTER_KIND: &str = "engineering-assurance.cli-process-evidence-adapter";
 const MAX_DESCENDANTS: u64 = 16;
@@ -1072,7 +1072,7 @@ fn process_exit(status: TerminalStatus) -> ProcessExit {
 
 #[cfg(test)]
 mod tests {
-    use quire_contract_model::{
+    use filament_contract_model::{
         AnchorName, Clause, ClauseId, ClauseKind, ContractPackage, DeclarationEnvironment,
         ExecutionPoint, Expression, ExpressionKind, PackageId, Requirement, RequirementId,
         RequirementRef, RequirementRevision, SchemaVersion, SourceDocumentId, SourceIdentity,

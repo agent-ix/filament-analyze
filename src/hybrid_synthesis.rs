@@ -3,7 +3,7 @@
 
 //! Bounded canonical synthesis for FR-008.
 
-use quire_analyze_method_contract::{AnalyzeMethod, AnalyzeOutcome, AnalyzeResult};
+use filament_analyze_method_contract::{AnalyzeMethod, AnalyzeOutcome, AnalyzeResult};
 use sha2::{Digest, Sha256};
 
 /// Finite ceiling on caller-controlled combination depth.
@@ -389,7 +389,7 @@ fn synthesis_identity(
     max_terms: usize,
     search_bound: usize,
 ) -> SynthesisProblemIdentity {
-    let mut bytes = b"quire-analyze/synthesis-problem/v1".to_vec();
+    let mut bytes = b"filament-analyze/synthesis-problem/v1".to_vec();
     encode_atoms(&mut bytes, atoms);
     encode_atoms(&mut bytes, required);
     encode_text(&mut bytes, &max_terms.to_string());
@@ -401,7 +401,7 @@ fn candidate_identity(
     problem_identity: &SynthesisProblemIdentity,
     terms: &[SynthesisAtom],
 ) -> SynthesisCandidateIdentity {
-    let mut bytes = b"quire-analyze/synthesis-candidate/v1".to_vec();
+    let mut bytes = b"filament-analyze/synthesis-candidate/v1".to_vec();
     encode_text(&mut bytes, &problem_identity.0);
     encode_atoms(&mut bytes, terms);
     SynthesisCandidateIdentity(digest(&bytes))
@@ -426,13 +426,13 @@ fn digest(bytes: &[u8]) -> String {
 #[cfg(test)]
 mod contract_tests {
     use super::*;
-    use ix_trace_rs::trace;
-    use quire_analyze_method_contract::{
+    use filament_analyze_method_contract::{
         AnalyzeAssumptionsIdentity, AnalyzeBoundsIdentity, AnalyzeContentIdentity,
         AnalyzeImplementationIdentity, AnalyzeOptionsIdentity, AnalyzeRequestIdentity,
         AnalyzeResultIdentity, AnalyzeRunIdentity, AnalyzeSubjectIdentity,
         AnalyzeToolchainIdentity, ProviderRevision, METHOD_RESULT_VERSION,
     };
+    use ix_trace_rs::trace;
 
     fn envelope(method: AnalyzeMethod) -> AnalyzeResult {
         AnalyzeResult {

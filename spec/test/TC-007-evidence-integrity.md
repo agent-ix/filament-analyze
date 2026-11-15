@@ -42,10 +42,12 @@ the removed mismatch outcomes.
 
 For the `selection` member (FR-005-AC-7), validate a v2 document with no `selection` and one whose
 assertion clauses are `claim-N` clauses and whose `selection` is well formed; both must pass. Then
-add, one at a time, an extra `selection` member, a missing list, an empty `selected`, an id in both
-lists, an id that is not `claim-N` or has a leading zero, an excluded list out of order, and a
-`selected` set that differs from the clauses of the assertions; the standalone validator must reject
-each.
+add, one at a time, an extra `selection` member, a missing `selected`, a missing `excluded`, an empty
+`selected`, an id in both lists, an id with a wrong prefix, a non-string id, an id with a leading zero,
+an assertion clause with a leading zero or a sign while `selected` is canonical, an `excluded` list out
+of order, a `selected` list out of order, a repeated id in each list, and a `selected` set that differs
+from the clauses of the assertions; the standalone validator must reject each. A pair of disjoint lists
+of 200,000 ids each must be accepted or refused without a quadratic number of comparisons.
 
 ## Expected Results
 

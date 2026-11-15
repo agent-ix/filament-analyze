@@ -1,4 +1,5 @@
 use std::{
+    cmp::Ordering as Comparison,
     collections::BTreeSet,
     fs::{self, File, OpenOptions},
     io::{self, Write},
@@ -847,6 +848,13 @@ fn require_object<'a>(
         .ok_or_else(|| format!("{label} is not an object"))
 }
 
+/// The number `N` of an id spelled exactly `claim-N`: decimal digits with no sign and no leading zero.
+fn claim_number(id: &str) -> Option<u64> {
+    let digits = id.strip_prefix("claim-")?;
+    let number: u64 = digits.parse().ok()?;
+    (number.to_string() == digits).then_some(number)
+}
+
 /// Checks the optional `selection` member: both lists are strictly ascending `claim-N` ids, the
 /// lists are disjoint, and `selected` names exactly the clauses the assertions come from.
 fn validate_selection(object: &serde_json::Map<String, Value>) -> Result<(), String> {
@@ -861,16 +869,10 @@ fn validate_selection(object: &serde_json::Map<String, Value>) -> Result<(), Str
             .ok_or_else(|| format!("selection.{field} is absent"))?;
         let mut numbers = Vec::with_capacity(list.len());
         for id in list {
-            let digits = id
+            let number = id
                 .as_str()
-                .and_then(|id| id.strip_prefix("claim-"))
+                .and_then(claim_number)
                 .ok_or_else(|| format!("selection.{field} holds an id that is not claim-N"))?;
-            let number: u64 = digits
-                .parse()
-                .map_err(|_| format!("selection.{field} holds an id that is not claim-N"))?;
-            if number.to_string() != digits {
-                return Err(format!("selection.{field} holds an id that is not claim-N"));
-            }
             numbers.push(number);
         }
         if !numbers.windows(2).all(|pair| pair[0] < pair[1]) {
@@ -883,8 +885,20 @@ fn validate_selection(object: &serde_json::Map<String, Value>) -> Result<(), Str
     if selected.is_empty() {
         return Err("selection.selected is empty".to_owned());
     }
-    if selected.iter().any(|number| excluded.contains(number)) {
-        return Err("selection names a claim as both selected and excluded".to_owned());
+    // Both lists are strictly ascending, so one merge walk finds a shared id.
+    let (mut left, mut right) = (selected.iter().peekable(), excluded.iter().peekable());
+    while let (Some(&&a), Some(&&b)) = (left.peek(), right.peek()) {
+        match a.cmp(&b) {
+            Comparison::Less => {
+                left.next();
+            }
+            Comparison::Greater => {
+                right.next();
+            }
+            Comparison::Equal => {
+                return Err("selection names a claim as both selected and excluded".to_owned());
+            }
+        }
     }
     let assertions = object
         .get("assertions")
@@ -896,12 +910,11 @@ fn validate_selection(object: &serde_json::Map<String, Value>) -> Result<(), Str
             .get("clause")
             .and_then(Value::as_str)
             .and_then(|clause| clause.rsplit(':').next())
-            .and_then(|id| id.strip_prefix("claim-"))
-            .and_then(|digits| digits.parse::<u64>().ok())
+            .and_then(claim_number)
             .ok_or_else(|| "an assertion clause is not a claim-N clause".to_owned())?;
         asserted.insert(number);
     }
-    if asserted != selected.iter().copied().collect::<BTreeSet<_>>() {
+    if !asserted.iter().eq(selected.iter()) {
         return Err("selection.selected differs from the clauses of the assertions".to_owned());
     }
     Ok(())

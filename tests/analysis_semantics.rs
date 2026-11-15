@@ -1396,7 +1396,14 @@ fn differential_v2_validates_the_selection_member() {
             "extra member",
             serde_json::json!({"selected": ["claim-3"], "excluded": [], "extra": 1}),
         ),
-        ("missing list", serde_json::json!({"selected": ["claim-3"]})),
+        (
+            "missing excluded list",
+            serde_json::json!({"selected": ["claim-3"]}),
+        ),
+        (
+            "missing selected list",
+            serde_json::json!({"excluded": ["claim-1"]}),
+        ),
         (
             "empty selected",
             serde_json::json!({"selected": [], "excluded": ["claim-1"]}),
@@ -1414,8 +1421,32 @@ fn differential_v2_validates_the_selection_member() {
             serde_json::json!({"selected": ["claim-3"], "excluded": ["claim-7", "claim-1"]}),
         ),
         (
-            "id not claim-N",
+            "selected out of order",
+            serde_json::json!({"selected": ["claim-3", "claim-2"], "excluded": []}),
+        ),
+        (
+            "repeated excluded id",
+            serde_json::json!({"selected": ["claim-3"], "excluded": ["claim-1", "claim-1"]}),
+        ),
+        (
+            "repeated selected id",
+            serde_json::json!({"selected": ["claim-3", "claim-3"], "excluded": []}),
+        ),
+        (
+            "wrong prefix",
+            serde_json::json!({"selected": ["claim-3"], "excluded": ["rule-1"]}),
+        ),
+        (
+            "non-string id",
+            serde_json::json!({"selected": ["claim-3"], "excluded": [1]}),
+        ),
+        (
+            "leading zero",
             serde_json::json!({"selected": ["claim-3"], "excluded": ["claim-01"]}),
+        ),
+        (
+            "signed id",
+            serde_json::json!({"selected": ["claim-3"], "excluded": ["claim-+1"]}),
         ),
     ] {
         assert!(
@@ -1423,4 +1454,28 @@ fn differential_v2_validates_the_selection_member() {
             "{case}"
         );
     }
+
+    for clause in ["claim-03", "claim-+3"] {
+        let mut document = value.clone();
+        document["assertions"][0]["clause"] =
+            serde_json::Value::String(format!("agent-ix/analysis-test:analysis@1:{clause}"));
+        document["selection"] = serde_json::json!({"selected": ["claim-3"], "excluded": []});
+        assert!(
+            validate_report_document(&canonical_report(document)).is_err(),
+            "assertion clause {clause}"
+        );
+    }
+
+    let wide = 100_000;
+    let mut document = value.clone();
+    document["selection"] = serde_json::json!({
+        "selected": std::iter::once("claim-3".to_owned())
+            .chain((10..wide).map(|n| format!("claim-{n}")))
+            .collect::<Vec<_>>(),
+        "excluded": (wide..2 * wide).map(|n| format!("claim-{n}")).collect::<Vec<_>>(),
+    });
+    assert!(
+        validate_report_document(&canonical_report(document)).is_err(),
+        "wide disjoint lists are refused on the assertion mismatch, not by pairwise search"
+    );
 }

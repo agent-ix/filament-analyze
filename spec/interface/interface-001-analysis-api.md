@@ -107,7 +107,8 @@ Cargo.toml and Cargo.lock declare and resolve the `filament-contract-model` crat
 `filament-contract-ir` repository. The runtime
 report uses `filament.differential-report/v2`, a closed contract without `contractIrRevision`. It
 retains producer application name/version and canonical clause, binding, request and query
-identities plus raw solver-stream bytes. The standalone validator accepts v2 only; the bound
+identities plus raw solver-stream bytes, and, for a selected run only, the closed `selection` member of
+FR-005 naming selected and excluded clause ids. The standalone validator accepts v2 only; the bound
 validator also reconstructs identities from the authoritative query and differential run. No v1
 fallback is provided.
 The labels `tool-unavailable`, `invalid-input`, and `internal-error` are not members of

@@ -39,11 +39,48 @@ lowering accounting. This requirement therefore fixes the request, and no FSL-si
 needed. The analysable clauses are the nodes of `semantic_graph.nodes` of kind `claim` with form
 `analysis_claim`. If a package holds none, or an `analysis_claim` has a body that is not a
 Boolean-typed term, the runner exits `2`. The runner builds ONE consistency request whose selected
-statements are all analysable clauses, with no assumptions and no binding groups, and no per-clause
-selection. One invocation yields exactly one request, which is what the one-request report of
+statements are all analysable clauses, with no assumptions and no binding groups, and, without
+`--select`, no per-clause selection. One invocation yields exactly one request, which is what the one-request report of
 [FR-005](./FR-005-evidence-cli.md) holds. Other analysis kinds, assumption selection and binding groups
-are out of scope. This definition closes the selection question; the translation of a term into an
-analysis statement is defined in the next section.
+are out of scope. This definition closes the selection question for a run without `--select`; the
+selection that `--select` adds is defined in the next section, and the translation of a term into an
+analysis statement after it.
+
+## Claim selection (`--select`)
+
+Callers that must analyse only approved formal rules pass `--select FILE`. The file is a
+`filament-analyze.claim-selection/v1` JSON document:
+
+```json
+{"protocol":"filament-analyze.claim-selection/v1","spans":[{"path":"rules/a.qsl","start_line":3,"end_line":9}]}
+```
+
+`path` is a repository-relative path, `start_line` and `end_line` are 1-based and inclusive, and
+`start_line` is at most `end_line`. The document is closed: an unknown member, a missing member, a wrong
+`protocol`, a path that is absolute or holds `..`, a non-positive or inverted line pair, or no span at all
+is a usage error. The file is read with a bound of 1,048,576 bytes. The document is caller input and the
+runner records nothing about the file but the claim ids of the result.
+
+- **Which claims are selected.** An `analysis_claim` node is selected exactly when the source span of
+  the node, resolved to `path` and line numbers, has a `path` equal to a listed `path` and lies wholly
+  inside the line range of at least one listed span. Every other analysable node is excluded. Excluded
+  claims are not translated, are not lowered, and contribute no assertion, no value declaration and no
+  count to the bounds of the Terms section.
+- **Spans that match nothing.** If a listed span selects no `analysis_claim` node, or the selection
+  selects none at all, the runner shall exit `2` naming the span and write no report. A caller therefore
+  never receives a report that silently judged fewer rules than it named.
+- **Claim ids.** Selected and excluded claims are named by the `ClauseId` `claim-N` of the Identity
+  section, so the ids of the report `selection` member and of the assertions use one spelling.
+- **Without `--select`**, every analysable clause is selected, the behaviour of this requirement is
+  unchanged, and the report holds no `selection` member and is byte-identical to the report an earlier
+  runner wrote for the same inputs.
+- **Source of lines.** The line numbers of a node derive from the source map of the package. The
+  byte-region source map this requirement reads today carries no line numbers; line resolution therefore
+  depends on gap 7 below and this requirement defines no way to derive lines from other material. The
+  runner shall not guess a line.
+- **Who drafts and who approves is not the runner's concern.** The runner reads the selection as data
+  and judges nothing about how it was built. Building the selection from approved rules is the caller's
+  duty; this requirement stores no approval state.
 
 ## Translation of an analysis_claim to an analysis statement
 
@@ -187,6 +224,8 @@ it. `filament-analyze` is the runner that executes the solvers.
 - `--producer-execute PATH`: the absolute path of the `engineering-assurance` executable; it is never
   searched for on `PATH`.
 - `--output NEW_REPORT.json`: the report destination, which does not exist beforehand.
+- `--select FILE`: optional; the claim-selection document of the previous section. It may be given at
+  most once.
 
 Solver limits are `AdapterLimits::default()` of [NFR-001](../nonfunctional/NFR-001-determinism-bounds.md).
 
@@ -194,14 +233,17 @@ Solver limits are `AdapterLimits::default()` of [NFR-001](../nonfunctional/NFR-0
 
 - One report in the `filament.differential-report/v2` contract of [FR-005](./FR-005-evidence-cli.md),
   rendered by the library renderer and published by the FR-005 publication discipline. The runner
-  neither converts from nor accepts any other report version.
+  neither converts from nor accepts any other report version. With `--select`, the report also holds
+  the `selection` member `{"excluded":[claim ids],"selected":[claim ids]}`, each list in ascending order
+  of `N`, `selected` non-empty and the two lists disjoint. `selected` names exactly the clauses of the
+  report's assertions.
 - Exit status: `0` satisfied, `1` refuted, `2` usage or input error, `3` non-conclusive, `4`
   publication or executor failure.
 - Human diagnostics on stderr only.
 
 ## Behavior
 
-- When invoked with all five arguments and an admitted package, the runner shall build one consistency
+- When invoked with the five required arguments and an admitted package, the runner shall build one consistency
   request over the analysable clauses of the package.
 - The runner shall lower the request, run each solver through one `producer-execute` invocation for the
   query and one for its version, and render the report with the library renderer.
@@ -295,7 +337,8 @@ Solver limits are `AdapterLimits::default()` of [NFR-001](../nonfunctional/NFR-0
 
 | ID | Constraint | Type | Validation |
 |---|---|---|---|
-| FR-009-CON-1 | The runner shall emit `filament.differential-report/v2` as defined by [FR-005](./FR-005-evidence-cli.md) and `schemas/differential-report-v2.schema.json`; this requirement leaves that schema unchanged. | Interface | Inspection |
+| FR-009-CON-1 | The runner shall emit `filament.differential-report/v2` as defined by [FR-005](./FR-005-evidence-cli.md) and `schemas/differential-report-v2.schema.json`. The schema is revised by the optional closed `selection` member only; no other member, outcome or rule changes, and a report without `selection` validates as before. | Interface | Inspection |
+| FR-009-CON-2 | The runner shall store no approval state, approval list, key or signature material, and shall verify no signature. A selection is data supplied by the caller for one run. | Interface | Inspection |
 
 ## Acceptance Criteria
 
@@ -328,6 +371,12 @@ Solver limits are `AdapterLimits::default()` of [NFR-001](../nonfunctional/NFR-0
 | FR-009-AC-27 | Every contract-package document that a test of `run-package` reads is built at test time through the public APIs of the `&es (a `filament.checked-package/v2` document built in test code, read with `CheckedPackageV2::read`, lowered with `CheckedPackageV2::lower`, and the canonical bytes of the resulting `CompleteContractPackageV2`), or by byte-level mutation of such a built document (malformed, oversized, at-limit); no contract-package document or copy of another repository's file is committed to this repository. | Inspection |
 | FR-009-AC-15 | Every request the runner logs validates against the request schema published by `producer-execute --schema request`, and the budget it carries has `maxStdoutBytes` and `maxStderrBytes` at most 8,388,608, `maxOutputArtifacts` and `maxOutputBytes` `0`, `maxDescendants` `16` and `maxConcurrency` `1`. | Test |
 | FR-009-AC-16 | The version request of an engine carries `producer.version` `unprobed` and stdin `null`; its query request carries the trimmed version stdout of the version result; a version result that is not `completed` or is empty yields no query request, the engine is recorded with the outcome the result-state table gives for that version result (`identity-error` when the text is empty), and the exit status is `3`. | Test |
+| FR-009-AC-29 | With a package of two analysable claims at distinct spans and `--select` naming the span of one, only that claim is analysed: the report's assertions come from that claim alone, `selection.selected` is that claim's id and `selection.excluded` is the other's, and the report validates. | Test |
+| FR-009-AC-30 | A `--select` span that matches no `analysis_claim` node, a selection that selects no claim, and a span whose `path` matches but whose lines cover only part of a claim each exit `2` naming the span (or the selection) and write no report. | Test |
+| FR-009-AC-31 | A selection that is not valid JSON, has an unknown or missing member, a wrong `protocol`, an absolute path or a `..` component, a non-positive or inverted line pair, no span, or is one byte over 1,048,576 bytes exits `2` with the cause on stderr and no report; `--select` given twice or without a value exits `2`. | Test |
+| FR-009-AC-32 | Two runs over the same package bytes, with and without a `--select` that names every claim, differ only in the `selection` member of the report (once every `elapsedMs` is `0`); a run without `--select` writes a report with no `selection` member whose bytes equal those the runner wrote before `--select` existed for the same inputs. | Test |
+| FR-009-AC-33 | An excluded claim that the translation could not lower (a non-lowerable term, a cycle, a depth over 128) does not make the run exit `2`; the same claim, once selected, does. | Test |
+| FR-009-AC-34 | By inspection, `src/` holds no code that writes, reads or verifies approval state, a key or a signature for `--select`; the runner reads the selection file only as the document of the Claim selection section. | Inspection |
 | FR-009-AC-14 | A run with the real `engineering-assurance` executable and real Z3 and cvc5 on a contract-package fixture built at test time (FR-009-AC-27) exits `0` or `1` and its report validates; the test is skipped with a stated reason when either solver or the executable is absent. | Test |
 
 ## Dependencies
@@ -366,3 +415,8 @@ change, and none is closed by invented behaviour here.
    `ContractPackageReadResult` that `Cargo.toml` (branch `main`) delivers. The implementing change updates
    the lock to current `main` of `filament-contract-ir` so the reader has the four variants the Input section
    handles.
+7. The source map the runner reads carries byte regions without line numbers (Source spans), so `--select`
+   cannot resolve a node to lines today. Resolving lines needs the contract package to carry line
+   information for the source reference of each region. That precondition belongs to the producer of
+   `analysis_claim` nodes (QSL-1900, cited by VER-98) and is not defined here. Until it holds, a node
+   whose lines cannot be resolved is not selected, and a selection that selects no claim exits `2`.

@@ -49,10 +49,15 @@ stable exit classification, and shall retain cross-engine discrepancies without 
   is not copied into report metadata. The renderer and validator accept the v2 contract only, with
   no v1 fallback or compatibility reader. This change does not make the PGM-01 envelope available.
 - `run-package --select` ([FR-009](./FR-009-package-runner.md)) adds the optional member
-  `selection`, `{"excluded":[clause ids],"selected":[clause ids]}`, to the v2 report, and only that
-  member. The member is closed, absent when no selection was given, and when present its `selected`
-  ids are non-empty, disjoint from `excluded`, and equal to the clause ids of `assertions[]`. This
-  revises the v2 schema in place; it adds no version and no reader for an older shape.
+  `selection`, `{"excluded":["claim-N"...],"selected":["claim-N"...]}`, to the v2 report, and only that
+  member. The member is closed and absent when no selection was given. When present, each list is a
+  strictly ascending sequence of `claim-N` ids by numeric `N` with no leading zeros, `selected` is
+  non-empty, the lists are disjoint, and `selected` equals the set of `claim-N` clause ids of
+  `assertions[]`. The schema carries the shape (closed members, `claim-N` pattern, non-empty
+  `selected`, unique items); `validate_report_document` in `src/report.rs` carries the order, disjointness
+  and assertion-equality rules, and both are checked by the standalone validator without the
+  authoritative query. This revises the v2 schema in place; it adds no version and no reader for an
+  older shape.
 - Differential status is the closed set `agreement`, `disagreement`, `unavailable`, and
   `inconclusive`. Agreement is conclusive only when both exact engines return the same conclusive
   status and every required sat model is replay-verified. Different conclusive statuses are
@@ -79,8 +84,8 @@ stable exit classification, and shall retain cross-engine discrepancies without 
 | FR-005-AC-3 | Differential disagreement retains both results and cannot be reported as agreement. | Test (TC-006) |
 | FR-005-AC-4 | Failed publication leaves no partial result or modified developer-owned file. | Test (TC-008) |
 | FR-005-AC-5 | Every filed semantic defect maps to an executable retained regression fixture. | Inspection and test (TC-006) |
-| FR-005-AC-7 | The v2 schema accepts a report with a closed `selection` member whose `selected` is non-empty and equal to the clause ids of `assertions[]` and whose `excluded` is disjoint from it, and a report without `selection`; it refuses `selection` with an extra member, a missing list, an empty `selected`, an id in both lists, or `selected` ids that differ from the assertions' clauses. | Test (TC-007) |
 | FR-005-AC-6 | The closed `filament.differential-report/v2` schema requires `producer.name` and `producer.version`; every `assertions[].clause`, `assertions[].source`, and `assertions[].clauseDigest`; `bindingSetDigest`, `requestDigest`, `queryDigest`, and `queryHex`; and every engine's `configuredExecutable`, observed `identity.path` and `identity.version` when available, `stdoutHex`, `stderrHex`, and `modelHex`. It refuses `identity.bytes`, `identity.sha256`, `limits.executableBytes`, `expectedVersion`, `expectedExecutableSha256`, `configurationDigest`, `querySha256`, `stdoutSha256`, `stderrSha256`, `modelSha256`, and `reportDigest`, and the three removed mismatch outcomes. Standalone v2 validation derives `queryDigest` from retained `requestDigest` and query bytes. Validation bound to the authoritative `QueryBundle` and differential run rejects a report whose clause/source identities, clause/binding-set/request identities, or raw solver output differ from the authoritative reconstruction; standalone validation does not claim to derive those values from absent source content or authenticate self-consistent substituted raw output. Both validation paths reject missing named fields, `contractIrRevision`, and every `filament.differential-report/v1` document, with no v1 fallback. The closed schema requires `encodingProfile` `filament.smtlib2/v2` and a `logic` equal to the logic the query's feature set requires (`QF_LIA` for a query without datatype declarations; otherwise the logic FR-020 specifies; `LIA` or `UFDTLIA` for a query that holds a bounded solver quantifier per FR-032, without or with datatypes), and validation refuses a report that names `filament.smtlib2/v1` or `QF_UF`, with no fallback. `assertions[]` lists the named assertions of the query only; integer range constraints are not named assertions ([FR-010](./FR-010-linear-integer-arithmetic.md)). | Test (TC-007) |
+| FR-005-AC-7 | `validate_report_document` accepts a report without `selection` and a report with a `selection` whose lists are strictly ascending `claim-N` ids, disjoint, with non-empty `selected` equal to the `claim-N` clause ids of `assertions[]`. It refuses a `selection` with an extra member, a missing list, an empty `selected`, an id in both lists, an id that is not `claim-N` or has a leading zero, a list out of ascending order or with a repeated id, or `selected` ids that differ from the assertions' clauses. | Test (TC-007) |
 
 ## Dependencies
 

@@ -310,26 +310,27 @@ pub fn validate_report_document(bytes: &[u8]) -> Result<DifferentialDisposition,
     }
     {
         let object = require_object(&value, "report root")?;
-        require_exact_keys(
-            object,
-            &[
-                "analysisModelProfile",
-                "analysisKind",
-                "assertions",
-                "bindingSetDigest",
-                "differential",
-                "encodingProfile",
-                "engines",
-                "logic",
-                "pgm01Envelope",
-                "producer",
-                "queryDigest",
-                "queryHex",
-                "requestDigest",
-                "schema",
-            ],
-            "report root",
-        )?;
+        let mut root_keys = vec![
+            "analysisModelProfile",
+            "analysisKind",
+            "assertions",
+            "bindingSetDigest",
+            "differential",
+            "encodingProfile",
+            "engines",
+            "logic",
+            "pgm01Envelope",
+            "producer",
+            "queryDigest",
+            "queryHex",
+            "requestDigest",
+            "schema",
+        ];
+        if object.contains_key("selection") {
+            root_keys.push("selection");
+        }
+        require_exact_keys(object, &root_keys, "report root")?;
+        validate_selection(object)?;
         if object.get("schema").and_then(Value::as_str) != Some(DIFFERENTIAL_REPORT_SCHEMA) {
             return Err("report schema is absent or unsupported".to_owned());
         }
@@ -844,6 +845,66 @@ fn require_object<'a>(
     value
         .as_object()
         .ok_or_else(|| format!("{label} is not an object"))
+}
+
+/// Checks the optional `selection` member: both lists are strictly ascending `claim-N` ids, the
+/// lists are disjoint, and `selected` names exactly the clauses the assertions come from.
+fn validate_selection(object: &serde_json::Map<String, Value>) -> Result<(), String> {
+    let Some(selection) = object.get("selection") else {
+        return Ok(());
+    };
+    let selection = require_object(selection, "selection")?;
+    let ids = |field: &str| -> Result<Vec<u64>, String> {
+        let list = selection
+            .get(field)
+            .and_then(Value::as_array)
+            .ok_or_else(|| format!("selection.{field} is absent"))?;
+        let mut numbers = Vec::with_capacity(list.len());
+        for id in list {
+            let digits = id
+                .as_str()
+                .and_then(|id| id.strip_prefix("claim-"))
+                .ok_or_else(|| format!("selection.{field} holds an id that is not claim-N"))?;
+            let number: u64 = digits
+                .parse()
+                .map_err(|_| format!("selection.{field} holds an id that is not claim-N"))?;
+            if number.to_string() != digits {
+                return Err(format!("selection.{field} holds an id that is not claim-N"));
+            }
+            numbers.push(number);
+        }
+        if !numbers.windows(2).all(|pair| pair[0] < pair[1]) {
+            return Err(format!("selection.{field} is not in ascending order of N"));
+        }
+        Ok(numbers)
+    };
+    let selected = ids("selected")?;
+    let excluded = ids("excluded")?;
+    if selected.is_empty() {
+        return Err("selection.selected is empty".to_owned());
+    }
+    if selected.iter().any(|number| excluded.contains(number)) {
+        return Err("selection names a claim as both selected and excluded".to_owned());
+    }
+    let assertions = object
+        .get("assertions")
+        .and_then(Value::as_array)
+        .ok_or_else(|| "assertions are absent".to_owned())?;
+    let mut asserted = BTreeSet::new();
+    for assertion in assertions {
+        let number = assertion
+            .get("clause")
+            .and_then(Value::as_str)
+            .and_then(|clause| clause.rsplit(':').next())
+            .and_then(|id| id.strip_prefix("claim-"))
+            .and_then(|digits| digits.parse::<u64>().ok())
+            .ok_or_else(|| "an assertion clause is not a claim-N clause".to_owned())?;
+        asserted.insert(number);
+    }
+    if asserted != selected.iter().copied().collect::<BTreeSet<_>>() {
+        return Err("selection.selected differs from the clauses of the assertions".to_owned());
+    }
+    Ok(())
 }
 
 fn require_exact_keys(

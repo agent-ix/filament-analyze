@@ -71,9 +71,12 @@ with real or stub solvers. Cases:
     exits `2` without hanging.
 21. Inspect the tests directory: no committed contract-package document (AC-27).
 22. A stub that leaves an unreadable entry in the capability root: the root path is named on stderr, the report is published and the exit status is unchanged (AC-28).
-23. `--select` cases (AC-29 to AC-33): a two-claim built package with a selection naming one span; spans
-    matching nothing or part of a claim; each malformed selection; the with/without comparison; an
-    excluded untranslatable claim. Lines for the built package come from the test-time source map.
+23. `--select` cases (AC-29 to AC-33, AC-35 to AC-37): a two-claim built package whose source map regions
+    are set at test time, with a selection naming one region; spans containing nothing, overlapping a
+    claim partially (alone, beside a span that contains it, and over a different whole claim); each
+    malformed selection; the empty selection; excluded non-Boolean, untranslatable and occurrence-less
+    claims; reached nodes outside the spans; and spans differing from the source reference by case,
+    `./`, doubled or trailing separators.
 24. Inspect `src/` for approval, key or signature handling (AC-34).
 
 Inspect `run-package --help` for the arguments and exit classes.

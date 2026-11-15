@@ -40,6 +40,13 @@ a valid v1 document to each v2 validation path; both paths must reject them. Add
 pin and redundant hash field to a v2 document; the closed schema must reject those fields and
 the removed mismatch outcomes.
 
+For the `selection` member (FR-005-AC-7), validate a v2 document with no `selection` and one whose
+assertion clauses are `claim-N` clauses and whose `selection` is well formed; both must pass. Then
+add, one at a time, an extra `selection` member, a missing list, an empty `selected`, an id in both
+lists, an id that is not `claim-N` or has a leading zero, an excluded list out of order, and a
+`selected` set that differs from the clauses of the assertions; the standalone validator must reject
+each.
+
 ## Expected Results
 
 The valid corpus passes. Every omission, canonical proof-input identity mismatch, outcome
@@ -50,4 +57,5 @@ inferred as present.
 The v2 standalone lane checks the query identity derivable from retained bytes; the
 authoritative-input lane rejects substituted clause/source identities and clause, binding-set, or
 request digests even when the document's own digests were recomputed. Both reject the duplicate
-revision field, omitted required fields, and v1 documents without a fallback.
+revision field, omitted required fields, and v1 documents without a fallback. A well-formed `selection`
+passes standalone validation; each malformed `selection` of the procedure fails it.

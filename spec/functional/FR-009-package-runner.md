@@ -37,8 +37,8 @@ package that names dependencies is refused by the empty dependency map and exits
 A contract package names no analysis request: it holds a semantic graph, a source map and per-request
 lowering accounting. This requirement therefore fixes the request, and no FSL-side declaring field is
 needed. The analysable clauses are the nodes of `semantic_graph.nodes` of kind `claim` with form
-`analysis_claim`. If a package holds none, or an `analysis_claim` has a body that is not a
-Boolean-typed term, the runner exits `2`. The runner builds ONE consistency request whose selected
+`analysis_claim`. If a package holds none, or a selected `analysis_claim` has a body that is not a
+Boolean-typed term, the runner exits `2`; without `--select` every `analysis_claim` is selected. The runner builds ONE consistency request whose selected
 statements are all analysable clauses, with no assumptions and no binding groups, and, without
 `--select`, no per-clause selection. One invocation yields exactly one request, which is what the one-request report of
 [FR-005](./FR-005-evidence-cli.md) holds. Other analysis kinds, assumption selection and binding groups
@@ -52,35 +52,62 @@ Callers that must analyse only approved formal rules pass `--select FILE`. The f
 `filament-analyze.claim-selection/v1` JSON document:
 
 ```json
-{"protocol":"filament-analyze.claim-selection/v1","spans":[{"path":"rules/a.qsl","start_line":3,"end_line":9}]}
+{"protocol":"filament-analyze.claim-selection/v1","spans":[{"authority":"quoin","identity":"rules/a.qsl","start":120,"end":340}]}
 ```
 
-`path` is a repository-relative path, `start_line` and `end_line` are 1-based and inclusive, and
-`start_line` is at most `end_line`. The document is closed: an unknown member, a missing member, a wrong
-`protocol`, a path that is absolute or holds `..`, a non-positive or inverted line pair, or no span at all
-is a usage error. The file is read with a bound of 1,048,576 bytes. The document is caller input and the
-runner records nothing about the file but the claim ids of the result.
+A span names a byte interval under a source document in the vocabulary of the package's own source map
+(`CheckedSourceRegion`): `authority` and `identity` are the two members of the region's source
+reference, `start` is the inclusive byte offset and `end` the exclusive byte offset, with `start` below
+`end`. The package carries byte regions and no line numbers, so the selection speaks bytes and the runner
+reads no source text. The document is closed: an unknown member, a missing member, a wrong `protocol`,
+an empty `authority` or `identity`, or a `start` not below `end` is a usage error. `spans` may be empty.
+The file is read with a bound of 1,048,576 bytes.
 
-- **Which claims are selected.** An `analysis_claim` node is selected exactly when the source span of
-  the node, resolved to `path` and line numbers, has a `path` equal to a listed `path` and lies wholly
-  inside the line range of at least one listed span. Every other analysable node is excluded. Excluded
-  claims are not translated, are not lowered, and contribute no assertion, no value declaration and no
-  count to the bounds of the Terms section.
-- **Spans that match nothing.** If a listed span selects no `analysis_claim` node, or the selection
-  selects none at all, the runner shall exit `2` naming the span and write no report. A caller therefore
-  never receives a report that silently judged fewer rules than it named.
+### Resolving a node to a region
+
+- The region of a node `N` is `source_map.nodes[N].occurrences[0].regions[0]`, the region of Source spans.
+  A node with no occurrence has no region.
+- A region lies inside a listed span exactly when its `authority` and `identity` equal the span's by
+  exact string comparison, with no normalization of case, separators or path segments, and
+  `span.start <= region.start` and `region.end <= span.end`. Two regions overlap when they share a
+  source reference and `max(start) < min(end)`.
+
+### Which claims are selected
+
+- An `analysis_claim` node is selected exactly when its region lies inside a listed span. Every other
+  `analysis_claim` node, including one with no region, is excluded.
+- **Partial overlap.** If a listed span overlaps the region of a claim without containing it, the runner
+  shall exit `2` naming the span and `claim-N` and write no report, whether or not another span contains
+  that claim. A caller therefore never has half a claim judged.
+- **Unmatched span.** If a listed span contains the region of no claim, the runner shall exit `2` naming
+  the span and write no report.
+- **Reached nodes.** The translation inlines the target of every `Reference` and declares every
+  `value/parameter` that a selected claim reaches. If the region of such a node does not lie inside a
+  listed span, or the node has no region, the runner shall exit `2` naming `claim-N` and
+  `semantic_graph.nodes[M]` of the node reached, and write no report. A selected claim is therefore
+  never judged through source the caller did not select.
+- **Empty selection.** A document whose `spans` is empty is well formed and selects nothing. The runner
+  shall exit `2` with the stderr cause `empty selection` and write no report, so a caller can tell zero
+  approved rules from a malformed document by that cause; a caller that knows it has none need not run.
+- **Excluded claims.** An excluded claim is not examined beyond its region: the runner shall not check
+  that its body is Boolean-typed, shall not translate or lower it, and shall not fail the run because its
+  body is non-Boolean, cannot be lowered, or has no occurrence. It adds no assertion and no value
+  declaration, and contributes nothing to the bounds of the Terms section. A package that holds no
+  `analysis_claim` node at all still exits `2` as the Input section states.
 - **Claim ids.** Selected and excluded claims are named by the `ClauseId` `claim-N` of the Identity
   section, so the ids of the report `selection` member and of the assertions use one spelling.
-- **Without `--select`**, every analysable clause is selected, the behaviour of this requirement is
-  unchanged, and the report holds no `selection` member and is byte-identical to the report an earlier
-  runner wrote for the same inputs.
-- **Source of lines.** The line numbers of a node derive from the source map of the package. The
-  byte-region source map this requirement reads today carries no line numbers; line resolution therefore
-  depends on gap 7 below and this requirement defines no way to derive lines from other material. The
-  runner shall not guess a line.
-- **Who drafts and who approves is not the runner's concern.** The runner reads the selection as data
-  and judges nothing about how it was built. Building the selection from approved rules is the caller's
-  duty; this requirement stores no approval state.
+- **Without `--select`**, every analysable clause is selected and the report holds no `selection` member.
+
+### Boundary with the producer of `analysis_claim` nodes
+
+This requirement defines selection over the package data that exists: source references and byte regions.
+It does not define what an `analysis_claim` node's region covers for a QSL declaration, nor what a source
+reference's `authority` and `identity` spell for a QSL file. Those belong to the producer of
+`analysis_claim` nodes (QSL-1900, cited by VER-98) and are gap 7. A caller derives the span of an
+approved declaration from the same source identity and bytes the package was produced from.
+
+The runner reads the selection as data and judges nothing about how it was built. This requirement stores
+no approval state.
 
 ## Translation of an analysis_claim to an analysis statement
 
@@ -126,7 +153,8 @@ node is named on stderr as `semantic_graph.nodes[N]`.
   declares. The requirement source shall be the span with both byte offsets `0`.
 - The reader guarantees one `source_map.nodes` entry per graph node, in graph order, and a non-empty
   `regions` list for every occurrence, so a missing entry or an empty region list cannot reach the
-  translation. If `source_map.nodes[N].occurrences` is empty, the runner shall exit `2` naming the node.
+  translation. If `source_map.nodes[N].occurrences` is empty for a selected claim or a node it reaches, the runner shall
+  exit `2` naming the node.
 
 ### Terms
 
@@ -234,8 +262,8 @@ Solver limits are `AdapterLimits::default()` of [NFR-001](../nonfunctional/NFR-0
 - One report in the `filament.differential-report/v2` contract of [FR-005](./FR-005-evidence-cli.md),
   rendered by the library renderer and published by the FR-005 publication discipline. The runner
   neither converts from nor accepts any other report version. With `--select`, the report also holds
-  the `selection` member `{"excluded":[claim ids],"selected":[claim ids]}`, each list in ascending order
-  of `N`, `selected` non-empty and the two lists disjoint. `selected` names exactly the clauses of the
+  the `selection` member `{"excluded":[claim ids],"selected":[claim ids]}`, each list a strictly ascending
+  sequence of `claim-N` by numeric `N`, `selected` non-empty and the two lists disjoint. `selected` names exactly the clauses of the
   report's assertions.
 - Exit status: `0` satisfied, `1` refuted, `2` usage or input error, `3` non-conclusive, `4`
   publication or executor failure.
@@ -338,7 +366,8 @@ Solver limits are `AdapterLimits::default()` of [NFR-001](../nonfunctional/NFR-0
 | ID | Constraint | Type | Validation |
 |---|---|---|---|
 | FR-009-CON-1 | The runner shall emit `filament.differential-report/v2` as defined by [FR-005](./FR-005-evidence-cli.md) and `schemas/differential-report-v2.schema.json`. The schema is revised by the optional closed `selection` member only; no other member, outcome or rule changes, and a report without `selection` validates as before. | Interface | Inspection |
-| FR-009-CON-2 | The runner shall store no approval state, approval list, key or signature material, and shall verify no signature. A selection is data supplied by the caller for one run. | Interface | Inspection |
+| FR-009-CON-2 | The runner shall store no approval state, approval list, key or signature material. A selection is data supplied by the caller for one run. | Interface | Inspection |
+| FR-009-CON-3 | The runner shall verify no signature. | Interface | Inspection |
 
 ## Acceptance Criteria
 
@@ -356,7 +385,7 @@ Solver limits are `AdapterLimits::default()` of [NFR-001](../nonfunctional/NFR-0
 | FR-009-AC-10 | A unit test of the runner function, injecting a directory-sync failure after rename through the publication seam of [TC-008](../test/TC-008-library-cli-atomic.md), shows the runner maps the `published-durability-unknown` publication error to exit `4` with that state named on stderr. | Test |
 | FR-009-AC-11 | Two runs over the same package bytes, executables and stub results, whose stub timings differ, write report files that are byte-identical once every `elapsedMs` field is set to `0`, and that differ in no other field. | Test |
 | FR-009-AC-12 | After a run the package file and its directory hold no added, removed or modified entry; the only entries added to the `--output` parent directory are the published report, and during the run a capability-root directory of mode `0700` that is gone after every exit path (conclusive, non-conclusive, exit `2`, exit `4`). | Test |
-| FR-009-AC-13 | `run-package --help` lists the five arguments and the exit classes `0` to `4`. | Inspection |
+| FR-009-AC-13 | `run-package --help` lists the five required arguments, the optional `--select`, and the exit classes `0` to `4`. | Inspection |
 | FR-009-AC-17 | For each row of the result-state table other than `completed`, a stub result of that state for one engine yields the stated engine outcome in the published report, the stated disposition, and exit `3`. For the `completed` row, the engine outcome is the classification the library gives the same bytes run directly and the exit status is the one the comparison gives (`0`, `1` or `3`). | Test |
 | FR-009-AC-18 | A symlinked component in `--z3`, `--cvc5`, `--producer-execute` or the `--output` parent each exits `2` and writes no report. | Test |
 | FR-009-AC-19 | A package whose Boolean `analysis_claim` term the translation cannot lower exits `2` naming the node as `semantic_graph.nodes[N]`, with no report. | Test |
@@ -371,12 +400,15 @@ Solver limits are `AdapterLimits::default()` of [NFR-001](../nonfunctional/NFR-0
 | FR-009-AC-27 | Every contract-package document that a test of `run-package` reads is built at test time through the public APIs of the `&es (a `filament.checked-package/v2` document built in test code, read with `CheckedPackageV2::read`, lowered with `CheckedPackageV2::lower`, and the canonical bytes of the resulting `CompleteContractPackageV2`), or by byte-level mutation of such a built document (malformed, oversized, at-limit); no contract-package document or copy of another repository's file is committed to this repository. | Inspection |
 | FR-009-AC-15 | Every request the runner logs validates against the request schema published by `producer-execute --schema request`, and the budget it carries has `maxStdoutBytes` and `maxStderrBytes` at most 8,388,608, `maxOutputArtifacts` and `maxOutputBytes` `0`, `maxDescendants` `16` and `maxConcurrency` `1`. | Test |
 | FR-009-AC-16 | The version request of an engine carries `producer.version` `unprobed` and stdin `null`; its query request carries the trimmed version stdout of the version result; a version result that is not `completed` or is empty yields no query request, the engine is recorded with the outcome the result-state table gives for that version result (`identity-error` when the text is empty), and the exit status is `3`. | Test |
-| FR-009-AC-29 | With a package of two analysable claims at distinct spans and `--select` naming the span of one, only that claim is analysed: the report's assertions come from that claim alone, `selection.selected` is that claim's id and `selection.excluded` is the other's, and the report validates. | Test |
-| FR-009-AC-30 | A `--select` span that matches no `analysis_claim` node, a selection that selects no claim, and a span whose `path` matches but whose lines cover only part of a claim each exit `2` naming the span (or the selection) and write no report. | Test |
-| FR-009-AC-31 | A selection that is not valid JSON, has an unknown or missing member, a wrong `protocol`, an absolute path or a `..` component, a non-positive or inverted line pair, no span, or is one byte over 1,048,576 bytes exits `2` with the cause on stderr and no report; `--select` given twice or without a value exits `2`. | Test |
-| FR-009-AC-32 | Two runs over the same package bytes, with and without a `--select` that names every claim, differ only in the `selection` member of the report (once every `elapsedMs` is `0`); a run without `--select` writes a report with no `selection` member whose bytes equal those the runner wrote before `--select` existed for the same inputs. | Test |
-| FR-009-AC-33 | An excluded claim that the translation could not lower (a non-lowerable term, a cycle, a depth over 128) does not make the run exit `2`; the same claim, once selected, does. | Test |
+| FR-009-AC-29 | With a package of two analysable claims at distinct regions and `--select` naming a span that contains the region of one, only that claim is analysed: the report's assertions come from that claim alone, `selection.selected` is that claim's id and `selection.excluded` is the other's, and the report validates. | Test |
+| FR-009-AC-30 | A span that contains the region of no claim exits `2` naming the span. A span that overlaps one claim's region without containing it exits `2` naming the span and the claim, also when another listed span contains that claim, and also when the span wholly contains a different claim. Each writes no report. | Test |
+| FR-009-AC-31 | A selection that is not valid JSON, has an unknown or missing member, a wrong `protocol`, an empty `authority` or `identity`, a `start` not below `end`, or is one byte over 1,048,576 bytes exits `2` with the cause on stderr and no report; `--select` given twice or without a value exits `2`. | Test |
+| FR-009-AC-32 | A run with a selection that names every claim writes a report that differs from the report of a run without `--select` over the same package only in its `selection` member (once every `elapsedMs` is `0`); the run without `--select` writes no `selection` member. | Test |
+| FR-009-AC-33 | A package holding one selected Boolean claim and, excluded, a claim whose body is non-Boolean, a claim whose term cannot be lowered, and a claim with no occurrence, run with `--select`, exits as the selected claim alone would; the same package without `--select` exits `2`. A selected claim with any of those three faults exits `2`. | Test |
 | FR-009-AC-34 | By inspection, `src/` holds no code that writes, reads or verifies approval state, a key or a signature for `--select`; the runner reads the selection file only as the document of the Claim selection section. | Inspection |
+| FR-009-AC-35 | A selected claim whose body references an expression node, or a parameter, whose region lies outside every listed span, or that has no region, exits `2` naming `claim-N` and `semantic_graph.nodes[M]`; the same claim with a span that also contains that node is analysed. | Test |
+| FR-009-AC-36 | A selection whose `spans` is empty exits `2` with the stderr cause `empty selection` and no report, and that cause differs from the one printed for a malformed selection. | Test |
+| FR-009-AC-37 | Regions are matched by exact comparison of `authority` and `identity`: a span differing in case, a leading `./`, a doubled separator or a trailing separator does not contain the region, and the run exits `2` as an unmatched span. | Test |
 | FR-009-AC-14 | A run with the real `engineering-assurance` executable and real Z3 and cvc5 on a contract-package fixture built at test time (FR-009-AC-27) exits `0` or `1` and its report validates; the test is skipped with a stated reason when either solver or the executable is absent. | Test |
 
 ## Dependencies
@@ -415,8 +447,8 @@ change, and none is closed by invented behaviour here.
    `ContractPackageReadResult` that `Cargo.toml` (branch `main`) delivers. The implementing change updates
    the lock to current `main` of `filament-contract-ir` so the reader has the four variants the Input section
    handles.
-7. The source map the runner reads carries byte regions without line numbers (Source spans), so `--select`
-   cannot resolve a node to lines today. Resolving lines needs the contract package to carry line
-   information for the source reference of each region. That precondition belongs to the producer of
-   `analysis_claim` nodes (QSL-1900, cited by VER-98) and is not defined here. Until it holds, a node
-   whose lines cannot be resolved is not selected, and a selection that selects no claim exits `2`.
+7. Whether the `source` reference and byte region of an `analysis_claim` node of a package lowered from QSL
+   spell the QSL file and cover the declaration text that a caller selects is decided by the producer of
+   `analysis_claim` nodes (QSL-1900, cited by VER-98), which is not defined here. Until it holds, a
+   selection built from real QSL source cannot be exercised end to end; tests build packages whose
+   regions are set at test time (FR-009-AC-27).

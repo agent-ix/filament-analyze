@@ -1,4 +1,5 @@
 use std::{
+    cmp::Ordering as Comparison,
     collections::BTreeSet,
     fs::{self, File, OpenOptions},
     io::{self, Write},
@@ -310,26 +311,27 @@ pub fn validate_report_document(bytes: &[u8]) -> Result<DifferentialDisposition,
     }
     {
         let object = require_object(&value, "report root")?;
-        require_exact_keys(
-            object,
-            &[
-                "analysisModelProfile",
-                "analysisKind",
-                "assertions",
-                "bindingSetDigest",
-                "differential",
-                "encodingProfile",
-                "engines",
-                "logic",
-                "pgm01Envelope",
-                "producer",
-                "queryDigest",
-                "queryHex",
-                "requestDigest",
-                "schema",
-            ],
-            "report root",
-        )?;
+        let mut root_keys = vec![
+            "analysisModelProfile",
+            "analysisKind",
+            "assertions",
+            "bindingSetDigest",
+            "differential",
+            "encodingProfile",
+            "engines",
+            "logic",
+            "pgm01Envelope",
+            "producer",
+            "queryDigest",
+            "queryHex",
+            "requestDigest",
+            "schema",
+        ];
+        if object.contains_key("selection") {
+            root_keys.push("selection");
+        }
+        require_exact_keys(object, &root_keys, "report root")?;
+        validate_selection(object)?;
         if object.get("schema").and_then(Value::as_str) != Some(DIFFERENTIAL_REPORT_SCHEMA) {
             return Err("report schema is absent or unsupported".to_owned());
         }
@@ -844,6 +846,78 @@ fn require_object<'a>(
     value
         .as_object()
         .ok_or_else(|| format!("{label} is not an object"))
+}
+
+/// The number `N` of an id spelled exactly `claim-N`: decimal digits with no sign and no leading zero.
+fn claim_number(id: &str) -> Option<u64> {
+    let digits = id.strip_prefix("claim-")?;
+    let number: u64 = digits.parse().ok()?;
+    (number.to_string() == digits).then_some(number)
+}
+
+/// Checks the optional `selection` member: both lists are strictly ascending `claim-N` ids, the
+/// lists are disjoint, and `selected` names exactly the clauses the assertions come from.
+fn validate_selection(object: &serde_json::Map<String, Value>) -> Result<(), String> {
+    let Some(selection) = object.get("selection") else {
+        return Ok(());
+    };
+    let selection = require_object(selection, "selection")?;
+    let ids = |field: &str| -> Result<Vec<u64>, String> {
+        let list = selection
+            .get(field)
+            .and_then(Value::as_array)
+            .ok_or_else(|| format!("selection.{field} is absent"))?;
+        let mut numbers = Vec::with_capacity(list.len());
+        for id in list {
+            let number = id
+                .as_str()
+                .and_then(claim_number)
+                .ok_or_else(|| format!("selection.{field} holds an id that is not claim-N"))?;
+            numbers.push(number);
+        }
+        if !numbers.windows(2).all(|pair| pair[0] < pair[1]) {
+            return Err(format!("selection.{field} is not in ascending order of N"));
+        }
+        Ok(numbers)
+    };
+    let selected = ids("selected")?;
+    let excluded = ids("excluded")?;
+    if selected.is_empty() {
+        return Err("selection.selected is empty".to_owned());
+    }
+    // Both lists are strictly ascending, so one merge walk finds a shared id.
+    let (mut left, mut right) = (selected.iter().peekable(), excluded.iter().peekable());
+    while let (Some(&&a), Some(&&b)) = (left.peek(), right.peek()) {
+        match a.cmp(&b) {
+            Comparison::Less => {
+                left.next();
+            }
+            Comparison::Greater => {
+                right.next();
+            }
+            Comparison::Equal => {
+                return Err("selection names a claim as both selected and excluded".to_owned());
+            }
+        }
+    }
+    let assertions = object
+        .get("assertions")
+        .and_then(Value::as_array)
+        .ok_or_else(|| "assertions are absent".to_owned())?;
+    let mut asserted = BTreeSet::new();
+    for assertion in assertions {
+        let number = assertion
+            .get("clause")
+            .and_then(Value::as_str)
+            .and_then(|clause| clause.rsplit(':').next())
+            .and_then(claim_number)
+            .ok_or_else(|| "an assertion clause is not a claim-N clause".to_owned())?;
+        asserted.insert(number);
+    }
+    if !asserted.iter().eq(selected.iter()) {
+        return Err("selection.selected differs from the clauses of the assertions".to_owned());
+    }
+    Ok(())
 }
 
 fn require_exact_keys(

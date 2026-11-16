@@ -445,9 +445,21 @@ fn read_bounded_file(path: &Path, limit: u64, label: &str) -> Result<Vec<u8>, Ru
             path.display()
         )));
     }
+    let file = fs::File::open(path)
+        .map_err(|error| RunnerError::usage(format!("{label} {}: {error}", path.display())))?;
+    read_bounded_reader(file, path, limit, label)
+}
+
+fn read_bounded_reader(
+    reader: impl Read,
+    path: &Path,
+    limit: u64,
+    label: &str,
+) -> Result<Vec<u8>, RunnerError> {
     let mut bytes = Vec::new();
-    fs::File::open(path)
-        .and_then(|file| file.take(limit + 1).read_to_end(&mut bytes))
+    reader
+        .take(limit + 1)
+        .read_to_end(&mut bytes)
         .map_err(|error| RunnerError::usage(format!("{label} {}: {error}", path.display())))?;
     if u64::try_from(bytes.len()).map_or(true, |size| size > limit) {
         return Err(RunnerError::usage(format!(
@@ -456,6 +468,25 @@ fn read_bounded_file(path: &Path, limit: u64, label: &str) -> Result<Vec<u8>, Ru
         )));
     }
     Ok(bytes)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::read_bounded_reader;
+    use std::io::Cursor;
+
+    #[test]
+    fn bounded_reader_rejects_a_stream_that_grows_past_the_metadata_limit() {
+        let error = read_bounded_reader(
+            Cursor::new(b"12345"),
+            std::path::Path::new("input"),
+            4,
+            "--select",
+        )
+        .expect_err("stream exceeded limit after metadata check");
+        assert_eq!(error.class(), super::super::EXIT_USAGE);
+        assert!(error.message().contains("exceeds the 4-byte limit"));
+    }
 }
 
 /// The runner-owned capability root, a `0700` directory removed when the guard drops.

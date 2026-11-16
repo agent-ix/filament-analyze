@@ -19,11 +19,13 @@ use std::{
 use filament_analyze::{
     classify_analysis, compare_solver_records, execute_differential, execute_solver,
     lower_analysis_request, publish_report_new, render_differential_report,
-    render_differential_summary, validate_differential_report, validate_report_document,
-    AdapterLimits, AnalysisKind, AnalysisRequest, AnalysisRequestErrorCode, AnalysisStatus,
-    AssertionPolarity, BindingGroup, BindingMember, CancellationToken, DifferentialDisposition,
-    ExplanationState, ModelPurpose, QueryBundle, SolverConfig, SolverEngine, SolverOutcome,
-    StatementInput, StatementRole,
+    render_differential_report_with_selection, render_differential_summary,
+    validate_differential_report, validate_differential_report_with_selection,
+    validate_report_document, AdapterLimits, AnalysisKind, AnalysisRequest,
+    AnalysisRequestErrorCode, AnalysisStatus, AssertionPolarity, BindingGroup, BindingMember,
+    CancellationToken, ClaimSelectionReport, DifferentialDisposition, ExplanationState,
+    ModelPurpose, QueryBundle, SolverConfig, SolverEngine, SolverOutcome, StatementInput,
+    StatementRole,
 };
 use filament_contract_model::{
     AnchorName, BooleanOperator, Clause, ClauseId, ClauseKind, ContractPackage,
@@ -1478,4 +1480,67 @@ fn differential_v2_validates_the_selection_member() {
         validate_report_document(&canonical_report(document)).is_err(),
         "wide disjoint lists are refused on the assertion mismatch, not by pairwise search"
     );
+}
+
+#[trace("TC-007", "FR-005-AC-7")]
+#[test]
+fn selected_report_validation_requires_canonical_bytes() {
+    let package_id = PackageId::new("agent-ix/analysis-test").expect("package");
+    let requirement_id = RequirementId::new("selection").expect("requirement");
+    let revision = RequirementRevision::new(1).expect("revision");
+    let owner = RequirementRef::new(package_id.clone(), requirement_id.clone(), revision);
+    let environment =
+        DeclarationEnvironment::new(owner, vec![], vec![], vec![]).expect("environment");
+    let checked = environment
+        .check_expression(&literal(true), &ValueType::Boolean, &point(), true)
+        .expect("typed expression");
+    let clause = Clause::new(
+        ClauseId::new("claim-0").expect("clause"),
+        ClauseKind::Assertion,
+        Some(point()),
+        span(0),
+        checked,
+    )
+    .expect("clause");
+    let requirement = Requirement::<TypedExpression>::new(
+        &package_id,
+        requirement_id,
+        revision,
+        span(0),
+        vec![clause],
+    )
+    .expect("requirement");
+    let package = ContractPackage::new(
+        package_id,
+        SchemaVersion::V1_1,
+        span(0).source().clone(),
+        vec![requirement],
+    )
+    .expect("contract package");
+    let statement = StatementInput::from_clause(
+        &package,
+        &package.requirements()[0],
+        &package.requirements()[0].clauses()[0],
+        environment,
+    )
+    .expect("statement");
+    let request = AnalysisRequest::consistency(vec![], vec![statement], vec![]).expect("request");
+    let query = lower_analysis_request(&request).expect("lower");
+    let run = compare_solver_records(
+        &query,
+        &execute_engine_response(&query, "sat\n", SolverEngine::Z3),
+        &execute_engine_response(&query, "sat\n", SolverEngine::Cvc5),
+    );
+    let selection = ClaimSelectionReport::new(vec!["claim-0".to_owned()], vec![]);
+    let report = render_differential_report_with_selection(&query, &run, Some(&selection))
+        .expect("selected report");
+    validate_differential_report_with_selection(&report, &query, &run, Some(&selection))
+        .expect("canonical selected report");
+
+    let mut noncanonical = report;
+    noncanonical.push(b'\n');
+    let error =
+        validate_differential_report_with_selection(&noncanonical, &query, &run, Some(&selection))
+            .expect_err("noncanonical whitespace must not be accepted");
+    assert!(error.contains("canonical"), "{error}");
 }

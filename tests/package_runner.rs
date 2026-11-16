@@ -786,7 +786,7 @@ fn reached_expression_nodes_must_be_covered_without_selecting_intermediate_claim
     document.source_identity = "rules/a.qsl".to_owned();
     let parameter = document.parameter();
     let intermediate = document.claim(&parameter);
-    let expression = document.op(NOT, &[&parameter]);
+    let expression = document.op(AND, &[&parameter, &parameter]);
     let selected_claim = document.claim(&expression);
     let claim_region = document.region(&selected_claim);
     let expression_region = document.region(&expression);
@@ -903,6 +903,29 @@ fn empty_selection_has_its_own_usage_cause() {
         !malformed.stderr.contains("empty selection"),
         "{}",
         malformed.stderr
+    );
+
+    let directory = selection.fixture.path("selection-directory");
+    fs::create_dir(&directory).expect("selection directory");
+    let mut arguments = selection.fixture.arguments();
+    arguments.extend(["--select".into(), directory.into()]);
+    let directory = selection.fixture.run_with(&arguments);
+    assert_eq!(directory.code, Some(2), "{}", directory.stderr);
+    assert!(
+        directory.stderr.contains("not a regular file"),
+        "{}",
+        directory.stderr
+    );
+
+    let missing = selection.fixture.path("missing-selection.json");
+    let mut arguments = selection.fixture.arguments();
+    arguments.extend(["--select".into(), missing.into()]);
+    let missing = selection.fixture.run_with(&arguments);
+    assert_eq!(missing.code, Some(2), "{}", missing.stderr);
+    assert!(
+        missing.stderr.contains("No such file"),
+        "{}",
+        missing.stderr
     );
 }
 
@@ -1482,6 +1505,12 @@ fn bad_arguments_exit_two_with_the_usage() {
     unknown.push("--unknown".into());
     unknown.push("x".into());
     cases.push(("unknown", unknown));
+    let mut unknown_request = fixture.arguments();
+    unknown_request.extend(["--request".into(), "unknown".into()]);
+    cases.push(("unknown request", unknown_request));
+    let mut valueless_request = fixture.arguments();
+    valueless_request.push("--request".into());
+    cases.push(("valueless request", valueless_request));
     cases.push(("none", vec!["run-package".into()]));
     for (label, arguments) in cases {
         let run = fixture.run_with(&arguments);

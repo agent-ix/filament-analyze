@@ -1178,6 +1178,55 @@ mod tests {
     }
 
     #[test]
+    fn selection_lists_must_match_assertion_roles() {
+        let empty = json!({
+            "analysisKind": "consistency",
+            "selection": {"selected": [], "excluded": []},
+            "assertions": []
+        });
+        assert_eq!(
+            validate_selection(empty.as_object().expect("object"))
+                .expect_err("selection must include a claim"),
+            "selection.selected is empty"
+        );
+
+        let cases = [
+            (
+                json!({
+                    "analysisKind": "consistency",
+                    "selection": {"selected": ["claim-1"], "excluded": []},
+                    "assertions": [{"clause": "claim-0", "role": "selected"}]
+                }),
+                "selection.selected differs from the selected assertions",
+            ),
+            (
+                json!({
+                    "analysisKind": "contradiction",
+                    "selection": {"selected": ["claim-1"], "excluded": ["claim-2"]},
+                    "assertions": [{"clause": "claim-0", "role": "right"}]
+                }),
+                "selection.selected differs from the draft assertions",
+            ),
+            (
+                json!({
+                    "analysisKind": "redundancy",
+                    "selection": {"selected": ["claim-0"], "excluded": ["claim-2"]},
+                    "assertions": [
+                        {"clause": "claim-0", "role": "candidate"},
+                        {"clause": "claim-1", "role": "peer"}
+                    ]
+                }),
+                "selection.excluded differs from the approved assertions",
+            ),
+        ];
+
+        for (value, expected) in cases {
+            let object = value.as_object().expect("object");
+            assert_eq!(validate_selection(object).expect_err("mismatch"), expected);
+        }
+    }
+
+    #[test]
     fn invalid_publication_destination_fails_before_write() {
         assert_eq!(
             publish_report_new(Path::new("/"), b"report")

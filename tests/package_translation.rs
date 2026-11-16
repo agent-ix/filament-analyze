@@ -79,7 +79,6 @@ fn a_package_name_the_analysis_api_refuses_is_named() {
     assert!(error.message().contains("bad name"), "{error}");
 }
 
-#[trace("FR-009-AC-29", "FR-009-AC-35")]
 #[test]
 fn selected_requests_reject_non_claim_and_empty_groups() {
     let mut document = Document::new();
@@ -127,7 +126,6 @@ fn selected_requests_reject_non_claim_and_empty_groups() {
     assert!(error.message().contains("one draft claim"));
 }
 
-#[trace("FR-009-AC-29")]
 #[test]
 fn comparison_requests_require_an_explicit_selection() {
     let mut document = Document::new();
@@ -145,7 +143,6 @@ fn comparison_requests_require_an_explicit_selection() {
     }
 }
 
-#[trace("FR-009-AC-29", "FR-009-AC-30")]
 #[test]
 fn selected_consistency_translates_a_boolean_literal_claim() {
     let mut document = Document::new();
@@ -167,7 +164,6 @@ fn selected_consistency_translates_a_boolean_literal_claim() {
     assert_eq!(translation.into_request().statement_count(), 1);
 }
 
-#[trace("FR-009-AC-29", "FR-009-AC-35")]
 #[test]
 fn selected_translation_refuses_wrong_operation_arity() {
     let mut document = Document::new();

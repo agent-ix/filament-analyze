@@ -1491,7 +1491,7 @@ fn differential_v2_validates_the_selection_member() {
     );
 }
 
-#[trace("TC-007", "FR-005-AC-7")]
+#[trace("TC-007")]
 #[test]
 fn selected_report_validation_requires_canonical_bytes() {
     let package_id = PackageId::new("agent-ix/analysis-test").expect("package");

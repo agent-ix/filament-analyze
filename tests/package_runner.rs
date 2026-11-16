@@ -929,7 +929,7 @@ fn empty_selection_has_its_own_usage_cause() {
     );
 }
 
-#[trace("FR-009-AC-29", "FR-009-AC-35")]
+#[trace("FR-009-AC-29")]
 #[test]
 fn selection_filters_consistency_and_is_recorded_in_the_report() {
     let selection = selection_fixture();
@@ -956,7 +956,6 @@ fn selection_filters_consistency_and_is_recorded_in_the_report() {
     );
 }
 
-#[trace("FR-009-AC-29", "FR-009-AC-35")]
 #[test]
 fn contradiction_maps_approved_claims_left_and_selected_draft_right() {
     let selection = selection_fixture();
@@ -998,7 +997,6 @@ fn contradiction_maps_approved_claims_left_and_selected_draft_right() {
         .ends_with(&selection.first_id));
 }
 
-#[trace("FR-009-AC-29", "FR-009-AC-35")]
 #[test]
 fn redundancy_maps_the_single_draft_candidate_and_approved_peer() {
     let selection = selection_fixture();
@@ -1040,7 +1038,6 @@ fn redundancy_maps_the_single_draft_candidate_and_approved_peer() {
         .ends_with(&selection.first_id));
 }
 
-#[trace("FR-009-AC-29", "FR-009-AC-35")]
 #[test]
 fn non_default_requests_require_a_usable_selection() {
     let built = consistent();

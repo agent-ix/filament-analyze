@@ -6,7 +6,8 @@
 //! `CompleteContractPackageV2`, and `ContractPackageWireV1::read`.
 
 use filament_analyze::{
-    lower_analysis_request, translate_analysis_claims, TranslationError, TranslationErrorKind,
+    lower_analysis_request, translate_analysis_claims, translate_analysis_claims_for_request,
+    RunPackageRequest, TranslationError, TranslationErrorKind,
 };
 use filament_contract_model::{
     BooleanOperator, CheckedPackageReadLimits, ComparisonOperator, ContractPackageReadResult,
@@ -15,6 +16,7 @@ use filament_contract_model::{
 };
 use ix_trace_rs::trace;
 use serde_json::{json, Value};
+use std::collections::BTreeSet;
 
 mod common;
 
@@ -75,6 +77,116 @@ fn a_package_name_the_analysis_api_refuses_is_named() {
     let error = translate_analysis_claims(&package).expect_err("package name refused");
     assert_eq!(error.kind(), TranslationErrorKind::PackageName);
     assert!(error.message().contains("bad name"), "{error}");
+}
+
+#[test]
+fn selected_requests_reject_non_claim_and_empty_groups() {
+    let mut document = Document::new();
+    let parameter = document.parameter();
+    let first = document.claim(&parameter);
+    let second = document.claim(&parameter);
+    let package = document.package(&[&first, &second]);
+    let first_index = index(&package, &first);
+    let second_index = index(&package, &second);
+    let parameter_index = index(&package, &parameter);
+
+    let non_claim = BTreeSet::from([parameter_index]);
+    let error = translate_analysis_claims_for_request(
+        &package,
+        Some(&non_claim),
+        RunPackageRequest::Consistency,
+    )
+    .expect_err("selection names a non-claim node");
+    assert_eq!(error.kind(), TranslationErrorKind::Construction);
+    assert!(error.message().contains("not an analysis_claim"));
+
+    let empty = BTreeSet::new();
+    let error = translate_analysis_claims_for_request(
+        &package,
+        Some(&empty),
+        RunPackageRequest::Consistency,
+    )
+    .expect_err("consistency needs a selected claim");
+    assert!(error
+        .message()
+        .contains("does not contain an analysis_claim"));
+
+    let all = BTreeSet::from([first_index, second_index]);
+    let error = translate_analysis_claims_for_request(
+        &package,
+        Some(&all),
+        RunPackageRequest::Contradiction,
+    )
+    .expect_err("contradiction needs an approved claim");
+    assert!(error.message().contains("one approved claim"));
+
+    let error =
+        translate_analysis_claims_for_request(&package, Some(&all), RunPackageRequest::Redundancy)
+            .expect_err("redundancy needs one draft and an approved peer");
+    assert!(error.message().contains("one draft claim"));
+}
+
+#[test]
+fn comparison_requests_require_an_explicit_selection() {
+    let mut document = Document::new();
+    let parameter = document.parameter();
+    let claim = document.claim(&parameter);
+    let package = document.package(&[&claim]);
+
+    for request in [
+        RunPackageRequest::Contradiction,
+        RunPackageRequest::Redundancy,
+    ] {
+        let error = translate_analysis_claims_for_request(&package, None, request)
+            .expect_err("comparison needs an explicit selection");
+        assert!(error.message().contains("require a selection"));
+    }
+}
+
+#[test]
+fn selected_consistency_translates_a_boolean_literal_claim() {
+    let mut document = Document::new();
+    let literal = document.literal(true);
+    let claim = document.claim(&literal);
+    let package = document.package(&[&claim]);
+    let selected = BTreeSet::from([index(&package, &claim)]);
+    let translation = translate_analysis_claims_for_request(
+        &package,
+        Some(&selected),
+        RunPackageRequest::Consistency,
+    )
+    .expect("selected Boolean literal");
+    assert_eq!(translation.request().statement_count(), 1);
+    assert!(matches!(
+        expression(&translation, 0).kind(),
+        ExpressionKind::BooleanLiteral { value: true }
+    ));
+    assert_eq!(translation.into_request().statement_count(), 1);
+}
+
+#[test]
+fn selected_translation_refuses_wrong_operation_arity() {
+    let mut document = Document::new();
+    let parameter = document.parameter();
+    let not = document.op(NOT, &[&parameter]);
+    let claim = document.claim(&not);
+    let built = document.bytes(&[&claim]);
+    let admitted = read_package(&built);
+    let operation_node = index(&admitted, &not);
+    let claim_node = index(&admitted, &claim);
+    let package = mutated(&built, |value| {
+        value["semantic_graph"]["nodes"][operation_node]["body"]["arguments"] =
+            json!([common::reference(&parameter), common::reference(&parameter)]);
+    });
+    let selected = BTreeSet::from([claim_node]);
+    let error = translate_analysis_claims_for_request(
+        &package,
+        Some(&selected),
+        RunPackageRequest::Consistency,
+    )
+    .expect_err("NOT only accepts one operand");
+    assert_eq!(error.kind(), TranslationErrorKind::CannotLower);
+    assert!(error.message().contains("takes 1 arguments"));
 }
 
 #[trace("FR-009-AC-21")]

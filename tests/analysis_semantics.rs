@@ -325,10 +325,19 @@ fn dedicated_requests_are_role_exact_deterministic_and_fail_closed() {
         as_contradiction.query_digest()
     );
 
+    let empty_selection =
+        AnalysisRequest::consistency(vec![], vec![], vec![]).expect_err("empty selected");
     assert_eq!(
-        AnalysisRequest::consistency(vec![], vec![], vec![]).expect_err("empty selected")[0].code(),
+        empty_selection[0].code(),
         AnalysisRequestErrorCode::EmptyGroup
     );
+    assert_eq!(empty_selection[0].path(), "selected");
+    assert!(empty_selection[0]
+        .message()
+        .contains("at least one selected statement"));
+    assert!(empty_selection[0]
+        .to_string()
+        .contains("invalid analysis request at selected"));
     let empty_contradiction =
         AnalysisRequest::contradiction(vec![], vec![], vec![], vec![]).expect_err("empty sides");
     assert_eq!(empty_contradiction.len(), 2);

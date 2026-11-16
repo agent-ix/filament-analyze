@@ -302,19 +302,18 @@ fn read_claim_selection(
     for &claim in &selected {
         let mut pending = Vec::new();
         let mut visited = BTreeSet::new();
-        if let Some(node) = wire.semantic_graph.nodes.get(claim) {
-            if let Some(term) = package.term(&node.node_id) {
-                collect_references(term, &mut pending);
-            }
-        }
+        let node_id = wire
+            .semantic_graph
+            .nodes
+            .get(claim)
+            .map(|node| &node.node_id);
+        let term = node_id.and_then(|id| package.term(id));
+        collect_claim_references(node_id, term, &mut pending);
         while let Some(target) = pending.pop() {
-            let Some(node) = node_index(wire, &target) else {
-                continue;
-            };
-            if !visited.insert(node) {
+            let reached = node_index(wire, &target);
+            if !record_reached_node(reached, claim, &mut visited, &mut reached_by) {
                 continue;
             }
-            reached_by.entry(node).or_insert(claim);
             if let Some(term) = package.term(&target) {
                 collect_references(term, &mut pending);
             }
@@ -418,6 +417,36 @@ fn node_index(wire: &ContractPackageWireV1, target: &CheckedNodeId) -> Option<us
         .position(|node| &node.node_id == target)
 }
 
+fn collect_claim_references(
+    node_id: Option<&CheckedNodeId>,
+    term: Option<&CheckedTerm>,
+    references: &mut Vec<CheckedNodeId>,
+) {
+    let Some(_node_id) = node_id else {
+        return;
+    };
+    let Some(term) = term else {
+        return;
+    };
+    collect_references(term, references);
+}
+
+fn record_reached_node(
+    node: Option<usize>,
+    claim: usize,
+    visited: &mut BTreeSet<usize>,
+    reached_by: &mut BTreeMap<usize, usize>,
+) -> bool {
+    let Some(node) = node else {
+        return false;
+    };
+    if !visited.insert(node) {
+        return false;
+    }
+    reached_by.entry(node).or_insert(claim);
+    true
+}
+
 fn collect_references(term: &CheckedTerm, references: &mut Vec<CheckedNodeId>) {
     match term {
         CheckedTerm::Reference { target } => references.push(target.clone()),
@@ -472,8 +501,34 @@ fn read_bounded_reader(
 
 #[cfg(test)]
 mod tests {
-    use super::read_bounded_reader;
+    use super::{collect_claim_references, read_bounded_reader, record_reached_node};
+    use filament_contract_model::{CheckedNodeId, CheckedTerm};
+    use serde_json::json;
+    use std::collections::{BTreeMap, BTreeSet};
     use std::io::Cursor;
+
+    #[test]
+    fn missing_selection_graph_nodes_and_terms_are_ignored_safely() {
+        let missing_node: Option<&CheckedNodeId> = None;
+        let missing_term: Option<&CheckedTerm> = None;
+        let mut references = Vec::new();
+        collect_claim_references(missing_node, missing_term, &mut references);
+
+        let node_id = serde_json::from_value::<CheckedNodeId>(json!({
+            "package": "test/pkg",
+            "path": ["missing-term"],
+            "ordinal": 0
+        }))
+        .expect("well-formed checked node id");
+        collect_claim_references(Some(&node_id), missing_term, &mut references);
+        assert!(references.is_empty());
+
+        let mut visited = BTreeSet::new();
+        let mut reached_by = BTreeMap::new();
+        assert!(!record_reached_node(None, 3, &mut visited, &mut reached_by));
+        assert!(visited.is_empty());
+        assert!(reached_by.is_empty());
+    }
 
     #[test]
     fn bounded_reader_rejects_a_stream_that_grows_past_the_metadata_limit() {

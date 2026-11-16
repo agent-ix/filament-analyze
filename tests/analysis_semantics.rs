@@ -1532,6 +1532,8 @@ fn selected_report_validation_requires_canonical_bytes() {
         &execute_engine_response(&query, "sat\n", SolverEngine::Cvc5),
     );
     let selection = ClaimSelectionReport::new(vec!["claim-0".to_owned()], vec![]);
+    assert_eq!(selection.selected(), ["claim-0"]);
+    assert!(selection.excluded().is_empty());
     let report = render_differential_report_with_selection(&query, &run, Some(&selection))
         .expect("selected report");
     validate_differential_report_with_selection(&report, &query, &run, Some(&selection))

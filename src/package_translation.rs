@@ -449,22 +449,11 @@ pub fn translate_analysis_claims_for_request(
             AnalysisRequest::contradiction(Vec::new(), approved, draft, Vec::new())
         }
         RunPackageRequest::Redundancy => {
-            let mut candidate = None;
-            let mut peers = Vec::with_capacity(approved_count);
-            for (claim, statement) in translated_claims.into_iter().zip(statements) {
-                if selected.contains(&claim) {
-                    candidate = Some(statement);
-                } else {
-                    peers.push(statement);
-                }
-            }
-            let Some(candidate) = candidate else {
-                return Err(TranslationError::general(
-                    TranslationErrorKind::Construction,
-                    "selection",
-                    "redundancy requires one selected draft claim",
-                ));
-            };
+            let (candidate, peers) = redundancy_candidate(
+                translated_claims.into_iter().zip(statements),
+                &selected,
+                approved_count,
+            )?;
             AnalysisRequest::redundancy(Vec::new(), peers, candidate, Vec::new())
         }
     }
@@ -481,6 +470,45 @@ pub fn translate_analysis_claims_for_request(
         environment,
         request,
     })
+}
+
+fn redundancy_candidate(
+    claims: impl IntoIterator<Item = (usize, StatementInput)>,
+    selected: &BTreeSet<usize>,
+    approved_count: usize,
+) -> Result<(StatementInput, Vec<StatementInput>), TranslationError> {
+    let mut candidate = None;
+    let mut peers = Vec::with_capacity(approved_count);
+    for (claim, statement) in claims {
+        if selected.contains(&claim) {
+            candidate = Some(statement);
+        } else {
+            peers.push(statement);
+        }
+    }
+    let Some(candidate) = candidate else {
+        return Err(TranslationError::general(
+            TranslationErrorKind::Construction,
+            "selection",
+            "redundancy requires one selected draft claim",
+        ));
+    };
+    Ok((candidate, peers))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{redundancy_candidate, TranslationErrorKind};
+    use std::collections::BTreeSet;
+
+    #[test]
+    fn redundancy_refuses_when_its_selected_candidate_is_missing() {
+        let selected = BTreeSet::from([7]);
+        let error = redundancy_candidate([], &selected, 1)
+            .expect_err("a missing candidate must not produce a redundancy request");
+        assert_eq!(error.kind(), TranslationErrorKind::Construction);
+        assert!(error.message().contains("one selected draft claim"));
+    }
 }
 
 fn first_construction(diagnostics: &[Diagnostic]) -> TranslationError {

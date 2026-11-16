@@ -30,8 +30,7 @@ pub const EXIT_NON_CONCLUSIVE: u8 = 3;
 /// Exit status of a publication or executor failure.
 pub const EXIT_FAILURE: u8 = 4;
 
-const USAGE: &str = "usage: filament-analyze run-package --package FILE --output NEW_REPORT.json \
---z3 PATH --cvc5 PATH --producer-execute PATH";
+const USAGE: &str = "usage: filament-analyze run-package --package FILE --output NEW_REPORT.json --z3 PATH --cvc5 PATH --producer-execute PATH [--select FILE] [--request consistency|contradiction|redundancy]";
 
 /// The help text of `run-package`: the five arguments and the exit classes.
 pub fn run_package_help() -> String {
@@ -47,6 +46,8 @@ pub fn run_package_help() -> String {
         "  --z3 PATH                 the absolute path of the Z3 executable",
         "  --cvc5 PATH               the absolute path of the cvc5 executable",
         "  --producer-execute PATH   the absolute path of the engineering-assurance executable",
+        "  --select FILE             claim-selection/v1 source spans for the draft under review",
+        "  --request KIND            consistency (default), contradiction, or redundancy",
         "",
         "Exit status:",
         "  0  satisfied: both solvers agree the clauses are consistent",
@@ -100,7 +101,30 @@ impl fmt::Display for RunnerError {
 
 impl std::error::Error for RunnerError {}
 
-/// The five arguments of `run-package`.
+/// The analysis requested for this package.
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
+pub enum RunPackageRequest {
+    /// Check whether all included claims are consistent.
+    #[default]
+    Consistency,
+    /// Check whether approved and draft claim groups contradict each other.
+    Contradiction,
+    /// Check whether the draft is redundant given the approved claims.
+    Redundancy,
+}
+
+impl RunPackageRequest {
+    fn parse(value: &str) -> Option<Self> {
+        match value {
+            "consistency" => Some(Self::Consistency),
+            "contradiction" => Some(Self::Contradiction),
+            "redundancy" => Some(Self::Redundancy),
+            _ => None,
+        }
+    }
+}
+
+/// The arguments of `run-package`.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct RunPackageArguments {
     package: PathBuf,
@@ -108,6 +132,8 @@ pub struct RunPackageArguments {
     z3: PathBuf,
     cvc5: PathBuf,
     producer_execute: PathBuf,
+    select: Option<PathBuf>,
+    request: RunPackageRequest,
 }
 
 /// What the command line of `run-package` asks for.
@@ -138,28 +164,53 @@ pub fn parse_run_package_arguments(
     let mut z3 = None;
     let mut cvc5 = None;
     let mut producer_execute = None;
+    let mut select = None;
+    let mut request = None;
     while let Some(argument) = arguments.next() {
-        let slot = match argument.to_str() {
-            Some("--package") => &mut package,
-            Some("--output") => &mut output,
-            Some("--z3") => &mut z3,
-            Some("--cvc5") => &mut cvc5,
-            Some("--producer-execute") => &mut producer_execute,
+        let option = match argument.to_str() {
+            Some("--package") => 0,
+            Some("--output") => 1,
+            Some("--z3") => 2,
+            Some("--cvc5") => 3,
+            Some("--producer-execute") => 4,
+            Some("--select") => 5,
+            Some("--request") => 6,
             _ => return Err(RunnerError::usage(USAGE)),
         };
-        match (slot.is_none(), arguments.next()) {
-            (true, Some(value)) => *slot = Some(PathBuf::from(value)),
+        let Some(value) = arguments.next() else {
+            return Err(RunnerError::usage(USAGE));
+        };
+        match option {
+            0 if package.is_none() => package = Some(PathBuf::from(value)),
+            1 if output.is_none() => output = Some(PathBuf::from(value)),
+            2 if z3.is_none() => z3 = Some(PathBuf::from(value)),
+            3 if cvc5.is_none() => cvc5 = Some(PathBuf::from(value)),
+            4 if producer_execute.is_none() => producer_execute = Some(PathBuf::from(value)),
+            5 if select.is_none() => select = Some(PathBuf::from(value)),
+            6 if request.is_none() => {
+                let text = value.to_str().ok_or_else(|| RunnerError::usage(USAGE))?;
+                request =
+                    Some(RunPackageRequest::parse(text).ok_or_else(|| RunnerError::usage(USAGE))?);
+            }
             _ => return Err(RunnerError::usage(USAGE)),
         }
     }
     match (package, output, z3, cvc5, producer_execute) {
         (Some(package), Some(output), Some(z3), Some(cvc5), Some(producer_execute)) => {
+            let request = request.unwrap_or_default();
+            if request != RunPackageRequest::Consistency && select.is_none() {
+                return Err(RunnerError::usage(
+                    "--request contradiction and --request redundancy require --select",
+                ));
+            }
             Ok(RunPackageCommand::Run(RunPackageArguments {
                 package,
                 output,
                 z3,
                 cvc5,
                 producer_execute,
+                select,
+                request,
             }))
         }
         _ => Err(RunnerError::usage(USAGE)),

@@ -7,6 +7,7 @@ use std::{
     sync::atomic::{AtomicU64, Ordering},
 };
 
+use serde::Serialize;
 use serde_json::{json, Value};
 
 use crate::{
@@ -18,6 +19,30 @@ pub const DIFFERENTIAL_REPORT_SCHEMA: &str = "filament.differential-report/v2";
 pub const PGM01_ENVELOPE_DEPENDENCY: &str = "agent-ix/filament-contract-ir#20";
 pub const MAX_REPORT_BYTES: usize = 64 * 1024 * 1024;
 static PUBLICATION_COUNTER: AtomicU64 = AtomicU64::new(0);
+
+/// Claim identifiers selected for analysis and the package claims left out of that selection.
+#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
+pub struct ClaimSelectionReport {
+    selected: Vec<String>,
+    excluded: Vec<String>,
+}
+
+impl ClaimSelectionReport {
+    /// Construct a selection report in package graph order.
+    pub fn new(selected: Vec<String>, excluded: Vec<String>) -> Self {
+        Self { selected, excluded }
+    }
+
+    /// Claim identifiers selected for analysis.
+    pub fn selected(&self) -> &[String] {
+        &self.selected
+    }
+
+    /// Claim identifiers excluded from the selected set.
+    pub fn excluded(&self) -> &[String] {
+        &self.excluded
+    }
+}
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum PublicationStage {
@@ -218,10 +243,19 @@ pub fn render_differential_report(
     query: &QueryBundle,
     run: &DifferentialRun,
 ) -> Result<Vec<u8>, String> {
+    render_differential_report_with_selection(query, run, None)
+}
+
+/// Render the canonical report, including selection metadata when a selection was supplied.
+pub fn render_differential_report_with_selection(
+    query: &QueryBundle,
+    run: &DifferentialRun,
+    selection: Option<&ClaimSelectionReport>,
+) -> Result<Vec<u8>, String> {
     let analysis_kind = query
         .analysis_kind()
         .ok_or_else(|| "differential reports require an analysis query".to_owned())?;
-    let payload = json!({
+    let mut payload = json!({
         "analysisKind": analysis_kind.as_str(),
         "analysisModelProfile": run.z3.analysis_model_profile(),
         "assertions": query.assertions().iter().map(|assertion| json!({
@@ -253,6 +287,15 @@ pub fn render_differential_report(
         "requestDigest": query.analysis_request_digest().to_string(),
         "schema": DIFFERENTIAL_REPORT_SCHEMA,
     });
+    if let Some(selection) = selection {
+        payload
+            .as_object_mut()
+            .ok_or_else(|| "report root is not an object".to_owned())?
+            .insert(
+                "selection".to_owned(),
+                serde_json::to_value(selection).map_err(|error| error.to_string())?,
+            );
+    }
     Ok(serde_json::to_vec(&payload).expect("serializable report"))
 }
 
@@ -260,6 +303,16 @@ pub fn validate_differential_report(
     bytes: &[u8],
     query: &QueryBundle,
     run: &DifferentialRun,
+) -> Result<(), String> {
+    validate_differential_report_with_selection(bytes, query, run, None)
+}
+
+/// Validate a canonical report reconstructed with the supplied selection metadata.
+pub fn validate_differential_report_with_selection(
+    bytes: &[u8],
+    query: &QueryBundle,
+    run: &DifferentialRun,
+    selection: Option<&ClaimSelectionReport>,
 ) -> Result<(), String> {
     validate_report_document(bytes)?;
     let value: Value = serde_json::from_slice(bytes).map_err(|error| error.to_string())?;
@@ -280,7 +333,7 @@ pub fn validate_differential_report(
                 .to_owned(),
         );
     }
-    let expected = render_differential_report(query, run)?;
+    let expected = render_differential_report_with_selection(query, run, selection)?;
     if bytes != expected {
         return Err(
             "report bytes differ from the authoritative canonical reconstruction".to_owned(),
@@ -904,7 +957,13 @@ fn validate_selection(object: &serde_json::Map<String, Value>) -> Result<(), Str
         .get("assertions")
         .and_then(Value::as_array)
         .ok_or_else(|| "assertions are absent".to_owned())?;
+    let analysis_kind = object
+        .get("analysisKind")
+        .and_then(Value::as_str)
+        .ok_or_else(|| "analysisKind is absent".to_owned())?;
     let mut asserted = BTreeSet::new();
+    let mut selected_assertions = BTreeSet::new();
+    let mut excluded_assertions = BTreeSet::new();
     for assertion in assertions {
         let number = assertion
             .get("clause")
@@ -913,8 +972,35 @@ fn validate_selection(object: &serde_json::Map<String, Value>) -> Result<(), Str
             .and_then(claim_number)
             .ok_or_else(|| "an assertion clause is not a claim-N clause".to_owned())?;
         asserted.insert(number);
+        let role = assertion
+            .get("role")
+            .and_then(Value::as_str)
+            .ok_or_else(|| "an assertion role is absent".to_owned())?;
+        let (selected_role, excluded_role) = match analysis_kind {
+            "consistency" => (Some("selected"), None),
+            "contradiction" => (Some("right"), Some("left")),
+            "redundancy" => (Some("candidate"), Some("peer")),
+            _ => (None, None),
+        };
+        if Some(role) == selected_role {
+            selected_assertions.insert(number);
+        }
+        if Some(role) == excluded_role {
+            excluded_assertions.insert(number);
+        }
     }
-    if !asserted.iter().eq(selected.iter()) {
+    if analysis_kind == "consistency" {
+        if !selected_assertions.iter().eq(selected.iter()) {
+            return Err("selection.selected differs from the selected assertions".to_owned());
+        }
+    } else if analysis_kind == "contradiction" || analysis_kind == "redundancy" {
+        if !selected_assertions.iter().eq(selected.iter()) {
+            return Err("selection.selected differs from the draft assertions".to_owned());
+        }
+        if !excluded_assertions.iter().eq(excluded.iter()) {
+            return Err("selection.excluded differs from the approved assertions".to_owned());
+        }
+    } else if !asserted.iter().eq(selected.iter()) {
         return Err("selection.selected differs from the clauses of the assertions".to_owned());
     }
     Ok(())

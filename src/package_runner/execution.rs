@@ -2,6 +2,7 @@
 //! query, `producer-execute` invocation and publication.
 
 use std::{
+    collections::{BTreeMap, BTreeSet},
     fmt, fs,
     io::{self, Read, Write},
     os::unix::fs::{DirBuilderExt, OpenOptionsExt},
@@ -11,20 +12,24 @@ use std::{
 };
 
 use filament_contract_model::{
-    CheckedPackageReadLimits, ContractPackageReadResult, ContractPackageWireV1,
+    CheckedNodeId, CheckedPackageReadLimits, CheckedTerm, ContractPackageReadResult,
+    ContractPackageV1, ContractPackageWireV1,
 };
+use serde::Deserialize;
 
 use super::{
-    publish_with, RunPackageArguments, RunnerError, EXIT_NON_CONCLUSIVE, EXIT_REFUTED,
-    EXIT_SATISFIED,
+    publish_with, RunPackageArguments, RunPackageRequest, RunnerError, EXIT_NON_CONCLUSIVE,
+    EXIT_REFUTED, EXIT_SATISFIED,
 };
 use crate::{
-    compare_solver_records, invoke_producer_execute, lower_analysis_request, publish_report_new,
-    query_request, render_differential_report, render_differential_summary,
-    solver_record_from_evidence, translate_analysis_claims, validate_differential_report,
-    version_request, version_text, AdapterLimits, AnalysisStatus, DifferentialDisposition,
-    ProducerExecutionRequest, ProducerExecutionResult, QueryBundle, SolverConfig, SolverEngine,
-    SolverRecord, MAX_SOLVER_PATH_BYTES, MAX_SOLVER_WALL_TIME_MS,
+    analysis_claim_indices, compare_solver_records, invoke_producer_execute,
+    lower_analysis_request, publish_report_new, query_request,
+    render_differential_report_with_selection, render_differential_summary,
+    solver_record_from_evidence, translate_analysis_claims_for_request,
+    validate_differential_report_with_selection, version_request, version_text, AdapterLimits,
+    AnalysisStatus, ClaimSelectionReport, DifferentialDisposition, ProducerExecutionRequest,
+    ProducerExecutionResult, QueryBundle, SolverConfig, SolverEngine, SolverRecord,
+    MAX_SOLVER_PATH_BYTES, MAX_SOLVER_WALL_TIME_MS,
 };
 
 /// The staged query file inside the capability root.
@@ -32,6 +37,8 @@ const QUERY_FILE: &str = "query.smt2";
 /// The most bytes of the package file the runner reads, one past the reader's ceiling so that
 /// an oversized document is refused by the reader as `Incomplete`.
 const MAX_PACKAGE_READ_BYTES: u64 = CheckedPackageReadLimits::bounded().bytes + 1;
+const MAX_SELECTION_BYTES: u64 = 1024 * 1024;
+const SELECTION_PROTOCOL: &str = "filament-analyze.claim-selection/v1";
 
 static ROOT_COUNTER: AtomicU64 = AtomicU64::new(0);
 
@@ -57,7 +64,11 @@ pub fn run_package(arguments: &RunPackageArguments) -> Result<u8, RunnerError> {
     })?;
     reject_symlinks(parent, "--output parent")?;
 
-    let query = read_query(&arguments.package)?;
+    let (query, selection) = read_query(
+        &arguments.package,
+        arguments.select.as_deref(),
+        arguments.request,
+    )?;
 
     if fs::symlink_metadata(&output).is_ok() {
         return Err(RunnerError::failure(format!(
@@ -77,8 +88,11 @@ pub fn run_package(arguments: &RunPackageArguments) -> Result<u8, RunnerError> {
     let z3_record = run_engine(&producer, root.path(), &query, &z3)?;
     let cvc5_record = run_engine(&producer, root.path(), &query, &cvc5)?;
     let run = compare_solver_records(&query, &z3_record, &cvc5_record);
-    let bytes = render_differential_report(&query, &run)
-        .and_then(|bytes| validate_differential_report(&bytes, &query, &run).map(|()| bytes))
+    let bytes = render_differential_report_with_selection(&query, &run, selection.as_ref())
+        .and_then(|bytes| {
+            validate_differential_report_with_selection(&bytes, &query, &run, selection.as_ref())
+                .map(|()| bytes)
+        })
         .map_err(|error| RunnerError::failure(format!("the report is not valid: {error}")))?;
     publish_with(&output, &bytes, publish_report_new)?;
     drop(root);
@@ -152,8 +166,29 @@ fn reject_symlinks(path: &Path, label: &str) -> Result<(), RunnerError> {
     Ok(())
 }
 
-/// Read and admit the package, translate it and lower the one consistency request.
-fn read_query(package: &Path) -> Result<QueryBundle, RunnerError> {
+/// The source spans that identify draft declarations under review.
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct ClaimSelectionDocument {
+    protocol: String,
+    spans: Vec<ClaimSelectionSpan>,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct ClaimSelectionSpan {
+    authority: String,
+    identity: String,
+    start: u64,
+    end: u64,
+}
+
+/// Read and admit the package, apply any source selection, translate it and lower the request.
+fn read_query(
+    package: &Path,
+    selection_path: Option<&Path>,
+    requested: RunPackageRequest,
+) -> Result<(QueryBundle, Option<ClaimSelectionReport>), RunnerError> {
     let unreadable = |error: &dyn fmt::Display| {
         RunnerError::usage(format!("--package {}: {error}", package.display()))
     };
@@ -185,15 +220,242 @@ fn read_query(package: &Path) -> Result<QueryBundle, RunnerError> {
             )));
         }
     };
-    let translation = translate_analysis_claims(&admitted)
+    let selected = selection_path
+        .map(|path| read_claim_selection(path, &admitted))
+        .transpose()?;
+    let selected_indices = selected.as_ref().map(|(indices, _)| indices);
+    let translation = translate_analysis_claims_for_request(&admitted, selected_indices, requested)
         .map_err(|error| RunnerError::usage(format!("--package: {error}")))?;
-    lower_analysis_request(translation.request()).map_err(|errors| {
+    let query = lower_analysis_request(translation.request()).map_err(|errors| {
         let cause = errors.first().map_or_else(
             || "the request is refused".to_owned(),
             |error| format!("{}: {}", error.path(), error.message()),
         );
         RunnerError::usage(format!("--package: the request cannot be lowered: {cause}"))
-    })
+    })?;
+    let report = selected.map(|(indices, all_claims)| {
+        let selected_ids = all_claims
+            .iter()
+            .filter(|node| indices.contains(node))
+            .map(|node| format!("claim-{node}"))
+            .collect();
+        let excluded_ids = all_claims
+            .iter()
+            .filter(|node| !indices.contains(node))
+            .map(|node| format!("claim-{node}"))
+            .collect();
+        ClaimSelectionReport::new(selected_ids, excluded_ids)
+    });
+    Ok((query, report))
+}
+
+fn read_claim_selection(
+    path: &Path,
+    package: &ContractPackageV1,
+) -> Result<(BTreeSet<usize>, Vec<usize>), RunnerError> {
+    reject_symlinks(path, "--select")?;
+    let bytes = read_bounded_file(path, MAX_SELECTION_BYTES, "--select")?;
+    let document: ClaimSelectionDocument = serde_json::from_slice(&bytes)
+        .map_err(|error| RunnerError::usage(format!("--select {}: {error}", path.display())))?;
+    if document.protocol != SELECTION_PROTOCOL {
+        return Err(RunnerError::usage(format!(
+            "--select {}: protocol must be {SELECTION_PROTOCOL}",
+            path.display()
+        )));
+    }
+    if document.spans.is_empty() {
+        return Err(RunnerError::usage(format!(
+            "--select {}: empty selection",
+            path.display()
+        )));
+    }
+
+    let all_claims = analysis_claim_indices(package);
+    let wire = package.wire();
+    let mut selected = BTreeSet::new();
+    for span in &document.spans {
+        validate_selection_span(span)?;
+    }
+
+    let mut matched_spans = vec![false; document.spans.len()];
+    for &claim in &all_claims {
+        let Some(region) = source_region(wire, claim) else {
+            continue;
+        };
+        for (span_index, span) in document.spans.iter().enumerate() {
+            if same_source(region, span) && overlaps(region.start, region.end, span.start, span.end)
+            {
+                if contains(span, region) {
+                    selected.insert(claim);
+                    matched_spans[span_index] = true;
+                } else {
+                    return Err(RunnerError::usage(format!(
+                        "--select span {} overlaps claim-{claim} without containing it",
+                        span.display()
+                    )));
+                }
+            }
+        }
+    }
+
+    let mut reached_by = BTreeMap::<usize, usize>::new();
+    for &claim in &selected {
+        let mut pending = Vec::new();
+        let mut visited = BTreeSet::new();
+        if let Some(node) = wire.semantic_graph.nodes.get(claim) {
+            if let Some(term) = package.term(&node.node_id) {
+                collect_references(term, &mut pending);
+            }
+        }
+        while let Some(target) = pending.pop() {
+            let Some(node) = node_index(wire, &target) else {
+                continue;
+            };
+            if !visited.insert(node) {
+                continue;
+            }
+            reached_by.entry(node).or_insert(claim);
+            if let Some(term) = package.term(&target) {
+                collect_references(term, &mut pending);
+            }
+        }
+    }
+
+    for (&node, &claim) in &reached_by {
+        let Some(region) = source_region(wire, node) else {
+            return Err(RunnerError::usage(format!(
+                "--select: claim-{claim} reaches semantic_graph.nodes[{node}] with no source region"
+            )));
+        };
+        let mut covered = false;
+        for (span_index, span) in document.spans.iter().enumerate() {
+            if contains(span, region) {
+                matched_spans[span_index] = true;
+                covered = true;
+            }
+        }
+        if !covered {
+            return Err(RunnerError::usage(format!(
+                "--select: claim-{claim} reaches semantic_graph.nodes[{node}] outside listed spans"
+            )));
+        }
+    }
+
+    if let Some((index, _)) = matched_spans
+        .iter()
+        .enumerate()
+        .find(|(_, matched)| !**matched)
+    {
+        return Err(RunnerError::usage(format!(
+            "--select span {} matches no claim or reached node",
+            document.spans[index].display()
+        )));
+    }
+    Ok((selected, all_claims))
+}
+
+fn validate_selection_span(span: &ClaimSelectionSpan) -> Result<(), RunnerError> {
+    if span.authority.is_empty() || span.identity.is_empty() {
+        return Err(RunnerError::usage(format!(
+            "--select span {}: authority and identity must be non-empty",
+            span.display()
+        )));
+    }
+    if span.start >= span.end {
+        return Err(RunnerError::usage(format!(
+            "--select span {}: start must be below end",
+            span.display()
+        )));
+    }
+    Ok(())
+}
+
+impl ClaimSelectionSpan {
+    fn display(&self) -> String {
+        format!(
+            "{}:{}:{}-{}",
+            self.authority, self.identity, self.start, self.end
+        )
+    }
+}
+
+fn source_region(
+    wire: &ContractPackageWireV1,
+    node: usize,
+) -> Option<&filament_contract_model::CheckedSourceRegion> {
+    wire.source_map
+        .nodes
+        .get(node)?
+        .occurrences
+        .first()?
+        .regions
+        .first()
+}
+
+fn same_source(
+    region: &filament_contract_model::CheckedSourceRegion,
+    span: &ClaimSelectionSpan,
+) -> bool {
+    region.source.authority.as_ref() == span.authority
+        && region.source.identity.as_ref() == span.identity
+}
+
+fn contains(
+    span: &ClaimSelectionSpan,
+    region: &filament_contract_model::CheckedSourceRegion,
+) -> bool {
+    same_source(region, span) && span.start <= region.start && region.end <= span.end
+}
+
+fn overlaps(left_start: u64, left_end: u64, right_start: u64, right_end: u64) -> bool {
+    left_start.max(right_start) < left_end.min(right_end)
+}
+
+fn node_index(wire: &ContractPackageWireV1, target: &CheckedNodeId) -> Option<usize> {
+    wire.semantic_graph
+        .nodes
+        .iter()
+        .position(|node| &node.node_id == target)
+}
+
+fn collect_references(term: &CheckedTerm, references: &mut Vec<CheckedNodeId>) {
+    match term {
+        CheckedTerm::Reference { target } => references.push(target.clone()),
+        CheckedTerm::Application { arguments, .. } => {
+            for argument in arguments {
+                collect_references(argument, references);
+            }
+        }
+        _ => {}
+    }
+}
+
+fn read_bounded_file(path: &Path, limit: u64, label: &str) -> Result<Vec<u8>, RunnerError> {
+    let metadata = fs::metadata(path)
+        .map_err(|error| RunnerError::usage(format!("{label} {}: {error}", path.display())))?;
+    if !metadata.is_file() {
+        return Err(RunnerError::usage(format!(
+            "{label} {}: not a regular file",
+            path.display()
+        )));
+    }
+    if metadata.len() > limit {
+        return Err(RunnerError::usage(format!(
+            "{label} {}: exceeds the {limit}-byte limit",
+            path.display()
+        )));
+    }
+    let mut bytes = Vec::new();
+    fs::File::open(path)
+        .and_then(|file| file.take(limit + 1).read_to_end(&mut bytes))
+        .map_err(|error| RunnerError::usage(format!("{label} {}: {error}", path.display())))?;
+    if u64::try_from(bytes.len()).map_or(true, |size| size > limit) {
+        return Err(RunnerError::usage(format!(
+            "{label} {}: exceeds the {limit}-byte limit",
+            path.display()
+        )));
+    }
+    Ok(bytes)
 }
 
 /// The runner-owned capability root, a `0700` directory removed when the guard drops.

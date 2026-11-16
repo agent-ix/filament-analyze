@@ -41,6 +41,7 @@ pub fn literal(ty: &str, kind: &str, value: Value) -> Value {
 /// A checked-package document under construction, in node order.
 pub struct Document {
     pub name: String,
+    pub source_identity: String,
     pub nodes: Vec<Value>,
     pub regions: Vec<(u64, u64)>,
     pub next: usize,
@@ -50,6 +51,7 @@ impl Document {
     pub fn new() -> Self {
         let mut document = Self {
             name: PACKAGE.to_owned(),
+            source_identity: "filament.fixture.source/v1".to_owned(),
             nodes: Vec::new(),
             regions: Vec::new(),
             next: 0,
@@ -509,7 +511,7 @@ impl Document {
     }
 
     pub fn value(&self) -> Value {
-        let source = json!({"authority": "agent-ix", "identity": "filament.fixture.source/v1"});
+        let source = json!({"authority": "agent-ix", "identity": self.source_identity});
         let definition = |identity: &str| json!({"authority": "agent-ix", "identity": identity});
         let source_map = self
             .nodes

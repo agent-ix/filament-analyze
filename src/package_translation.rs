@@ -25,7 +25,10 @@ use filament_contract_model::{
     ValueForm, ValueType, MAX_EXPRESSION_NODES,
 };
 
-use crate::{lower_boolean_statements, smt::MAX_EXPRESSION_DEPTH, AnalysisRequest, StatementInput};
+use crate::{
+    lower_boolean_statements, smt::MAX_EXPRESSION_DEPTH, AnalysisRequest, RunPackageRequest,
+    StatementInput,
+};
 
 const SOURCE_DOCUMENT: &str = "contract-package";
 const REQUIREMENT_ID: &str = "analysis";
@@ -190,7 +193,7 @@ impl AnalysisTranslation {
         &self.environment
     }
 
-    /// The consistency request over every clause, without assumptions or bindings.
+    /// The request built from the translated claims, without assumptions or bindings.
     pub fn request(&self) -> &AnalysisRequest {
         &self.request
     }
@@ -231,18 +234,37 @@ fn construction(diagnostic: &Diagnostic) -> TranslationError {
 pub fn translate_analysis_claims(
     package: &ContractPackageV1,
 ) -> Result<AnalysisTranslation, TranslationError> {
+    translate_analysis_claims_for_request(package, None, RunPackageRequest::Consistency)
+}
+
+/// The node indices of every `analysis_claim`, in semantic graph order.
+pub(crate) fn analysis_claim_indices(package: &ContractPackageV1) -> Vec<usize> {
     let wire = package.wire();
     let nodes = wire.semantic_graph.nodes.as_slice();
     let kinds = nodes
         .iter()
         .map(|node| package.node_kind(&node.node_id))
         .collect::<Vec<_>>();
-    let claims = kinds
+    kinds
         .iter()
         .enumerate()
         .filter(|(_, kind)| matches!(kind, Some(CheckedNodeKind::Claim(ClaimForm::AnalysisClaim))))
         .map(|(index, _)| index)
-        .collect::<Vec<_>>();
+        .collect()
+}
+
+/// Translates package claims and builds the requested analysis.
+///
+/// When `selected_claims` is present, its node indices identify the draft under review; all
+/// remaining claims are the approved set. Consistency analyzes only selected claims. Contradiction
+/// compares approved claims on the left with draft claims on the right. Redundancy checks the one
+/// selected draft against all remaining claims as peers.
+pub fn translate_analysis_claims_for_request(
+    package: &ContractPackageV1,
+    selected_claims: Option<&BTreeSet<usize>>,
+    requested: RunPackageRequest,
+) -> Result<AnalysisTranslation, TranslationError> {
+    let claims = analysis_claim_indices(package);
     if claims.is_empty() {
         return Err(TranslationError::general(
             TranslationErrorKind::NoAnalysableClause,
@@ -250,7 +272,67 @@ pub fn translate_analysis_claims(
             "the package holds no analysis_claim node",
         ));
     }
+    let selected = selected_claims
+        .cloned()
+        .unwrap_or_else(|| claims.iter().copied().collect());
+    if selected.iter().any(|node| !claims.contains(node)) {
+        return Err(TranslationError::general(
+            TranslationErrorKind::Construction,
+            "selection",
+            "selection names a node that is not an analysis_claim",
+        ));
+    }
+    if requested != RunPackageRequest::Consistency && selected_claims.is_none() {
+        return Err(TranslationError::general(
+            TranslationErrorKind::Construction,
+            "selection",
+            "contradiction and redundancy require a selection",
+        ));
+    }
+    let approved_count = claims
+        .iter()
+        .filter(|node| !selected.contains(node))
+        .count();
+    let draft_count = selected.len();
+    match requested {
+        RunPackageRequest::Consistency if draft_count == 0 => {
+            return Err(TranslationError::general(
+                TranslationErrorKind::Construction,
+                "selection",
+                "selection does not contain an analysis_claim",
+            ));
+        }
+        RunPackageRequest::Contradiction if approved_count == 0 || draft_count == 0 => {
+            return Err(TranslationError::general(
+                TranslationErrorKind::Construction,
+                "selection",
+                "contradiction requires at least one approved claim and one draft claim",
+            ));
+        }
+        RunPackageRequest::Redundancy if approved_count == 0 || draft_count != 1 => {
+            return Err(TranslationError::general(
+                TranslationErrorKind::Construction,
+                "selection",
+                "redundancy requires one draft claim and at least one approved claim",
+            ));
+        }
+        _ => {}
+    }
+    let translated_claims = match requested {
+        RunPackageRequest::Consistency => claims
+            .iter()
+            .copied()
+            .filter(|node| selected.contains(node))
+            .collect::<Vec<_>>(),
+        RunPackageRequest::Contradiction | RunPackageRequest::Redundancy => claims.clone(),
+    };
 
+    let wire = package.wire();
+    let nodes = wire.semantic_graph.nodes.as_slice();
+    let kinds = nodes
+        .iter()
+        .map(|node| package.node_kind(&node.node_id))
+        .collect::<Vec<_>>();
     let name = &*wire.package.source.name;
     let package_id = PackageId::new(name).map_err(|diagnostic| {
         TranslationError::general(
@@ -291,8 +373,8 @@ pub fn translate_analysis_claims(
         saw_parameter: false,
         span: zero_span(&source)?,
     };
-    let mut bodies = Vec::with_capacity(claims.len());
-    for &claim in &claims {
+    let mut bodies = Vec::with_capacity(translated_claims.len());
+    for &claim in &translated_claims {
         let span = spans.node(claim)?;
         bodies.push((claim, span.clone(), walker.claim(claim, span)?));
     }
@@ -341,8 +423,8 @@ pub fn translate_analysis_claims(
         .map_err(|diagnostics| first_construction(&diagnostics))?;
 
     let requirement = &contract.requirements()[0];
-    let mut statements = Vec::with_capacity(claims.len());
-    for (&claim, clause) in claims.iter().zip(requirement.clauses()) {
+    let mut statements = Vec::with_capacity(translated_claims.len());
+    for (&claim, clause) in translated_claims.iter().zip(requirement.clauses()) {
         let statement =
             StatementInput::from_clause(&contract, requirement, clause, environment.clone())
                 .map_err(|errors| first_lowering(claim, &errors))?;
@@ -350,15 +432,50 @@ pub fn translate_analysis_claims(
             .map_err(|errors| first_lowering(claim, &errors))?;
         statements.push(statement);
     }
-    let request =
-        AnalysisRequest::consistency(Vec::new(), statements, Vec::new()).map_err(|errors| {
-            let first = errors.first();
-            TranslationError::general(
-                TranslationErrorKind::Construction,
-                first.map_or("", |error| error.path()),
-                first.map_or("the request is refused", |error| error.message()),
-            )
-        })?;
+    let request = match requested {
+        RunPackageRequest::Consistency => {
+            AnalysisRequest::consistency(Vec::new(), statements, Vec::new())
+        }
+        RunPackageRequest::Contradiction => {
+            let mut approved = Vec::with_capacity(approved_count);
+            let mut draft = Vec::with_capacity(draft_count);
+            for (claim, statement) in translated_claims.into_iter().zip(statements) {
+                if selected.contains(&claim) {
+                    draft.push(statement);
+                } else {
+                    approved.push(statement);
+                }
+            }
+            AnalysisRequest::contradiction(Vec::new(), approved, draft, Vec::new())
+        }
+        RunPackageRequest::Redundancy => {
+            let mut candidate = None;
+            let mut peers = Vec::with_capacity(approved_count);
+            for (claim, statement) in translated_claims.into_iter().zip(statements) {
+                if selected.contains(&claim) {
+                    candidate = Some(statement);
+                } else {
+                    peers.push(statement);
+                }
+            }
+            let Some(candidate) = candidate else {
+                return Err(TranslationError::general(
+                    TranslationErrorKind::Construction,
+                    "selection",
+                    "redundancy requires one selected draft claim",
+                ));
+            };
+            AnalysisRequest::redundancy(Vec::new(), peers, candidate, Vec::new())
+        }
+    }
+    .map_err(|errors| {
+        let first = errors.first();
+        TranslationError::general(
+            TranslationErrorKind::Construction,
+            first.map_or("", |error| error.path()),
+            first.map_or("the request is refused", |error| error.message()),
+        )
+    })?;
     Ok(AnalysisTranslation {
         package: contract,
         environment,

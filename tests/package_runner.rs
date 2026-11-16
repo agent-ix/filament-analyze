@@ -326,6 +326,64 @@ impl Fixture {
     }
 }
 
+struct SelectionFixture {
+    fixture: Fixture,
+    first_id: String,
+    first_claim: (u64, u64),
+    first_parameter: (u64, u64),
+    second_id: String,
+    second_claim: (u64, u64),
+    second_parameter: (u64, u64),
+}
+
+fn selection_fixture() -> SelectionFixture {
+    let fixture = Fixture::new(b"pending package");
+    let mut document = Document::new();
+    document.source_identity = "rules/a.qsl".to_owned();
+    let first_parameter = document.parameter();
+    let first_parameter_region = document.region(&first_parameter);
+    let first_claim = document.claim(&first_parameter);
+    let first_claim_region = document.region(&first_claim);
+    let second_parameter = document.parameter();
+    let second_parameter_region = document.region(&second_parameter);
+    let second_claim = document.claim(&second_parameter);
+    let second_claim_region = document.region(&second_claim);
+    let package = document.bytes(&[&first_claim, &second_claim]);
+    fs::write(&fixture.package, package).expect("write package");
+    SelectionFixture {
+        fixture,
+        first_id: "claim-0".to_owned(),
+        first_claim: first_claim_region,
+        first_parameter: first_parameter_region,
+        second_id: "claim-1".to_owned(),
+        second_claim: second_claim_region,
+        second_parameter: second_parameter_region,
+    }
+}
+
+fn selection_file(fixture: &Fixture, spans: Value) -> PathBuf {
+    let path = fixture.path("selection.json");
+    fs::write(&path, selection_bytes(spans)).expect("selection file");
+    path
+}
+
+fn selection_bytes(spans: Value) -> Vec<u8> {
+    serde_json::to_vec(&json!({
+        "protocol": "filament-analyze.claim-selection/v1",
+        "spans": spans,
+    }))
+    .expect("selection json")
+}
+
+fn selection_span(start: u64, end: u64) -> Value {
+    json!({
+        "authority": "agent-ix",
+        "identity": "rules/a.qsl",
+        "start": start,
+        "end": end,
+    })
+}
+
 fn directory_names(path: &Path) -> Vec<String> {
     let mut names = fs::read_dir(path)
         .expect("directory")
@@ -395,6 +453,600 @@ fn outcomes(report: &Value) -> (String, String) {
             .to_owned()
     };
     (outcome(0), outcome(1))
+}
+
+#[test]
+fn explicit_consistency_is_byte_identical_to_the_default_request() {
+    let built = consistent();
+    let fixture = Fixture::new(&built.bytes);
+    fixture.both("unknown\n", "unknown\n");
+
+    let default = fixture.run();
+    assert_eq!(default.code, Some(3), "{}", default.stderr);
+    let default_bytes = fs::read(fixture.output()).expect("default report");
+    fs::remove_file(fixture.output()).expect("remove default report");
+
+    let mut explicit_arguments = fixture.arguments();
+    explicit_arguments.extend(["--request".into(), "consistency".into()]);
+    let explicit = fixture.run_with(&explicit_arguments);
+    assert_eq!(explicit.code, Some(3), "{}", explicit.stderr);
+    let explicit_bytes = fs::read(fixture.output()).expect("explicit report");
+    assert_eq!(explicit_bytes, default_bytes);
+    assert!(fixture.report().get("selection").is_none());
+}
+
+#[trace("FR-009-AC-30", "FR-009-AC-37")]
+#[test]
+fn an_unmatched_exact_identity_span_names_the_span_and_writes_no_report() {
+    let selection = selection_fixture();
+    let variants = [
+        (
+            "unmatched region",
+            "identity",
+            json!("rules/a.qsl"),
+            1000,
+            1010,
+        ),
+        (
+            "identity case",
+            "identity",
+            json!("Rules/a.qsl"),
+            selection.first_claim.0,
+            selection.first_claim.1,
+        ),
+        (
+            "leading dot",
+            "identity",
+            json!("./rules/a.qsl"),
+            selection.first_claim.0,
+            selection.first_claim.1,
+        ),
+        (
+            "doubled separator",
+            "identity",
+            json!("rules//a.qsl"),
+            selection.first_claim.0,
+            selection.first_claim.1,
+        ),
+        (
+            "trailing separator",
+            "identity",
+            json!("rules/a.qsl/"),
+            selection.first_claim.0,
+            selection.first_claim.1,
+        ),
+        (
+            "authority case",
+            "authority",
+            json!("Agent-ix"),
+            selection.first_claim.0,
+            selection.first_claim.1,
+        ),
+    ];
+    for (label, field, value, start, end) in variants {
+        let mut span = selection_span(start, end);
+        span[field] = value;
+        let selection_path = selection_file(&selection.fixture, json!([span]));
+        let mut arguments = selection.fixture.arguments();
+        arguments.extend(["--select".into(), selection_path.into()]);
+
+        let run = selection.fixture.run_with(&arguments);
+        assert_eq!(run.code, Some(2), "{label}: {}", run.stderr);
+        assert!(
+            run.stderr.contains("matches no claim"),
+            "{label}: {}",
+            run.stderr
+        );
+        selection.fixture.assert_no_report();
+    }
+}
+
+#[trace("FR-009-AC-31")]
+#[test]
+fn malformed_and_oversized_selection_documents_are_usage_errors() {
+    let selection = selection_fixture();
+    let valid_span = selection_span(selection.first_claim.0, selection.first_claim.1);
+    let mut malformed = vec![
+        ("invalid JSON", b"{".to_vec()),
+        (
+            "unknown document field",
+            br#"{"protocol":"filament-analyze.claim-selection/v1","spans":[],"extra":1}"#.to_vec(),
+        ),
+        ("missing protocol", br#"{"spans":[]}"#.to_vec()),
+    ];
+    let wrong_protocol = serde_json::to_vec(&json!({
+        "protocol": "quire-analyze.claim-selection/v1",
+        "spans": [valid_span.clone()],
+    }))
+    .expect("wrong protocol JSON");
+    malformed.push(("wrong protocol", wrong_protocol));
+
+    for (field, value) in [
+        ("authority", json!("")),
+        ("identity", json!("")),
+        ("start", json!(-1)),
+        ("start", json!(1.5)),
+        ("start", json!("x")),
+        ("end", json!(-1)),
+        ("end", json!(1.5)),
+        ("end", json!(null)),
+        ("start", json!(selection.first_claim.1)),
+    ] {
+        let mut span = valid_span.clone();
+        span[field] = value;
+        malformed.push(("malformed span", selection_bytes(json!([span]))));
+    }
+    let missing_span_member = json!({
+        "authority": "agent-ix",
+        "identity": "rules/a.qsl",
+        "start": 0,
+    });
+    malformed.push((
+        "missing span member",
+        selection_bytes(json!([missing_span_member])),
+    ));
+    for (label, start, end) in [
+        (
+            "start overflow",
+            "18446744073709551616",
+            "18446744073709551615",
+        ),
+        ("end overflow", "1", "18446744073709551616"),
+    ] {
+        malformed.push((
+            label,
+            format!(
+                r#"{{"protocol":"filament-analyze.claim-selection/v1","spans":[{{"authority":"agent-ix","identity":"rules/a.qsl","start":{start},"end":{end}}}]}}"#
+            )
+            .into_bytes(),
+        ));
+    }
+    malformed.push(("oversized selection", vec![b' '; 1024 * 1024 + 1]));
+
+    for (label, bytes) in malformed {
+        let path = selection.fixture.path("selection.json");
+        fs::write(&path, bytes).expect("selection bytes");
+        let mut arguments = selection.fixture.arguments();
+        arguments.extend(["--select".into(), path.into()]);
+        let run = selection.fixture.run_with(&arguments);
+        assert_eq!(run.code, Some(2), "{label}: {}", run.stderr);
+        assert!(
+            !run.stderr.contains("empty selection"),
+            "{label}: {}",
+            run.stderr
+        );
+        selection.fixture.assert_no_report();
+    }
+
+    let mut repeated = selection.fixture.arguments();
+    repeated.extend([
+        "--select".into(),
+        selection.fixture.path("selection.json").into(),
+        "--select".into(),
+        selection.fixture.path("selection.json").into(),
+    ]);
+    assert_eq!(selection.fixture.run_with(&repeated).code, Some(2));
+    let mut missing_value = selection.fixture.arguments();
+    missing_value.push("--select".into());
+    assert_eq!(selection.fixture.run_with(&missing_value).code, Some(2));
+}
+
+#[trace("FR-009-AC-30")]
+#[test]
+fn partial_claim_overlap_is_refused_even_with_another_matching_span() {
+    let selection = selection_fixture();
+    let (start, end) = selection.first_claim;
+    let partial = selection_span(start + 1, end);
+    let cases = [
+        json!([partial.clone()]),
+        json!([
+            selection_span(start, end),
+            selection_span(selection.first_parameter.0, selection.first_parameter.1),
+            partial.clone(),
+        ]),
+        json!([
+            selection_span(selection.second_claim.0, selection.second_claim.1),
+            selection_span(selection.second_parameter.0, selection.second_parameter.1),
+            partial,
+        ]),
+    ];
+    for spans in cases {
+        let path = selection_file(&selection.fixture, spans);
+        let mut arguments = selection.fixture.arguments();
+        arguments.extend(["--select".into(), path.into()]);
+        let run = selection.fixture.run_with(&arguments);
+        assert_eq!(run.code, Some(2), "{}", run.stderr);
+        assert!(
+            run.stderr
+                .contains(&format!("overlaps {}", selection.first_id)),
+            "{}",
+            run.stderr
+        );
+        assert!(run.stderr.contains("overlaps"), "{}", run.stderr);
+        selection.fixture.assert_no_report();
+    }
+}
+
+#[trace("FR-009-AC-32")]
+#[test]
+fn selecting_every_claim_changes_only_the_selection_member() {
+    let selection = selection_fixture();
+    selection.fixture.both("unknown\n", "unknown\n");
+    let default = selection.fixture.run();
+    assert_eq!(default.code, Some(3), "{}", default.stderr);
+    let default_report = normalised(&fs::read(selection.fixture.output()).expect("default report"));
+    fs::remove_file(selection.fixture.output()).expect("remove default report");
+
+    let spans = json!([selection_span(0, 1000),]);
+    let path = selection_file(&selection.fixture, spans);
+    let mut arguments = selection.fixture.arguments();
+    arguments.extend(["--select".into(), path.into()]);
+    let selected = selection.fixture.run_with(&arguments);
+    assert_eq!(selected.code, Some(3), "{}", selected.stderr);
+    let mut selected_report =
+        normalised(&fs::read(selection.fixture.output()).expect("selected report"));
+    let selection_member = selected_report
+        .as_object_mut()
+        .expect("report object")
+        .remove("selection")
+        .expect("selection member");
+    assert_eq!(
+        selection_member["selected"],
+        json!([selection.first_id, selection.second_id])
+    );
+    assert_eq!(selection_member["excluded"], json!([]));
+    assert_eq!(selected_report, default_report);
+}
+
+#[trace("FR-009-AC-33")]
+#[test]
+fn excluded_non_boolean_untranslatable_and_regionless_claims_are_not_translated() {
+    let mut document = Document::new();
+    document.source_identity = "rules/a.qsl".to_owned();
+    let approved_parameter = document.parameter();
+    let approved_claim = document.claim(&approved_parameter);
+    let approved_region = document.region(&approved_claim);
+    let approved_parameter_region = document.region(&approved_parameter);
+
+    let first = document.op(AND, &[&approved_parameter, &approved_parameter]);
+    let second = document.op(AND, &[&first, &approved_parameter]);
+    document.set_body(
+        &first,
+        json!({
+            "term": "application",
+            "operator": "binary",
+            "operation": {"identity": AND, "laws": [], "mode": null, "member": null, "leaves": []},
+            "result_type": id("scalar_type/boolean"),
+            "arguments": [
+                common::reference(&second),
+                common::reference(&approved_parameter)
+            ],
+        }),
+        &[&second, &approved_parameter],
+    );
+    for label in [&first, &second] {
+        let node = document
+            .nodes
+            .iter_mut()
+            .find(|node| node["node_id"] == id(label))
+            .expect("cycle node");
+        node["recursion_group"] = json!("excluded-cycle");
+    }
+    let cyclic_claim = document.claim(&second);
+
+    let range = document.range();
+    let integer_parameter = document.parameter_of(&range);
+    let non_boolean_claim = document.claim(&integer_parameter);
+    let no_region_claim = document.claim(&approved_parameter);
+    let package = document.bytes(&[
+        &approved_claim,
+        &cyclic_claim,
+        &non_boolean_claim,
+        &no_region_claim,
+    ]);
+    let admitted = common::read_package(&package);
+    let node = common::index(&admitted, &no_region_claim);
+    let mut value: Value = serde_json::from_slice(&package).expect("package JSON");
+    value["semantic_graph"]["nodes"][node]["occurrences"] = json!([]);
+    value["source_map"]["nodes"][node]["occurrences"] = json!([]);
+    value["source_map"]["requested_items"][3]["occurrences"] = json!([]);
+    let package = serde_json::to_vec(&value).expect("regionless package");
+    let fixture = Fixture::new(&package);
+    fixture.both("unknown\n", "unknown\n");
+    let path = selection_file(
+        &fixture,
+        json!([
+            selection_span(approved_region.0, approved_region.1),
+            selection_span(approved_parameter_region.0, approved_parameter_region.1),
+        ]),
+    );
+    let mut arguments = fixture.arguments();
+    arguments.extend(["--select".into(), path.into()]);
+    let run = fixture.run_with(&arguments);
+    assert_eq!(run.code, Some(3), "{}", run.stderr);
+    assert_eq!(
+        fixture.report()["selection"]["selected"]
+            .as_array()
+            .unwrap()
+            .len(),
+        1
+    );
+
+    fs::remove_file(fixture.output()).expect("remove selected report");
+    let run = fixture.run();
+    assert_eq!(run.code, Some(2), "{}", run.stderr);
+    fixture.assert_no_report();
+}
+
+#[trace("FR-009-AC-35")]
+#[test]
+fn reached_expression_nodes_must_be_covered_without_selecting_intermediate_claims() {
+    let fixture = Fixture::new(b"pending package");
+    let mut document = Document::new();
+    document.source_identity = "rules/a.qsl".to_owned();
+    let parameter = document.parameter();
+    let intermediate = document.claim(&parameter);
+    let expression = document.op(NOT, &[&parameter]);
+    let selected_claim = document.claim(&expression);
+    let claim_region = document.region(&selected_claim);
+    let expression_region = document.region(&expression);
+    let parameter_region = document.region(&parameter);
+    let package_bytes = document.bytes(&[&intermediate, &selected_claim]);
+    let package = common::read_package(&package_bytes);
+    let selected_node = common::index(&package, &selected_claim);
+    let expression_node = common::index(&package, &expression);
+    let intermediate_node = common::index(&package, &intermediate);
+    fs::write(&fixture.package, package_bytes).expect("write package");
+    fixture.both("unknown\n", "unknown\n");
+
+    let incomplete = selection_file(
+        &fixture,
+        json!([
+            selection_span(claim_region.0, claim_region.1),
+            selection_span(parameter_region.0, parameter_region.1),
+        ]),
+    );
+    let mut arguments = fixture.arguments();
+    arguments.extend(["--select".into(), incomplete.into()]);
+    let run = fixture.run_with(&arguments);
+    assert_eq!(run.code, Some(2), "{}", run.stderr);
+    assert!(
+        run.stderr.contains(&format!("claim-{selected_node}")),
+        "{}",
+        run.stderr
+    );
+    assert!(
+        run.stderr
+            .contains(&format!("semantic_graph.nodes[{expression_node}]")),
+        "{}",
+        run.stderr
+    );
+    fixture.assert_no_report();
+
+    let complete = selection_file(
+        &fixture,
+        json!([
+            selection_span(claim_region.0, claim_region.1),
+            selection_span(expression_region.0, expression_region.1),
+            selection_span(parameter_region.0, parameter_region.1),
+        ]),
+    );
+    let mut arguments = fixture.arguments();
+    arguments.extend(["--select".into(), complete.into()]);
+    let run = fixture.run_with(&arguments);
+    assert_eq!(run.code, Some(3), "{}", run.stderr);
+    let report = fixture.report();
+    assert_eq!(
+        report["selection"]["selected"],
+        json!([format!("claim-{selected_node}")])
+    );
+    assert_eq!(
+        report["selection"]["excluded"],
+        json!([format!("claim-{intermediate_node}")])
+    );
+
+    let no_region_fixture = Fixture::new(b"pending package");
+    let mut document = Document::new();
+    document.source_identity = "rules/a.qsl".to_owned();
+    let parameter = document.parameter();
+    let selected_claim = document.claim(&parameter);
+    let claim_region = document.region(&selected_claim);
+    let bytes = document.bytes(&[&selected_claim]);
+    let admitted = common::read_package(&bytes);
+    let parameter_node = common::index(&admitted, &parameter);
+    let mut value: Value = serde_json::from_slice(&bytes).expect("package JSON");
+    value["semantic_graph"]["nodes"][parameter_node]["occurrences"] = json!([]);
+    value["source_map"]["nodes"][parameter_node]["occurrences"] = json!([]);
+    fs::write(
+        &no_region_fixture.package,
+        serde_json::to_vec(&value).expect("package without parameter region"),
+    )
+    .expect("write package");
+    let path = selection_file(
+        &no_region_fixture,
+        json!([selection_span(claim_region.0, claim_region.1)]),
+    );
+    let mut arguments = no_region_fixture.arguments();
+    arguments.extend(["--select".into(), path.into()]);
+    let run = no_region_fixture.run_with(&arguments);
+    assert_eq!(run.code, Some(2), "{}", run.stderr);
+    assert!(run.stderr.contains("claim-0"), "{}", run.stderr);
+    assert!(
+        run.stderr
+            .contains(&format!("semantic_graph.nodes[{parameter_node}]")),
+        "{}",
+        run.stderr
+    );
+    no_region_fixture.assert_no_report();
+}
+
+#[trace("FR-009-AC-36")]
+#[test]
+fn empty_selection_has_its_own_usage_cause() {
+    let selection = selection_fixture();
+    let path = selection_file(&selection.fixture, json!([]));
+    let mut arguments = selection.fixture.arguments();
+    arguments.extend(["--select".into(), path.into()]);
+    let empty = selection.fixture.run_with(&arguments);
+    assert_eq!(empty.code, Some(2));
+    assert!(empty.stderr.contains("empty selection"), "{}", empty.stderr);
+
+    let malformed = selection_file(
+        &selection.fixture,
+        json!([{"authority":"", "identity":"rules/a.qsl", "start":1, "end":2}]),
+    );
+    let mut arguments = selection.fixture.arguments();
+    arguments.extend(["--select".into(), malformed.into()]);
+    let malformed = selection.fixture.run_with(&arguments);
+    assert_eq!(malformed.code, Some(2));
+    assert!(
+        !malformed.stderr.contains("empty selection"),
+        "{}",
+        malformed.stderr
+    );
+}
+
+#[trace("FR-009-AC-29", "FR-009-AC-35")]
+#[test]
+fn selection_filters_consistency_and_is_recorded_in_the_report() {
+    let selection = selection_fixture();
+    selection.fixture.both("unknown\n", "unknown\n");
+    let spans = json!([
+        selection_span(selection.first_claim.0, selection.first_claim.1),
+        selection_span(selection.first_parameter.0, selection.first_parameter.1),
+    ]);
+    let selection_path = selection_file(&selection.fixture, spans);
+    let mut arguments = selection.fixture.arguments();
+    arguments.extend(["--select".into(), selection_path.into()]);
+
+    let run = selection.fixture.run_with(&arguments);
+    assert_eq!(run.code, Some(3), "{}", run.stderr);
+    let report = selection.fixture.report();
+    assert_eq!(report["selection"]["selected"], json!([selection.first_id]));
+    assert_eq!(
+        report["selection"]["excluded"],
+        json!([selection.second_id])
+    );
+    assert_eq!(
+        report["assertions"].as_array().expect("assertions").len(),
+        1
+    );
+}
+
+#[trace("FR-009-AC-29", "FR-009-AC-35")]
+#[test]
+fn contradiction_maps_approved_claims_left_and_selected_draft_right() {
+    let selection = selection_fixture();
+    selection.fixture.both("unknown\n", "unknown\n");
+    let spans = json!([
+        selection_span(selection.first_claim.0, selection.first_claim.1),
+        selection_span(selection.first_parameter.0, selection.first_parameter.1),
+    ]);
+    let selection_path = selection_file(&selection.fixture, spans);
+    let mut arguments = selection.fixture.arguments();
+    arguments.extend([
+        "--select".into(),
+        selection_path.into(),
+        "--request".into(),
+        "contradiction".into(),
+    ]);
+
+    let run = selection.fixture.run_with(&arguments);
+    assert_eq!(run.code, Some(3), "{}", run.stderr);
+    let report = selection.fixture.report();
+    assert_eq!(report["analysisKind"], "contradiction");
+    let assertions = report["assertions"].as_array().expect("assertions");
+    assert_eq!(assertions.len(), 2);
+    let left = assertions
+        .iter()
+        .find(|assertion| assertion["role"] == "left")
+        .expect("approved left claim");
+    let right = assertions
+        .iter()
+        .find(|assertion| assertion["role"] == "right")
+        .expect("draft right claim");
+    assert!(left["clause"]
+        .as_str()
+        .unwrap()
+        .ends_with(&selection.second_id));
+    assert!(right["clause"]
+        .as_str()
+        .unwrap()
+        .ends_with(&selection.first_id));
+}
+
+#[trace("FR-009-AC-29", "FR-009-AC-35")]
+#[test]
+fn redundancy_maps_the_single_draft_candidate_and_approved_peer() {
+    let selection = selection_fixture();
+    selection.fixture.both("unknown\n", "unknown\n");
+    let spans = json!([
+        selection_span(selection.first_claim.0, selection.first_claim.1),
+        selection_span(selection.first_parameter.0, selection.first_parameter.1),
+    ]);
+    let selection_path = selection_file(&selection.fixture, spans);
+    let mut arguments = selection.fixture.arguments();
+    arguments.extend([
+        "--select".into(),
+        selection_path.into(),
+        "--request".into(),
+        "redundancy".into(),
+    ]);
+
+    let run = selection.fixture.run_with(&arguments);
+    assert_eq!(run.code, Some(3), "{}", run.stderr);
+    let report = selection.fixture.report();
+    assert_eq!(report["analysisKind"], "redundancy");
+    let assertions = report["assertions"].as_array().expect("assertions");
+    assert_eq!(assertions.len(), 2);
+    let peer = assertions
+        .iter()
+        .find(|assertion| assertion["role"] == "peer")
+        .expect("approved peer claim");
+    let candidate = assertions
+        .iter()
+        .find(|assertion| assertion["role"] == "candidate")
+        .expect("draft candidate claim");
+    assert!(peer["clause"]
+        .as_str()
+        .unwrap()
+        .ends_with(&selection.second_id));
+    assert!(candidate["clause"]
+        .as_str()
+        .unwrap()
+        .ends_with(&selection.first_id));
+}
+
+#[trace("FR-009-AC-29", "FR-009-AC-35")]
+#[test]
+fn non_default_requests_require_a_usable_selection() {
+    let built = consistent();
+    let fixture = Fixture::new(&built.bytes);
+    let mut no_selection = fixture.arguments();
+    no_selection.extend(["--request".into(), "contradiction".into()]);
+    let run = fixture.run_with(&no_selection);
+    assert_eq!(run.code, Some(2), "{}", run.stderr);
+    assert!(run.stderr.contains("require --select"), "{}", run.stderr);
+
+    let selection = selection_fixture();
+    let both = json!([
+        selection_span(selection.first_claim.0, selection.first_claim.1),
+        selection_span(selection.first_parameter.0, selection.first_parameter.1),
+        selection_span(selection.second_claim.0, selection.second_claim.1),
+        selection_span(selection.second_parameter.0, selection.second_parameter.1),
+    ]);
+    let selection_path = selection_file(&selection.fixture, both);
+    let mut ambiguous = selection.fixture.arguments();
+    ambiguous.extend([
+        "--select".into(),
+        selection_path.into(),
+        "--request".into(),
+        "redundancy".into(),
+    ]);
+    let run = selection.fixture.run_with(&ambiguous);
+    assert_eq!(run.code, Some(2), "{}", run.stderr);
+    assert!(run.stderr.contains("one draft claim"), "{}", run.stderr);
+    selection.fixture.assert_no_report();
 }
 
 #[trace("FR-009-AC-1", "FR-009-AC-16", "FR-009-AC-2")]

@@ -499,51 +499,6 @@ fn read_bounded_reader(
     Ok(bytes)
 }
 
-#[cfg(test)]
-mod tests {
-    use super::{collect_claim_references, read_bounded_reader, record_reached_node};
-    use filament_contract_model::{CheckedNodeId, CheckedTerm};
-    use serde_json::json;
-    use std::collections::{BTreeMap, BTreeSet};
-    use std::io::Cursor;
-
-    #[test]
-    fn missing_selection_graph_nodes_and_terms_are_ignored_safely() {
-        let missing_node: Option<&CheckedNodeId> = None;
-        let missing_term: Option<&CheckedTerm> = None;
-        let mut references = Vec::new();
-        collect_claim_references(missing_node, missing_term, &mut references);
-
-        let node_id = serde_json::from_value::<CheckedNodeId>(json!({
-            "package": "test/pkg",
-            "path": ["missing-term"],
-            "ordinal": 0
-        }))
-        .expect("well-formed checked node id");
-        collect_claim_references(Some(&node_id), missing_term, &mut references);
-        assert!(references.is_empty());
-
-        let mut visited = BTreeSet::new();
-        let mut reached_by = BTreeMap::new();
-        assert!(!record_reached_node(None, 3, &mut visited, &mut reached_by));
-        assert!(visited.is_empty());
-        assert!(reached_by.is_empty());
-    }
-
-    #[test]
-    fn bounded_reader_rejects_a_stream_that_grows_past_the_metadata_limit() {
-        let error = read_bounded_reader(
-            Cursor::new(b"12345"),
-            std::path::Path::new("input"),
-            4,
-            "--select",
-        )
-        .expect_err("stream exceeded limit after metadata check");
-        assert_eq!(error.class(), super::super::EXIT_USAGE);
-        assert!(error.message().contains("exceeds the 4-byte limit"));
-    }
-}
-
 /// The runner-owned capability root, a `0700` directory removed when the guard drops.
 struct CapabilityRoot {
     path: PathBuf,
@@ -637,4 +592,49 @@ fn invoke(
         Duration::from_millis(1_000),
     )
     .map_err(|error| failure(error.to_string()))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{collect_claim_references, read_bounded_reader, record_reached_node};
+    use filament_contract_model::{CheckedNodeId, CheckedTerm};
+    use serde_json::json;
+    use std::collections::{BTreeMap, BTreeSet};
+    use std::io::Cursor;
+
+    #[test]
+    fn missing_selection_graph_nodes_and_terms_are_ignored_safely() {
+        let missing_node: Option<&CheckedNodeId> = None;
+        let missing_term: Option<&CheckedTerm> = None;
+        let mut references = Vec::new();
+        collect_claim_references(missing_node, missing_term, &mut references);
+
+        let node_id = serde_json::from_value::<CheckedNodeId>(json!({
+            "package": "test/pkg",
+            "path": ["missing-term"],
+            "ordinal": 0
+        }))
+        .expect("well-formed checked node id");
+        collect_claim_references(Some(&node_id), missing_term, &mut references);
+        assert!(references.is_empty());
+
+        let mut visited = BTreeSet::new();
+        let mut reached_by = BTreeMap::new();
+        assert!(!record_reached_node(None, 3, &mut visited, &mut reached_by));
+        assert!(visited.is_empty());
+        assert!(reached_by.is_empty());
+    }
+
+    #[test]
+    fn bounded_reader_rejects_a_stream_that_grows_past_the_metadata_limit() {
+        let error = read_bounded_reader(
+            Cursor::new(b"12345"),
+            std::path::Path::new("input"),
+            4,
+            "--select",
+        )
+        .expect_err("stream exceeded limit after metadata check");
+        assert_eq!(error.class(), super::super::EXIT_USAGE);
+        assert!(error.message().contains("exceeds the 4-byte limit"));
+    }
 }

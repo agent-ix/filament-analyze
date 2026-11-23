@@ -2340,3 +2340,242 @@ fn record_and_option_fixtures_have_their_fixed_exits_through_the_runner() {
 fn bytes_of((document, claims): (Document, Vec<String>)) -> Vec<u8> {
     document.bytes(&labels(&claims))
 }
+
+// ---- TC-006 retained run-package corpus (FR-009-AC-38, FR-009-AC-39) ----
+
+/// What one corpus case gave through both boundaries, which have already been compared.
+struct Corpus {
+    code: u8,
+    /// The report the library run published, with its `elapsedMs` values as measured.
+    report: Option<Vec<u8>>,
+    /// The library error, when the library run published no report.
+    error: Option<filament_analyze::RunnerError>,
+    stderr: String,
+}
+
+/// The report at the output path, removed so the next run may publish there.
+fn take_report(fixture: &Fixture) -> Option<Vec<u8>> {
+    let bytes = fs::read(fixture.output()).ok()?;
+    fs::remove_file(fixture.output()).expect("remove report");
+    Some(bytes)
+}
+
+/// Run `fixture` through `run_package` and through the spawned binary with one argument vector,
+/// and require the same exit status and, once every `elapsedMs` is `0`, the same report bytes.
+fn through_both(fixture: &Fixture) -> Corpus {
+    let arguments = fixture.arguments();
+    let parsed = filament_analyze::parse_run_package_arguments(arguments[1..].iter().cloned());
+    let Ok(filament_analyze::RunPackageCommand::Run(parsed)) = parsed else {
+        panic!("the shared argument vector does not parse: {parsed:?}");
+    };
+    let library = filament_analyze::run_package(&parsed);
+    let library_report = take_report(fixture);
+    let binary = fixture.run_with(&arguments);
+    let binary_report = take_report(fixture);
+
+    let (code, error) = match library {
+        Ok(code) => (code, None),
+        Err(error) => (error.class(), Some(error)),
+    };
+    assert_eq!(
+        binary.code,
+        Some(i32::from(code)),
+        "the boundaries disagree on the exit status: {}",
+        binary.stderr
+    );
+    let canonical = |bytes: &Option<Vec<u8>>| {
+        bytes
+            .as_ref()
+            .map(|bytes| serde_json::to_vec(&normalised(bytes)).expect("report bytes"))
+    };
+    assert_eq!(
+        canonical(&library_report),
+        canonical(&binary_report),
+        "the boundaries disagree on the report"
+    );
+    if let Some(error) = &error {
+        assert!(library_report.is_none(), "a failed run published a report");
+        assert!(
+            binary.stderr.contains(error.message()),
+            "stderr {:?} omits {:?}",
+            binary.stderr,
+            error.message()
+        );
+    }
+    fixture.assert_no_leftovers();
+    Corpus {
+        code,
+        report: library_report,
+        error,
+        stderr: binary.stderr,
+    }
+}
+
+/// A published report that validates, parsed.
+fn valid_report(corpus: &Corpus) -> Value {
+    let bytes = corpus.report.as_ref().expect("a report was published");
+    validate_report_document(bytes).expect("valid report");
+    serde_json::from_slice(bytes).expect("report json")
+}
+
+/// A case that is not conclusive: both engine records retained, the stated disposition and
+/// outcome of the first engine, and an agreed status that is neither `satisfied` nor `refuted`.
+fn assert_non_conclusive(corpus: &Corpus, disposition: &str, outcome: (&str, &str)) {
+    assert_eq!(corpus.code, 3, "{}", corpus.stderr);
+    let report = valid_report(corpus);
+    assert_eq!(report["engines"].as_array().expect("engines").len(), 2);
+    assert_eq!(report["differential"]["disposition"], disposition);
+    assert_eq!(outcomes(&report), (outcome.0.into(), outcome.1.into()));
+    let status = &report["differential"]["agreedStatus"];
+    assert!(
+        status != "satisfied" && status != "refuted",
+        "reported as {status}"
+    );
+}
+
+/// The same package as a case, with healthy answers: the case's stub result is the only change.
+fn assert_healthy_control(built: &Built) {
+    let fixture = Fixture::new(&built.bytes);
+    fixture.both(&built.model, &built.model);
+    let corpus = through_both(&fixture);
+    assert_eq!(corpus.code, 0, "{}", corpus.stderr);
+    assert_eq!(
+        valid_report(&corpus)["differential"]["agreedStatus"],
+        "satisfied"
+    );
+}
+
+#[trace("FR-009-AC-38")]
+#[test]
+fn rp_sat_exits_zero_through_both_boundaries() {
+    let built = consistent();
+    let fixture = Fixture::new(&built.bytes);
+    fixture.both(&built.model, &built.model);
+    let corpus = through_both(&fixture);
+    assert_eq!(corpus.code, 0, "{}", corpus.stderr);
+    let report = valid_report(&corpus);
+    assert_eq!(report["differential"]["disposition"], "agreement");
+    assert_eq!(report["differential"]["agreedStatus"], "satisfied");
+
+    // Control: one engine answering `unsat` is not agreement, so exit `0` rests on agreement.
+    let control = Fixture::new(&built.bytes);
+    control.both(&built.model, "unsat\n");
+    assert_eq!(through_both(&control).code, 3);
+}
+
+#[trace("FR-009-AC-38")]
+#[test]
+fn rp_unsat_exits_one_through_both_boundaries() {
+    let built = contradictory();
+    let fixture = Fixture::new(&built.bytes);
+    fixture.both("unsat\n", "unsat\n");
+    let corpus = through_both(&fixture);
+    assert_eq!(corpus.code, 1, "{}", corpus.stderr);
+    let report = valid_report(&corpus);
+    assert_eq!(report["differential"]["disposition"], "agreement");
+    assert_eq!(report["differential"]["agreedStatus"], "refuted");
+
+    // Control: the same package answered `sat` by both engines is not refuted.
+    let control = Fixture::new(&built.bytes);
+    control.both(&built.model, &built.model);
+    let corpus = through_both(&control);
+    assert_ne!(corpus.code, 1, "{}", corpus.stderr);
+}
+
+#[trace("FR-009-AC-38")]
+#[test]
+fn rp_unsupported_exits_two_naming_the_node_without_a_report_or_request() {
+    let (bytes, quotient) = untranslatable();
+    let fixture = Fixture::new(&bytes);
+    let corpus = through_both(&fixture);
+    assert_eq!(corpus.code, 2, "{}", corpus.stderr);
+    assert!(corpus.report.is_none());
+    let node = format!("semantic_graph.nodes[{}]", node_index(&bytes, &quotient));
+    let error = corpus.error.as_ref().expect("a library error");
+    assert!(error.message().contains(&node), "{node}: {error}");
+    assert!(corpus.stderr.contains(&node), "{node}: {}", corpus.stderr);
+    assert!(fixture.requests().is_empty(), "producer-execute was called");
+    fixture.assert_no_report();
+
+    // Control: a translatable package under the same vector does reach `producer-execute`.
+    let built = consistent();
+    let control = Fixture::new(&built.bytes);
+    control.both(&built.model, &built.model);
+    assert_eq!(through_both(&control).code, 0);
+    assert_eq!(control.requests().len(), 8, "two runs of four requests");
+}
+
+#[trace("FR-009-AC-38")]
+#[test]
+fn rp_timeout_is_inconclusive_through_both_boundaries() {
+    let built = consistent();
+    let fixture = Fixture::new(&built.bytes);
+    fixture.both(&built.model, &built.model);
+    fixture.answer("z3", "query", &state_only(json!({"kind": "timed_out"})));
+    let corpus = through_both(&fixture);
+    assert_non_conclusive(&corpus, "inconclusive", ("timed-out", "sat"));
+    assert_healthy_control(&built);
+}
+
+#[trace("FR-009-AC-38")]
+#[test]
+fn rp_missing_engine_is_unavailable_through_both_boundaries() {
+    let built = consistent();
+    let fixture = Fixture::new(&built.bytes);
+    fixture.both(&built.model, &built.model);
+    fixture.answer("z3", "query", &state_only(json!({"kind": "unavailable"})));
+    let corpus = through_both(&fixture);
+    assert_non_conclusive(&corpus, "unavailable", ("missing-executable", "sat"));
+    assert_healthy_control(&built);
+}
+
+#[trace("FR-009-AC-38")]
+#[test]
+fn rp_disagree_is_a_disagreement_through_both_boundaries() {
+    let built = consistent();
+    let fixture = Fixture::new(&built.bytes);
+    fixture.both(&built.model, "unsat\n");
+    let corpus = through_both(&fixture);
+    assert_non_conclusive(&corpus, "disagreement", ("sat", "unsat"));
+    assert_healthy_control(&built);
+}
+
+/// The real executable, Z3 and cvc5, or the reason one is absent.
+fn real_tools() -> Result<(PathBuf, PathBuf, PathBuf), String> {
+    let find = |name: &str| find_executable(name).ok_or_else(|| format!("{name} is not on PATH"));
+    Ok((find("engineering-assurance")?, find("z3")?, find("cvc5")?))
+}
+
+/// FR-009-AC-39: with the real tools, `built` exits `code` with `status`, and the report validates.
+fn real_case(built: &Built, code: i32, status: &str) {
+    let (executable, z3, cvc5) = match real_tools() {
+        Ok(tools) => tools,
+        Err(reason) => {
+            eprintln!("skipped, not evidence for FR-009-AC-38: {reason}");
+            return;
+        }
+    };
+    let fixture = Fixture::new(&built.bytes);
+    let mut arguments = fixture.with("--producer-execute", executable);
+    for (option, value) in [("--z3", z3), ("--cvc5", cvc5)] {
+        let position = arguments.iter().position(|a| a == option).expect("option");
+        arguments[position + 1] = value.into();
+    }
+    let run = fixture.run_with(&arguments);
+    assert_eq!(run.code, Some(code), "{}", run.stderr);
+    let bytes = fs::read(fixture.output()).expect("report");
+    validate_report_document(&bytes).expect("valid report");
+    assert_eq!(fixture.report()["differential"]["agreedStatus"], status);
+}
+
+#[trace("FR-009-AC-39")]
+#[test]
+fn rp_sat_with_real_engines_is_satisfied() {
+    real_case(&consistent(), 0, "satisfied");
+}
+
+#[trace("FR-009-AC-39")]
+#[test]
+fn rp_unsat_with_real_engines_is_refuted() {
+    real_case(&contradictory(), 1, "refuted");
+}

@@ -50,18 +50,26 @@ states. A case id names the case; it is not a digest of its inputs.
 | RP-MISSING-ENGINE | `consistent()` | one engine `unavailable`, the other `completed` `sat` | `3` | published, valid, engine outcome `missing-executable`, disposition `unavailable`, both engine records retained |
 | RP-DISAGREE | `consistent()` | Z3 `completed` `sat` with the replaying model, cvc5 `completed` `unsat`; then the same with the engines swapped | `3` | published, valid, outcomes `sat` and `unsat`, disposition `disagreement`, both engine records retained and no agreed status |
 
-For each case, the library run and the CLI run give the same exit status, and when a report is
-published their reports are byte-identical once every `elapsedMs` is `0`; when no report is published
-neither run writes one. RP-DISAGREE is a controlled disagreement: real Z3 and cvc5 do not disagree on a
-built package, so the two answers are stub results. A disagreement is never adjudicated into agreement
-and its exit status never becomes `0` or `1`.
+For each case, the library run and the CLI run receive the same complete argument vector: the same
+`--package`, `--z3`, `--cvc5`, `--producer-execute` and `--output` paths, because the report embeds
+these values. The `--output` path is reused only after the prior run's output has been removed. With
+that vector, the two runs give the same exit status, and when a report is published their reports are
+byte-identical once every `elapsedMs` is `0`; when no report is published neither run writes one. For
+RP-UNSUPPORTED the library boundary returns a `RunnerError` whose `message()` names
+`semantic_graph.nodes[N]`, and the CLI writes that node name on stderr. RP-DISAGREE is a controlled
+disagreement: real Z3 and cvc5 do not disagree on a built package, so the two answers are stub results.
+A disagreement is never adjudicated into agreement and its exit status never becomes `0` or `1`.
 
-Real engines are a measured local lane. RP-SAT and RP-UNSAT are repeated with the real
-`engineering-assurance` executable and real Z3 and cvc5 (FR-009-AC-14); RP-TIMEOUT is repeated with a
-stalled stub solver through the real executable (NFR-003-AC-1). An absent executable or solver is
-reported as unavailable with a stated reason, never as a pass. The run identity (the application version
-and the solver identities) is the one the report already carries; the corpus adds no pin, digest or
-manifest of its inputs or outputs.
+RP-MISSING-ENGINE, by its stub `unavailable` result, is the corpus evidence for the unavailable
+disposition and exit `3`. The absence of a real tool is a different matter: the real-engine tests
+(FR-009-AC-14, FR-009-AC-39, NFR-003-AC-1) skip with a stated reason when the `engineering-assurance`
+executable, Z3 or cvc5 is absent, and such a skip is not positive evidence for any corpus case.
+
+Real engines are a measured local lane under FR-009-AC-39: RP-SAT and RP-UNSAT are repeated with the real
+`engineering-assurance` executable and real Z3 and cvc5, and RP-TIMEOUT with a stalled stub solver
+through the real executable (NFR-003-AC-1). The run identity (the application version and the solver
+identities) is the one the report already carries; the corpus adds no pin, digest or manifest of its
+inputs or outputs.
 
 ## Expected Results
 

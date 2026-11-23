@@ -74,6 +74,7 @@ scope:
 | FND-004 | fixed | Round 1. FR-009-AC-38 and TC-006 require that `RunnerError::message()` and the CLI stderr each name `semantic_graph.nodes[N]`. |
 | FND-005 | deferred: VER-113 | Tracked as VER-113, "Remove the unused PGM-01 placeholder from differential reports" (Backlog). Out of scope for this spec-only PR, which does not extend the placeholder. |
 | FND-006 | still-open: no fix yet | Round 2, same head 776496d. Found in disposition pass 2 and not yet addressed. TC-006:31-32 still says "unavailability is a result, never a skipped pass". |
+| FND-006 | fixed | Round 3, head 9fde3e9. TC-006:31-33 now reads: "Real-engine execution is a measured local lane. An absent real tool is a stated skip and is not evidence; an engine that a run observes as unavailable is a result (the RP-MISSING-ENGINE case, exit `3`)." |
 
 ## New findings (disposition pass 2)
 

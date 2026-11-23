@@ -1378,13 +1378,17 @@ mod tests {
         }
     }
 
+    /// PHAVer test configuration from `FILAMENT_PHAVER` (executable),
+    /// `FILAMENT_PRODUCER_EXECUTE` (engineering-assurance executable) and
+    /// `FILAMENT_PHAVER_LIBRARY_PATH` (runtime libraries, passed as `LD_LIBRARY_PATH`).
     fn phaver_config() -> HybridToolConfig {
+        let var = |name: &str| std::env::var(name).unwrap_or_else(|_| panic!("{name} is required"));
         HybridToolConfig {
-            executable: Some("/home/peter/.local/share/phaver/bin/phaver".into()),
-            producer_execute: "/home/peter/.local/bin/engineering-assurance".into(),
+            executable: Some(var("FILAMENT_PHAVER").into()),
+            producer_execute: var("FILAMENT_PRODUCER_EXECUTE").into(),
             environment: BTreeMap::from([(
                 "LD_LIBRARY_PATH".into(),
-                "/home/peter/.local/share/phaver/runtime/usr/lib/i386-linux-gnu".into(),
+                var("FILAMENT_PHAVER_LIBRARY_PATH"),
             )]),
         }
     }

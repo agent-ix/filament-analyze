@@ -16,13 +16,13 @@ Ticket: VER-114. This is a manual check of the ticket's two acceptance criteria 
 FAIL: AC-2 is not met.
 
 - AC-1 ("read from environment or configuration"): met and tested. `phaver_config_reads_tool_paths_from_the_environment` failed under a mutation that swapped which variable fed the executable. `phaver_config_names_the_unset_variable` failed under a mutation that added a library fallback.
-- AC-2 ("no absolute home paths in the repo"): not met. Two tracked review records still contain `/home/peter` paths. The only test for AC-2 scans one file, so it cannot detect the remaining hits.
+- AC-2 ("no absolute home paths in the repo"): not met. Two tracked review records still contain home-directory paths. The only test for AC-2 scans one file, so it cannot detect the remaining hits.
 
 ## Findings
 
 | ID | Severity | Summary | Refs |
 | --- | --- | --- | --- |
-| FND-001 | high | Ticket AC-2, "no absolute home paths in the repo", is unmet at the PR head. Two hits remain: reviews/2026-10-21-plat-1173-gap-analysis.md:25 and reviews/ir-730-gap-analysis.md:34 (`quoin matrix --repo /home/peter/...`). The test offered for AC-2, `source_has_no_absolute_home_paths`, only scans src/hybrid_tool.rs, so it passes while AC-2 fails. Close it by rewriting the two paths. A grep at review time is enough evidence for AC-2; no new content-scanning test is needed. | reviews/2026-10-21-plat-1173-gap-analysis.md:25, reviews/ir-730-gap-analysis.md:34, src/hybrid_tool.rs:1434-1439 |
+| FND-001 | high | Ticket AC-2, "no absolute home paths in the repo", is unmet at the PR head. Two hits remain: reviews/2026-10-21-plat-1173-gap-analysis.md:25 and reviews/ir-730-gap-analysis.md:34 (`quoin matrix --repo <home>/...`). The test offered for AC-2, `source_has_no_absolute_home_paths`, only scans src/hybrid_tool.rs, so it passes while AC-2 fails. Close it by rewriting the two paths. A grep at review time is enough evidence for AC-2; no new content-scanning test is needed. | reviews/2026-10-21-plat-1173-gap-analysis.md:25, reviews/ir-730-gap-analysis.md:34, src/hybrid_tool.rs:1434-1439 |
 
 ## Coverage
 
@@ -43,3 +43,11 @@ scope:
   role: examined
   excerpt: no absolute home paths in the repo
 ```
+
+## Dispositions
+
+Disposition pass 1 reviewed fix commit cfafff26136441aae2dce59b9b0c2714c3fd19a8. The only other change to this file is the allowed scrub: machine-specific paths were replaced with neutral placeholders. A re-grep of every tracked file at cfafff2 finds no home-directory path outside the two reviews/ver-114-* files, which this cleaned version replaces. AC-2 is now met. AC-1 has no dedicated unit test now that the fixture's helper tests were removed (FND-003 in SR-17096). It is exercised by the ignored PHAVer tests, which panic naming the unset variable.
+
+| FND | Outcome | Reason |
+| --- | --- | --- |
+| FND-001 | fixed | Both review records now read `quoin matrix --repo . --json`; the repo-wide grep is clean. |

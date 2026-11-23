@@ -9,6 +9,8 @@ relationships:
     type: verifies
   - target: ix://agent-ix/filament-analyze/FR-005
     type: verifies
+  - target: ix://agent-ix/filament-analyze/FR-009
+    type: verifies
 ---
 # TC-006: Verify engine parity and counterexamples
 
@@ -29,9 +31,42 @@ timeout, missing-engine, and controlled sat/unsat disagreement fixtures. Both en
 retained before disposition. Real-engine execution is a measured local lane and unavailability is a
 result, never a skipped pass.
 
+### `run-package` corpus
+
+Six named cases, each run through the library boundary (`filament_analyze::run_package`
+with the parsed `RunPackageArguments`, mapping an `Err` to `RunnerError::class()`) and through the
+existing CLI boundary (the built `filament-analyze run-package` binary spawned as a child process), over
+the same package bytes and the same stub `producer-execute` results. No package document is committed
+(FR-009-AC-27): each package is built at test time by the builder named here in
+`tests/package_runner.rs`, and each stub result is the `producer-execution-result/v1` line the case
+states. A case id names the case; it is not a digest of its inputs.
+
+| Case | Package, built at test time | Engine results | Exit | Report |
+|---|---|---|---|---|
+| RP-SAT | `consistent()`: two asserted Boolean parameters | both `completed`, `sat` with the replaying model | `0` | published, valid, agreed status `satisfied` |
+| RP-UNSAT | `contradictory()`: a parameter and its negation | both `completed`, `unsat` | `1` | published, valid, agreed status `refuted` |
+| RP-UNSUPPORTED | `untranslatable()`: a Boolean claim over an integer `div` the translation cannot lower | none: no `producer-execute` request is made | `2`, stderr names `semantic_graph.nodes[N]` | none |
+| RP-TIMEOUT | `consistent()` | one engine `timed_out`, the other `completed` `sat` | `3` | published, valid, engine outcome `timed-out`, disposition `inconclusive`, both engine records retained |
+| RP-MISSING-ENGINE | `consistent()` | one engine `unavailable`, the other `completed` `sat` | `3` | published, valid, engine outcome `missing-executable`, disposition `unavailable`, both engine records retained |
+| RP-DISAGREE | `consistent()` | Z3 `completed` `sat` with the replaying model, cvc5 `completed` `unsat`; then the same with the engines swapped | `3` | published, valid, outcomes `sat` and `unsat`, disposition `disagreement`, both engine records retained and no agreed status |
+
+For each case, the library run and the CLI run give the same exit status, and when a report is
+published their reports are byte-identical once every `elapsedMs` is `0`; when no report is published
+neither run writes one. RP-DISAGREE is a controlled disagreement: real Z3 and cvc5 do not disagree on a
+built package, so the two answers are stub results. A disagreement is never adjudicated into agreement
+and its exit status never becomes `0` or `1`.
+
+Real engines are a measured local lane. RP-SAT and RP-UNSAT are repeated with the real
+`engineering-assurance` executable and real Z3 and cvc5 (FR-009-AC-14); RP-TIMEOUT is repeated with a
+stalled stub solver through the real executable (NFR-003-AC-1). An absent executable or solver is
+reported as unavailable with a stated reason, never as a pass. The run identity (the application version
+and the solver identities) is the one the report already carries; the corpus adds no pin, digest or
+manifest of its inputs or outputs.
+
 ## Expected Results
 
-Every published decoded counterexample satisfies the required truth condition. Later engines
+Every `run-package` corpus case gives its stated exit status and report outcome through both
+boundaries. Every published decoded counterexample satisfies the required truth condition. Later engines
 agree on supported cases; a disagreement retains both raw and normalized results and cannot be
 classified as conclusive before human-reviewed adjudication. Every filed semantic defect remains
 reproducible by its regression fixture.

@@ -219,6 +219,11 @@ One test, `official_z3_cvc5_differential_corpus_agrees`, is ignored by default.
 Run it with the real binaries by setting `FILAMENT_Z3` and `FILAMENT_CVC5` to their
 paths and passing `--ignored`.
 
+The ignored PHAVer tests in `src/hybrid_tool.rs` read `FILAMENT_PHAVER` (the PHAVer
+executable), `FILAMENT_PRODUCER_EXECUTE` (the engineering-assurance executable) and
+`FILAMENT_PHAVER_LIBRARY_PATH` (the PHAVer runtime library directory, passed to the tool
+as `LD_LIBRARY_PATH`). An unset variable fails the test with its name.
+
 The specification that drives the crate is under [`spec/`](spec); start at
 [`spec/index.md`](spec/index.md).
 

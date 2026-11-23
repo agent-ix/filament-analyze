@@ -31,7 +31,7 @@ Ticket: IR-730. The dependency-only change leaves requirement, source, and test 
 
 ## Coverage
 
-`quoin matrix --repo /home/peter/dev/quire-analyze-ir730 --json` found 52 criterion records, 37 with static test binders and 15 without; those existing unbound records were unchanged by this two-file diff. The FR-008-AC-1 property test is one of four static binders. The focused Rust 1.75 compilation completed; execution stopped at the unchanged foundation prose assertion before this later integration binary ran. The full pre-PR gate has not run on this head. Semantic review: skipped (optional, not requested). Plan completion: not assessed.
+`quoin matrix --repo . --json` found 52 criterion records, 37 with static test binders and 15 without; those existing unbound records were unchanged by this two-file diff. The FR-008-AC-1 property test is one of four static binders. The focused Rust 1.75 compilation completed; execution stopped at the unchanged foundation prose assertion before this later integration binary ran. The full pre-PR gate has not run on this head. Semantic review: skipped (optional, not requested). Plan completion: not assessed.
 
 ## Verdict
 

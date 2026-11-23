@@ -35,4 +35,4 @@ AP-001, `spec/assurance/AP-001-analyze-release.md`, applies to this 0.1 source c
 
 ## Verdict
 
-**PASS for the changed dependency scope.** Rust 1.75 compiled all crates and tests on this exact lockfile in `/tmp/ir730-msrv-focused.log`; the first failing test was the unchanged `tests/foundation.rs:77` prose assertion, so `make msrv` and the full gate are not yet green. This is an independently visible baseline failure, not a regression caused by the dependency change. Normal-toolchain testing and final full gates remain outstanding before PR/merge.
+**PASS for the changed dependency scope.** Rust 1.75 compiled all crates and tests on this exact lockfile in the focused MSRV run; the first failing test was the unchanged `tests/foundation.rs:77` prose assertion, so `make msrv` and the full gate are not yet green. This is an independently visible baseline failure, not a regression caused by the dependency change. Normal-toolchain testing and final full gates remain outstanding before PR/merge.

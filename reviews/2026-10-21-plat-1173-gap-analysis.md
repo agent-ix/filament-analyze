@@ -22,7 +22,7 @@ The CLI kit change is owned by FR-005's CLI publication and stable exit-class re
 
 ## Coverage
 
-`quoin matrix --repo /home/peter/dev/worktrees/plat-1173-quire-analyze --json` computed 52 criteria, 36 with static test binders. FR-005-AC-1 binds both `tests/analysis_semantics.rs:829` and the new `tests/cli_streams.rs:5`. The other 16 unbound criteria predate this change and are outside this PR's scope. Run evidence was not bound into the matrix; the local tests passed separately. Semantic review: skipped because it is optional and was not requested. Plan completion: not assessed.
+`quoin matrix --repo . --json` computed 52 criteria, 36 with static test binders. FR-005-AC-1 binds both `tests/analysis_semantics.rs:829` and the new `tests/cli_streams.rs:5`. The other 16 unbound criteria predate this change and are outside this PR's scope. Run evidence was not bound into the matrix; the local tests passed separately. Semantic review: skipped because it is optional and was not requested. Plan completion: not assessed.
 
 ## Verdict
 

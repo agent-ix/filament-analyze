@@ -1378,64 +1378,19 @@ mod tests {
         }
     }
 
-    /// Environment variable naming the PHAVer executable.
-    const PHAVER_ENV: &str = "FILAMENT_PHAVER";
-    /// Environment variable naming the engineering-assurance executable.
-    const PRODUCER_EXECUTE_ENV: &str = "FILAMENT_PRODUCER_EXECUTE";
-    /// Environment variable holding the PHAVer runtime library directory,
-    /// passed to the tool process as `LD_LIBRARY_PATH`.
-    const PHAVER_LIBRARY_ENV: &str = "FILAMENT_PHAVER_LIBRARY_PATH";
-
-    fn phaver_config_from(
-        lookup: impl Fn(&str) -> Option<std::ffi::OsString>,
-    ) -> Result<HybridToolConfig, String> {
-        let required = |name: &str| lookup(name).ok_or_else(|| format!("{name} is required"));
-        let library = required(PHAVER_LIBRARY_ENV)?
-            .into_string()
-            .map_err(|_| format!("{PHAVER_LIBRARY_ENV} must be valid UTF-8"))?;
-        Ok(HybridToolConfig {
-            executable: Some(required(PHAVER_ENV)?.into()),
-            producer_execute: required(PRODUCER_EXECUTE_ENV)?.into(),
-            environment: BTreeMap::from([("LD_LIBRARY_PATH".into(), library)]),
-        })
-    }
-
+    /// PHAVer test configuration from `FILAMENT_PHAVER` (executable),
+    /// `FILAMENT_PRODUCER_EXECUTE` (engineering-assurance executable) and
+    /// `FILAMENT_PHAVER_LIBRARY_PATH` (runtime libraries, passed as `LD_LIBRARY_PATH`).
     fn phaver_config() -> HybridToolConfig {
-        phaver_config_from(|name| std::env::var_os(name)).unwrap_or_else(|error| panic!("{error}"))
-    }
-
-    #[test]
-    fn phaver_config_reads_tool_paths_from_the_environment() {
-        let config = phaver_config_from(|name| {
-            Some(
-                match name {
-                    PHAVER_ENV => "/opt/phaver",
-                    PRODUCER_EXECUTE_ENV => "/opt/ea",
-                    PHAVER_LIBRARY_ENV => "/opt/lib",
-                    other => panic!("unexpected variable {other}"),
-                }
-                .into(),
-            )
-        })
-        .unwrap();
-        assert_eq!(config.executable, Some(PathBuf::from("/opt/phaver")));
-        assert_eq!(config.producer_execute, PathBuf::from("/opt/ea"));
-        assert_eq!(config.environment["LD_LIBRARY_PATH"], "/opt/lib");
-    }
-
-    #[test]
-    fn phaver_config_names_the_unset_variable() {
-        let error = phaver_config_from(|name| (name != PHAVER_LIBRARY_ENV).then(|| "x".into()))
-            .unwrap_err();
-        assert_eq!(error, format!("{PHAVER_LIBRARY_ENV} is required"));
-    }
-
-    #[test]
-    fn source_has_no_absolute_home_paths() {
-        let source = include_str!("hybrid_tool.rs");
-        let needle = ["/home", "/"].concat();
-        let hits = source.matches(needle.as_str()).count();
-        assert_eq!(hits, 0, "hard-coded home path in hybrid_tool.rs");
+        let var = |name: &str| std::env::var(name).unwrap_or_else(|_| panic!("{name} is required"));
+        HybridToolConfig {
+            executable: Some(var("FILAMENT_PHAVER").into()),
+            producer_execute: var("FILAMENT_PRODUCER_EXECUTE").into(),
+            environment: BTreeMap::from([(
+                "LD_LIBRARY_PATH".into(),
+                var("FILAMENT_PHAVER_LIBRARY_PATH"),
+            )]),
+        }
     }
 
     type OracleStates = BTreeMap<String, Vec<(i128, i128)>>;

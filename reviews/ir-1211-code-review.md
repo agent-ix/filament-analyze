@@ -23,7 +23,7 @@ AP-001 (spec/assurance/AP-001-analyze-release.md) applies to the source candidat
 
 ## Validation
 
-Independent before/after audit passed: 44 items, 142 ordered IDs, unchanged executable tokens. Existing /tmp/ir1211-fmt.status and clippy.status are zero. Structural trace/matrix evidence was inspected as parser evidence only. Focused runtime and deny sources/licenses are pending behind the shared Cargo resource lock; initial status 124/empty logs represent lock-wait timeouts, not executed-test failures. No Cargo invoked by reviewer. Broad gap/spec sweeps skipped: no runtime production behavior or spec changed; AP-001 release-wide evidence is not certified by this scoped pass. Explicit user no-behavior scope supersedes unrelated digest cleanup instructions.
+Independent before/after audit passed: 44 items, 142 ordered IDs, unchanged executable tokens. The recorded fmt and clippy statuses are zero. Structural trace/matrix evidence was inspected as parser evidence only. Focused runtime and deny sources/licenses are pending behind the shared Cargo resource lock; initial status 124/empty logs represent lock-wait timeouts, not executed-test failures. No Cargo invoked by reviewer. Broad gap/spec sweeps skipped: no runtime production behavior or spec changed; AP-001 release-wide evidence is not certified by this scoped pass. Explicit user no-behavior scope supersedes unrelated digest cleanup instructions.
 
 ## Findings
 

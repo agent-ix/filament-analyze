@@ -289,6 +289,16 @@ impl Fixture {
         arguments
     }
 
+    /// The standard arguments with the real executable and the real solvers.
+    fn with_real_tools(&self, executable: PathBuf, z3: PathBuf, cvc5: PathBuf) -> Vec<OsString> {
+        let mut arguments = self.with("--producer-execute", executable);
+        for (option, value) in [("--z3", z3), ("--cvc5", cvc5)] {
+            let position = arguments.iter().position(|a| a == option).expect("option");
+            arguments[position + 1] = value.into();
+        }
+        arguments
+    }
+
     fn without(&self, option: &str) -> Vec<OsString> {
         let mut arguments = self.arguments();
         let position = arguments
@@ -2026,11 +2036,7 @@ fn real_executor_and_real_solvers_give_a_conclusive_report() {
     };
     let built = consistent();
     let fixture = Fixture::new(&built.bytes);
-    let mut arguments = fixture.with("--producer-execute", executable);
-    for (option, value) in [("--z3", z3), ("--cvc5", cvc5)] {
-        let position = arguments.iter().position(|a| a == option).expect("option");
-        arguments[position + 1] = value.into();
-    }
+    let arguments = fixture.with_real_tools(executable, z3, cvc5);
     let run = fixture.run_with(&arguments);
     assert!(
         matches!(run.code, Some(0 | 1)),
@@ -2343,6 +2349,32 @@ fn bytes_of((document, claims): (Document, Vec<String>)) -> Vec<u8> {
 
 // ---- TC-006 retained run-package corpus (FR-009-AC-38, FR-009-AC-39) ----
 
+/// The report bytes with the number after every `"elapsedMs":` replaced by `0`, byte for byte
+/// otherwise.
+fn zero_elapsed_bytes(bytes: &[u8]) -> Vec<u8> {
+    const KEY: &[u8] = b"\"elapsedMs\"";
+    let mut out = Vec::with_capacity(bytes.len());
+    let mut index = 0;
+    while index < bytes.len() {
+        if bytes[index..].starts_with(KEY) {
+            out.extend_from_slice(KEY);
+            index += KEY.len();
+            while bytes.get(index).is_some_and(|b| matches!(b, b':' | b' ')) {
+                out.push(bytes[index]);
+                index += 1;
+            }
+            while bytes.get(index).is_some_and(u8::is_ascii_digit) {
+                index += 1;
+            }
+            out.push(b'0');
+        } else {
+            out.push(bytes[index]);
+            index += 1;
+        }
+    }
+    out
+}
+
 /// What one corpus case gave through both boundaries, which have already been compared.
 struct Corpus {
     code: u8,
@@ -2383,14 +2415,9 @@ fn through_both(fixture: &Fixture) -> Corpus {
         "the boundaries disagree on the exit status: {}",
         binary.stderr
     );
-    let canonical = |bytes: &Option<Vec<u8>>| {
-        bytes
-            .as_ref()
-            .map(|bytes| serde_json::to_vec(&normalised(bytes)).expect("report bytes"))
-    };
     assert_eq!(
-        canonical(&library_report),
-        canonical(&binary_report),
+        library_report.as_deref().map(zero_elapsed_bytes),
+        binary_report.as_deref().map(zero_elapsed_bytes),
         "the boundaries disagree on the report"
     );
     if let Some(error) = &error {
@@ -2419,18 +2446,14 @@ fn valid_report(corpus: &Corpus) -> Value {
 }
 
 /// A case that is not conclusive: both engine records retained, the stated disposition and
-/// outcome of the first engine, and an agreed status that is neither `satisfied` nor `refuted`.
+/// outcome of the first engine, and no agreed status.
 fn assert_non_conclusive(corpus: &Corpus, disposition: &str, outcome: (&str, &str)) {
     assert_eq!(corpus.code, 3, "{}", corpus.stderr);
     let report = valid_report(corpus);
     assert_eq!(report["engines"].as_array().expect("engines").len(), 2);
     assert_eq!(report["differential"]["disposition"], disposition);
     assert_eq!(outcomes(&report), (outcome.0.into(), outcome.1.into()));
-    let status = &report["differential"]["agreedStatus"];
-    assert!(
-        status != "satisfied" && status != "refuted",
-        "reported as {status}"
-    );
+    assert_eq!(report["differential"]["agreedStatus"], Value::Null);
 }
 
 /// The same package as a case, with healthy answers: the case's stub result is the only change.
@@ -2537,6 +2560,12 @@ fn rp_disagree_is_a_disagreement_through_both_boundaries() {
     fixture.both(&built.model, "unsat\n");
     let corpus = through_both(&fixture);
     assert_non_conclusive(&corpus, "disagreement", ("sat", "unsat"));
+
+    // The same with the engines swapped: no engine's answer settles the disagreement.
+    let swapped = Fixture::new(&built.bytes);
+    swapped.both("unsat\n", &built.model);
+    let corpus = through_both(&swapped);
+    assert_non_conclusive(&corpus, "disagreement", ("unsat", "sat"));
     assert_healthy_control(&built);
 }
 
@@ -2556,11 +2585,7 @@ fn real_case(built: &Built, code: i32, status: &str) {
         }
     };
     let fixture = Fixture::new(&built.bytes);
-    let mut arguments = fixture.with("--producer-execute", executable);
-    for (option, value) in [("--z3", z3), ("--cvc5", cvc5)] {
-        let position = arguments.iter().position(|a| a == option).expect("option");
-        arguments[position + 1] = value.into();
-    }
+    let arguments = fixture.with_real_tools(executable, z3, cvc5);
     let run = fixture.run_with(&arguments);
     assert_eq!(run.code, Some(code), "{}", run.stderr);
     let bytes = fs::read(fixture.output()).expect("report");

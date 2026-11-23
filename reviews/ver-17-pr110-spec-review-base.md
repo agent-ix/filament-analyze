@@ -63,3 +63,20 @@ scope:
   role: context_only
   excerpt: A solver that stalls past its wall-time limit or floods past its output limit, run through the real `producer-execute`, yields a published report with a typed non-conclusive outcome and exit `3`.
 ```
+
+## Dispositions
+
+| FND | outcome | reason |
+| --- | --- | --- |
+| FND-001 | fixed | Round 1, head 776496d. FR-009-AC-38 and TC-006 now require the same `--package`, `--z3`, `--cvc5`, `--producer-execute` and `--output` paths, with the output removed between the two runs. |
+| FND-002 | fixed | Round 1. "never as a pass" was removed. TC-006 now separates RP-MISSING-ENGINE (stub `unavailable`) from real-tool skips, and FR-009-AC-39 says a skip is not evidence for FR-009-AC-38. |
+| FND-003 | fixed | Round 1. FR-009-AC-39 requires real RP-SAT (`consistent()`) to exit `0` / `satisfied` and real RP-UNSAT (`contradictory()`) to exit `1` / `refuted`. |
+| FND-004 | fixed | Round 1. FR-009-AC-38 and TC-006 require that `RunnerError::message()` and the CLI stderr each name `semantic_graph.nodes[N]`. |
+| FND-005 | deferred: VER-113 | Tracked as VER-113, "Remove the unused PGM-01 placeholder from differential reports" (Backlog). Out of scope for this spec-only PR, which does not extend the placeholder. |
+| FND-006 | still-open: no fix yet | Round 2, same head 776496d. Found in disposition pass 2 and not yet addressed. TC-006:31-32 still says "unavailability is a result, never a skipped pass". |
+
+## New findings (disposition pass 2)
+
+| ID | Severity | Summary | Refs |
+| --- | --- | --- | --- |
+| FND-006 | medium | A sentence that predates this PR still says "Real-engine execution is a measured local lane and unavailability is a result, never a skipped pass." It contradicts this PR's own text: FR-009-AC-14/AC-39 and TC-006:63-66 say real-engine tests skip with a stated reason when a tool is absent. This is the same skip-semantics conflict as FND-002. Round 1 recorded FND-002 as fixed, which is true for the sentence FND-002 quoted, but that round missed this residual sentence. Reword it so a real tool's absence is a stated skip and not evidence, and engine unavailability inside a run is a recorded result (RP-MISSING-ENGINE). | spec/test/TC-006-differential-counterexample.md:31-32 |

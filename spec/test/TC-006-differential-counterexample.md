@@ -28,8 +28,9 @@ semantic defect has a stable executable regression fixture and retained disposit
 
 The issue #5 corpus includes satisfied/refuted examples for all five kinds, unsupported lowering,
 timeout, missing-engine, and controlled sat/unsat disagreement fixtures. Both engine records are
-retained before disposition. Real-engine execution is a measured local lane and unavailability is a
-result, never a skipped pass.
+retained before disposition. Real-engine execution is a measured local lane. An absent real tool is a
+stated skip and is not evidence; an engine that a run observes as unavailable is a result (the
+RP-MISSING-ENGINE case, exit `3`).
 
 ### `run-package` corpus
 

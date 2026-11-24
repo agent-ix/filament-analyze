@@ -98,13 +98,15 @@ def ignored_tests() -> dict[str, dict[str, Any]]:
             attributes = " ".join(reversed(attrs))
             if "#[test]" not in attributes or "#[ignore" not in attributes:
                 raise ValueError(f"{source}: {name} is no longer an ignored test")
-            trace_ids = sorted(set(TRACE_ID.findall(attributes)))
+            source_trace_ids = sorted(set(TRACE_ID.findall(attributes)))
+            trace_ids = [trace_id for trace_id in source_trace_ids if "-AC-" in trace_id]
             if not trace_ids:
-                raise ValueError(f"{source}: ignored test {name} has no #[trace] IDs")
+                raise ValueError(f"{source}: ignored test {name} has no criterion IDs in #[trace]")
             found[name] = {
                 "binary": binary,
                 "symbol": f"{binary}::{name}",
                 "traceIds": trace_ids,
+                "sourceTraceIds": source_trace_ids,
                 "source": source.relative_to(ROOT).as_posix(),
             }
             break
@@ -268,6 +270,7 @@ def main() -> int:
         source = test["source"]
         config: dict[str, str] = {
             "test_source": source,
+            "source_trace_ids": ",".join(test["sourceTraceIds"]),
             "command": f"cargo test --locked --test {test['binary']} {name} -- --ignored --exact",
             "cargo_version": cargo_version or "unavailable",
             "quoin_version": quoin_version or "unavailable",

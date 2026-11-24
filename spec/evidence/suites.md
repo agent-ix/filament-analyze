@@ -18,10 +18,12 @@ paths. The dose-package test also requires `engineering-assurance` on `PATH`
 or at `FILAMENT_ENGINEERING_ASSURANCE`.
 
 The lane records each selected test's result, the exact configured solver paths
-and reported versions, Cargo and Quoin versions, test source, and relevant
-solver limits. Trace IDs come from each test's authoritative `#[trace]`
-attributes and are copied into the retained `RunEntry`; the registry does not
-maintain a parallel test-to-obligation map.
+and reported versions, Cargo and Quoin versions, test source, source trace IDs,
+and relevant solver limits. Criterion IDs from each test's authoritative
+`#[trace]` attributes populate `RunEntry.traceIds`; the complete source tag
+list is retained in `config.source_trace_ids`. Test case and measurement IDs
+remain visible there without being presented to Quoin as obligation IDs. The
+registry does not maintain a parallel test-to-obligation map.
 
 Unavailable or invalid required inputs produce `outcome: error` and
 `config.execution_state: not-executed`. Test failures produce `outcome: fail`.

@@ -12,6 +12,8 @@ endif
 endif
 
 override CARGO := cargo
+LOCKED_BUILD ?= locked-build.sh
+QUOIN ?= quoin
 
 .PHONY: help
 help:
@@ -22,6 +24,7 @@ help:
 	@echo "  make fmt-check        - Verify formatting (CI gate)"
 	@echo "  make lint             - Clippy with -D warnings"
 	@echo "  make test             - cargo test"
+	@echo "  make real-tool-test   - Ignored real Z3/cvc5 tests with retained SUITE-004 results"
 	@echo "  make spec             - Quire-validate the specification and plan"
 	@echo "  make msrv             - Test the locked graph with Rust 1.98.1"
 	@echo "  make rustdoc          - Build warning-free public documentation"
@@ -50,6 +53,11 @@ lint:
 .PHONY: test
 test:
 	$(CARGO) test
+
+# The wrapper owns admission for every cargo invocation started by the lane.
+.PHONY: real-tool-test
+real-tool-test:
+	LOCKED_BUILD="$(LOCKED_BUILD)" LOCKED_BUILD_DEFAULT="$(if $(filter file,$(origin LOCKED_BUILD)),1,0)" CARGO="$(CARGO)" QUOIN="$(QUOIN)" python3 scripts/real_tool_test.py
 
 .PHONY: spec
 spec:

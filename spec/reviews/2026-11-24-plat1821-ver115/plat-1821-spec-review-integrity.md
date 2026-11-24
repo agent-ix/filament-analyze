@@ -21,8 +21,8 @@ Reviewed the changed requirement and architecture claims for atomicity, consiste
 | --- | --- | --- | --- |
 | FND-001 | medium | TC-007 requires checking the package-version fallback for a source archive without Git metadata, but the added test invokes `git describe` in the current worktree and compares only that result. The criterion's verification contract is therefore not fully demonstrated by its referenced test procedure and implementation. | spec/test/TC-007-evidence-integrity.md:35-38 |
 
-## Disposition
+## Dispositions
 
-FND-001 is addressed by narrowing FR-005-AC-8 and TC-007 to the normalized Git-worktree identity
-comparison exercised by the added test. Tagged-build, dirty-build, and source-archive fallback
-cases are no longer claimed by this criterion or procedure. No post-fix build or test was run.
+| FND | outcome | reason |
+| --- | --- | --- |
+| FND-001 | fixed | FR-005-AC-8 and TC-007 no longer claim tagged, dirty, or source-archive cases beyond the focused test. |

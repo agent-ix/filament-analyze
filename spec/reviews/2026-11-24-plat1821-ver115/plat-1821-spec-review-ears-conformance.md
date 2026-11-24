@@ -24,7 +24,3 @@ Reviewed the changed FR-005 build-identity behavior and acceptance criterion for
 ## Engine check
 
 `quire validate --scope <worktree> 'spec/**/*.md' --summary` exited 0. It emitted no `[ears:...]` warning for FR-005; the reported EARS warnings concern pre-existing NFR-030 and NFR-032 text.
-
-## Disposition
-
-No EARS finding required a code or specification change.

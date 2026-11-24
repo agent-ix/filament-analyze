@@ -25,8 +25,8 @@ Ran the installed deterministic `quoin advise --json` for the declared method an
 
 The computed quoin matrix reports FR-005-AC-8 as `tagged` by `differential_report_producer_version_identifies_git_build`; all 238 obligations show `no run evidence` in the evidence store. The code lead reports the focused exact test passed (1 passed, 12 filtered); no further tests or builds were run in this review. `quoin advise` authored `Test` without a method mismatch and also recommended `property-based-testing` and `runtime-monitoring` under matched rules; the Test recommendation is applicable to this build identity behavior. The `quoin` and `quire` binaries report 0.36.8 and 0.52.0 (engine 0.62.2), respectively, while the workspace release notice expects 0.30.0 and 0.40.0 (engine 0.56.0); these results are recorded from the resolved installed executables.
 
-## Disposition
+## Dispositions
 
-FND-001 is addressed by narrowing FR-005-AC-8 and TC-007 to the normalized Git-worktree identity
-comparison exercised by the added test. Tagged-build, dirty-build, and source-archive fallback
-cases are no longer claimed by this criterion or procedure. No post-fix build or test was run.
+| FND | outcome | reason |
+| --- | --- | --- |
+| FND-001 | fixed | The requirement and test procedure were narrowed to the current Git-worktree comparison covered by the tagged test. |

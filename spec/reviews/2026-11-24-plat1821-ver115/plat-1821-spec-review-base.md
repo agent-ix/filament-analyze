@@ -25,8 +25,8 @@ Reviewed the changed requirement, test case, architecture description, and anoma
 
 FR-005-AC-8 is structurally valid and has a trace-tagged test. The new anomaly records use `identified` with `safety_impact: unassessed`, and the index includes all three records. The change adds no hash, digest, pin, or file-tracking requirement.
 
-## Disposition
+## Dispositions
 
-FND-001 is addressed by narrowing FR-005-AC-8 and TC-007 to the normalized Git-worktree identity
-comparison exercised by the added test. Tagged-build, dirty-build, and source-archive fallback
-cases are no longer claimed by this criterion or procedure. No post-fix build or test was run.
+| FND | outcome | reason |
+| --- | --- | --- |
+| FND-001 | fixed | FR-005-AC-8 and TC-007 now describe only the current Git-worktree comparison that the added trace-tagged test exercises. |

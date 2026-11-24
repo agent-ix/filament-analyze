@@ -35,8 +35,9 @@ AP-001 (`spec/assurance/AP-001-analyze-release.md`) applies: its scope is the fi
 - `AD-001`: reviewed CLI scope and the per-theory soundness and assumption discussion.
 - `AN-001` through `AN-003`: reviewed lifecycle state, claims, and index entries.
 
-## Disposition
+## Dispositions
 
-FND-001 is addressed by watching the Git `refs` and `refs/tags` directories as well as existing
-ref files. FND-002 is addressed by adding the standard SPDX and copyright header to `build.rs`.
-This disposition records code changes only; no post-fix build or test was run.
+| FND | outcome | reason |
+| --- | --- | --- |
+| FND-001 | fixed | The build script now watches `refs` and `refs/tags` directories, so new loose refs invalidate its cached output. |
+| FND-002 | fixed | The standard SPDX and copyright lines now precede the Rust source. |

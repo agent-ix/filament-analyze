@@ -38,8 +38,10 @@ Performed a planless repository audit of the Filament specification, computed ma
 - Semantic review: skipped (not requested; optional).
 - The matrix extraction was engine-backed, but the command versions differ from the versions specified in the local Quoin/Quire release notice. No grep fallback was used.
 
-## Disposition
+## Dispositions
 
-The reported 44 untagged criteria, 4 ignored-only criteria, and 80 untracked trace symbols are
-repository-wide pre-existing coverage state, outside PLAT-1821 and VER-115. The new FR-005-AC-8
-criterion is tagged to its focused test. No bulk remediation is included in this batch.
+| FND | outcome | reason |
+| --- | --- | --- |
+| FND-001 | deferred | The 44 untagged criteria predate PLAT-1821 and VER-115 and do not describe behavior changed by this PR; the repository-wide gap remains visible under AP-001 for project-level follow-up. |
+| FND-002 | deferred | These four ignored-only criteria predate PLAT-1821 and VER-115 and do not describe behavior changed by this PR; their coverage status remains visible under AP-001 for project-level follow-up. |
+| FND-003 | deferred | The 80 untracked trace symbols predate PLAT-1821 and VER-115 and do not describe behavior changed by this PR; the repository-wide trace debt remains visible under AP-001 for project-level follow-up. |

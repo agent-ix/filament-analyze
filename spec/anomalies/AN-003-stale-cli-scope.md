@@ -9,12 +9,11 @@ safety_impact: unassessed
 
 ## Description
 
-The 2026-11-23 regulated-standards review found that AD-001 describes the CLI
+The 2026-11-23 regulated-standards review found that AD-001 described the CLI
 as exposing only `publish-report`, while `src/main.rs` also dispatches
-`run-package`. The current VER-115 change corrects the System Boundary text,
-but AD-001 still contains stale publish-only statements in its Interfaces and
-Trust section and CLI-scope disposition. Those statements require correction
-and review before this anomaly can be resolved.
+`run-package`. This batch corrects the Interfaces and Trust text and the
+CLI-scope disposition to describe both commands and their distinct roles.
+Review is still pending before this anomaly can be resolved.
 
 This record remains identified pending complete document correction and
 verification. No severity or safety impact has been assessed.

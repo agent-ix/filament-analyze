@@ -42,7 +42,7 @@ same-status differential `Agreement`, as FR-005 requires.
 | Bounded engine execution | `src/solver.rs` `execute_solver` | Run the external engine under resource bounds and retain a normalized record; never certify its answer. |
 | Conclusion classification | `src/analysis.rs` `classify_analysis` | Apply analysis-kind-specific sat/unsat rules; preserve the logical status while recording a failed SAT model replay as incomplete explanation evidence. |
 | Differential evidence and publication | `src/report.rs` `execute_differential`, `render_differential_report`, `validate_report_document`, `publish_report_new`; `src/main.rs` `publish-report` | Compare and retain both engine records, render and validate report bytes, and atomically publish a pre-existing report through the CLI. |
-| Separate method providers | `src/hybrid_synthesis.rs` `reach`, `synthesize`, `validate_candidate`; `crates/method-contract` `AnalyzeOutcome` | Return bounded hybrid reachability and synthesis outcomes through their own method-result seam; these do not become SMT proof classifications. |
+| Separate method providers | `src/hybrid_tool.rs` `reach_hybrid` (delegated PHAVer tool path), `src/hybrid_synthesis.rs` `synthesize`, `validate_candidate`; `crates/method-contract` `AnalyzeOutcome` | Return bounded hybrid reachability and synthesis outcomes through their own method-result seam; these do not become SMT proof classifications. |
 
 The proof identity view binds selected clause content, explicit bindings, query bytes and maps,
 engine execution record, classified conclusion, and canonical report content. These content digests

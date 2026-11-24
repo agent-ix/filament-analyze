@@ -27,12 +27,14 @@ as their own states.
 
 An analysis request names its statements by role. The role decides what is
 asserted, and the kind of question decides how a solver reply is read. For
-consistency, a `sat` reply means satisfied. For the other four, the query asserts
-a negation, so `unsat` means satisfied and `sat` is a counterexample.
+consistency, a `sat` reply means satisfied. For the other four, `unsat` means
+satisfied and `sat` is a counterexample. Consistency, contradiction and dead
+antecedent assert their statements as written; implication negates the
+consequent and redundancy negates the candidate.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/images/kinds-dark.svg">
-  <img alt="Each of the five analysis kinds asserts a fixed set of statements and reads the solver's reply in a fixed way. Consistency is satisfied when the solver answers sat. Contradiction, implication, redundancy and dead antecedent assert a negation, so unsat means satisfied and sat is a counterexample." src="docs/images/kinds-light.svg">
+  <img alt="Each of the five analysis kinds asserts a fixed set of statements and reads the solver's reply in a fixed way. Consistency is satisfied when the solver answers sat. Consistency, contradiction and dead antecedent assert their statements as written, while implication and redundancy assert the consequent or candidate negated. For all but consistency, unsat means satisfied and sat is a counterexample." src="docs/images/kinds-light.svg">
 </picture>
 
 | Constructor on `AnalysisRequest` | Question | Witness model on `sat` |
@@ -183,9 +185,10 @@ filament-analyze publish-report --input REPORT.json --output NEW_REPORT.json
 
 ## Hybrid reachability and synthesis
 
-Two further providers, in [`src/hybrid_synthesis.rs`](src/hybrid_synthesis.rs),
-return typed non-conclusions. `reach` returns a bounded enclosure, and `replay_hybrid` replays a retained
-witness against the exact model and bound. `synthesize` searches a finite
+Two further providers return typed non-conclusions. `reach_hybrid`, in
+[`src/hybrid_tool.rs`](src/hybrid_tool.rs), delegates bounded hybrid reachability
+to an external PHAVer tool through producer-execute. `synthesize`, in
+[`src/hybrid_synthesis.rs`](src/hybrid_synthesis.rs), searches a finite
 canonical space and returns a candidate that `validate_candidate` must confirm
 independently. Both report `incomplete`, `failed` or `refused` when they cannot succeed. Their shared result vocabulary lives in the small
 `filament-analyze-method-contract` crate in [`crates/method-contract`](crates/method-contract),

@@ -34,7 +34,7 @@ make ci             # every local gate
 
 ```
 src/lib.rs             # crate root
-tests/integration.rs   # end-to-end tests
+tests/                 # integration tests
 benches/               # criterion benchmarks (opt-in; add criterion to dev-deps)
 spec/                  # requirements artifacts (from /spec-create-spec)
 scripts/               # local tooling

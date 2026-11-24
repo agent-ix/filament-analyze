@@ -31,7 +31,7 @@
     {
       "id": "kinds",
       "width": 980, "height": 330,
-      "label": "Each of the five analysis kinds asserts a fixed set of statements and reads the solver's reply in a fixed way. Consistency is satisfied when the solver answers sat. Contradiction, implication, redundancy and dead antecedent assert a negation, so unsat means satisfied and sat is a counterexample.",
+      "label": "Each of the five analysis kinds asserts a fixed set of statements and reads the solver's reply in a fixed way. Consistency is satisfied when the solver answers sat. Consistency, contradiction and dead antecedent assert their statements as written, while implication and redundancy assert the consequent or candidate negated. For all but consistency, unsat means satisfied and sat is a counterexample.",
       "items": [
         {"k":"text","at":[0,14],"text":"QUESTION","role":"muted","size":12},
         {"k":"text","at":[250,14],"text":"WHAT THE QUERY ASSERTS","role":"muted","size":12},

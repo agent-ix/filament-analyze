@@ -24,17 +24,3 @@ pub use report::*;
 pub use smt::*;
 pub use solver::*;
 
-/// Placeholder entry point.
-pub fn hello() -> &'static str {
-    "hello from filament_analyze"
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn hello_returns_greeting() {
-        assert!(hello().contains("filament_analyze"));
-    }
-}

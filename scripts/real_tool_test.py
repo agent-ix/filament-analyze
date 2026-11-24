@@ -119,6 +119,81 @@ def entry(test: dict[str, Any], outcome: str, config: dict[str, str]) -> dict[st
     return {"symbol": test["symbol"], "outcome": outcome, "traceIds": test["traceIds"], "config": config}
 
 
+def classified_result(returncode: int, output: str) -> dict[str, str]:
+    observed = next(
+        (TEST_LINE.match(line.strip()) for line in output.splitlines() if TEST_LINE.match(line.strip())),
+        None,
+    )
+    if observed is None:
+        return {
+            "status": "not-executed",
+            "error": f"cargo exit={returncode}; test harness emitted no result line",
+        }
+    if observed.group(2) == "ok" and returncode == 0:
+        return {"status": "pass"}
+    return {"status": "fail", "error": "ignored real-tool test failed; see focused output"}
+
+
+def result_entry(
+    test: dict[str, Any], result: dict[str, str], config: dict[str, str]
+) -> tuple[dict[str, Any], bool]:
+    status = result["status"]
+    if status == "not-executed":
+        config["execution_state"] = "not-executed"
+        config["error"] = result.get("error", "required input unavailable")
+        return entry(test, "error", config), True
+    if status == "fail":
+        config["execution_state"] = "executed"
+        config["error"] = result.get("error", "test failed")
+        return entry(test, "fail", config), True
+    if status == "pass":
+        config["execution_state"] = "executed"
+        return entry(test, "pass", config), False
+    raise ValueError(f"unknown test result status: {status}")
+
+
+def record_results(
+    quoin: Path,
+    entries: list[dict[str, Any]],
+    cargo_version: str,
+    quoin_version: str,
+    repo: Path = ROOT,
+) -> int:
+    results_file = tempfile.NamedTemporaryFile(
+        prefix="filament-real-tool-", suffix=".json", delete=False, mode="w", encoding="utf-8"
+    )
+    with results_file:
+        json.dump({"entries": entries}, results_file, sort_keys=True)
+        results_file.write("\n")
+    cargo_label = cargo_version.removeprefix("cargo ")
+    quoin_label = quoin_version.removeprefix("quoin ")
+    tool = f"filament-analyze real-tool-test (cargo {cargo_label}; quoin {quoin_label})"
+    recorded = subprocess.run(
+        [
+            str(quoin),
+            "evidence",
+            "record",
+            "--suite",
+            SUITE,
+            "--tool",
+            tool,
+            "--adapter",
+            "entries",
+            "--kind",
+            "Integration",
+            "--repo",
+            str(repo),
+            "--results",
+            results_file.name,
+            "--timestamp",
+            utc_timestamp(),
+        ],
+        cwd=repo,
+        check=False,
+    )
+    return recorded.returncode
+
+
 def run_plan(path: Path) -> int:
     plan = json.loads(path.read_text(encoding="utf-8"))
     cargo = plan["cargo"]
@@ -135,16 +210,7 @@ def run_plan(path: Path) -> int:
             continue
         output = process.stdout + process.stderr
         print(output, end="" if output.endswith("\n") else "\n", flush=True)
-        observed = next((TEST_LINE.match(line.strip()) for line in output.splitlines() if TEST_LINE.match(line.strip())), None)
-        if observed is None:
-            results[name] = {
-                "status": "not-executed",
-                "error": f"cargo exit={process.returncode}; test harness emitted no result line",
-            }
-        elif observed.group(2) == "ok" and process.returncode == 0:
-            results[name] = {"status": "pass"}
-        else:
-            results[name] = {"status": "fail", "error": "ignored real-tool test failed; see focused output"}
+        results[name] = classified_result(process.returncode, output)
     Path(plan["output"]).write_text(json.dumps(results, sort_keys=True) + "\n", encoding="utf-8")
     return 0
 
@@ -298,34 +364,13 @@ def main() -> int:
             result = {"status": "not-executed", "error": "; ".join(f"{key}: {value}" for key, value in sorted(missing.items()))}
         else:
             result = outcomes.get(name, {"status": "not-executed", "error": "no result was produced"})
-        status = result["status"]
-        if status == "not-executed":
-            config["execution_state"] = "not-executed"
-            config["error"] = str(result.get("error", "required input unavailable"))
-            outcome = "error"
-            failed = True
-        elif status == "fail":
-            config["execution_state"] = "executed"
-            config["error"] = str(result.get("error", "test failed"))
-            outcome = "fail"
-            failed = True
-        else:
-            config["execution_state"] = "executed"
-            outcome = "pass"
-        entries.append(entry(test, outcome, config))
+        normalized, failed_result = result_entry(test, result, config)
+        entries.append(normalized)
+        failed = failed or failed_result
 
-    results_file = tempfile.NamedTemporaryFile(prefix="filament-real-tool-", suffix=".json", delete=False, mode="w", encoding="utf-8")
-    with results_file:
-        json.dump({"entries": entries}, results_file, sort_keys=True)
-        results_file.write("\n")
-    tool = f"filament-analyze real-tool-test (cargo {cargo_version}; quoin {quoin_version})"
-    recorded = subprocess.run(
-        [str(quoin), "evidence", "record", "--suite", SUITE, "--tool", tool, "--adapter", "entries", "--kind", "Integration", "--repo", str(ROOT), "--results", results_file.name, "--timestamp", utc_timestamp()],
-        cwd=ROOT,
-        check=False,
-    )
-    if recorded.returncode != 0:
-        return recorded.returncode
+    record_exit = record_results(quoin, entries, cargo_version or "unavailable", quoin_version or "unavailable")
+    if record_exit != 0:
+        return record_exit
     if failed:
         print("real-tool-test recorded error/not-executed results; no passing real-tool run is claimed", file=sys.stderr)
         return 1

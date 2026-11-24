@@ -55,7 +55,7 @@ def executable_version(path: Path, args: list[str]) -> tuple[str | None, str | N
 
 
 def configured_executable(
-    variable: str, fallback: str, *, require_absolute: bool = True
+    variable: str, fallback: str, *, require_absolute: bool = True, canonicalize: bool = True
 ) -> tuple[Path | None, str | None]:
     configured = os.environ.get(variable)
     if configured:
@@ -76,7 +76,7 @@ def configured_executable(
         candidate = Path(found)
     if not candidate.is_file() or not os.access(candidate, os.X_OK):
         return None, f"{variable} is not an executable file: {candidate}"
-    return candidate.resolve(), None
+    return (candidate.resolve() if canonicalize else candidate.absolute()), None
 
 
 def ignored_tests() -> dict[str, dict[str, Any]]:
@@ -180,7 +180,9 @@ def main() -> int:
             executables[variable] = executable
             versions[variable] = version or "unknown"
 
-    cargo, cargo_error = configured_executable("CARGO", "cargo", require_absolute=False)
+    cargo, cargo_error = configured_executable(
+        "CARGO", "cargo", require_absolute=False, canonicalize=False
+    )
     cargo_version = "unavailable"
     if cargo_error:
         input_errors["cargo"] = cargo_error

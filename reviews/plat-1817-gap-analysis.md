@@ -29,3 +29,9 @@ Planless matrix and reverse-gap review of the repository at PR #115. The new run
 - Plan completion: not assessed.
 - Optional semantic review skipped; it was not requested.
 - Matrix behavior has not been rechecked with the supplied release version (Quoin 0.30.0) because PATH resolves to Quoin 0.36.8.
+
+## Dispositions
+
+| FND | Outcome | Reason |
+| --- | --- | --- |
+| FND-001 | still-open | The updated SUITE-004 record is committed and has the corrected Cargo identity, but matrix validation is still pending: the installed Quoin 0.36.8 and available branch binary predate the trace-ID matrix change. The repository also has pre-existing untagged criteria outside this PR's scope. No matrix success is claimed. |

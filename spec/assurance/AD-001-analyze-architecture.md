@@ -81,7 +81,7 @@ Solver answers are evidence, not self-authenticating truth: finite-model and cro
 reduce risk but do not qualify engines. The OS process API, filesystem atomicity, content-digest
 implementation, and schema validator remain named external dependencies. The interface's
 prepare/lower/execute/conclude/compare sequence describes callable library steps; the current CLI
-exposes only `publish-report`.
+exposes `run-package` and `publish-report`.
 
 ## Risks
 

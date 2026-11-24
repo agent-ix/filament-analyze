@@ -32,6 +32,10 @@ without updating `queryDigest`; standalone validation must reject the mismatch. 
 bytes alone and check that a contradiction with the declared result is refused. Then change the raw
 bytes and all dependent result fields consistently: standalone validation may admit this self-consistent
 record, while validation against the unchanged authoritative run must refuse the substitution.
+For a build made from a Git worktree, check that `producer.version` equals normalized
+`git describe --tags --dirty --always`; check a leading `v` is removed and a dirty tree is marked.
+For a source archive without Git metadata, check that the package version is the deterministic
+fallback.
 Separately mutate
 the clause/source identities and clause, binding-set, or request digests, then recompute dependent
 query identity so the document is internally consistent; validation against the unchanged

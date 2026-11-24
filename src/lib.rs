@@ -23,4 +23,3 @@ pub use quantifier::*;
 pub use report::*;
 pub use smt::*;
 pub use solver::*;
-

@@ -35,3 +35,4 @@ Planless matrix and reverse-gap review of the repository at PR #115. The new run
 | FND | Outcome | Reason |
 | --- | --- | --- |
 | FND-001 | still-open | The updated SUITE-004 record is committed and has the corrected Cargo identity, but matrix validation is still pending: the installed Quoin 0.36.8 and available branch binary predate the trace-ID matrix change. The repository also has pre-existing untagged criteria outside this PR's scope. No matrix success is claimed. |
+| FND-001 | deferred | Quoin #1052 matrix validation now recognizes and binds all 14 SUITE-004 criterion IDs. Those entries remain stale because all 10 real-tool tests are error/not-executed without Z3/cvc5; a passing real-tool run is a pre-release gate. The remaining 44 untagged criteria and 23 methods without symbols are repository-wide and outside this PR. |

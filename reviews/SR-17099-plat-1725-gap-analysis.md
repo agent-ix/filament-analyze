@@ -28,3 +28,9 @@ still names the removed provider.
 | ID | Severity | Summary | Refs |
 | --- | --- | --- | --- |
 | FND-001 | low | AD-001 still lists `src/hybrid_synthesis.rs` `reach` as a separate method provider; `reach` was removed (FR-042-AC-2) and the provider is `reach_hybrid` in `src/hybrid_tool.rs`. Same stale claim the PR fixes in the README; outside this diff, may be deferred to a follow-up. | `spec/assurance/AD-001-analyze-architecture.md:45` |
+
+## Dispositions
+
+| FND | outcome | reason |
+| --- | --- | --- |
+| FND-001 | fixed | Round 1, ccb59fc: AD-001 line 45 now lists `src/hybrid_tool.rs` `reach_hybrid` (delegated PHAVer tool path) and `src/hybrid_synthesis.rs` `synthesize`, `validate_candidate`. |

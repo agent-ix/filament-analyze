@@ -36,3 +36,10 @@ low on the figure's box text.
 | --- | --- | --- | --- |
 | FND-001 | medium | `src/lib.rs` ends with `pub use solver::*;` followed by an empty line (`\n\n` at EOF); `rustfmt --check` reports the diff, so `make fmt-check` and `make ci` fail. Delete the trailing blank line. | `src/lib.rs:25-26` |
 | FND-002 | low | Figure `kinds` box text (unchanged) shows "antecedents + NOT consequent" and "peers + NOT candidate", but implication and redundancy also assert the assumptions positive (`src/analysis.rs:160-171`, `190-197`), unlike the contradiction and dead-antecedent rows which show them. The new alt text says "a fixed set of statements" and does not conflict, but the figure under-states what is asserted. | `docs/images/figures.json:53,59` |
+
+## Dispositions
+
+| FND | outcome | reason |
+| --- | --- | --- |
+| FND-001 | fixed | Round 1, ccb59fc: `src/lib.rs` now ends `pub use solver::*;\n`; `rustfmt --edition 2021 --check` exits 0. |
+| FND-002 | deferred | Round 1: the figure text is outlined glyphs and regenerating it needs `ixd build`, which is not installed in the coder's environment; handed to the lead. Pre-existing figure text, low, not a blocker for this PR. |

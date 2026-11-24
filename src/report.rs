@@ -280,7 +280,7 @@ pub fn render_differential_report_with_selection(
         },
         "producer": {
             "name": env!("CARGO_PKG_NAME"),
-            "version": env!("CARGO_PKG_VERSION"),
+            "version": env!("FILAMENT_BUILD_VERSION"),
         },
         "queryDigest": query.query_digest().to_string(),
         "queryHex": hex(query.query().as_bytes()),

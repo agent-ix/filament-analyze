@@ -1089,7 +1089,7 @@ fn differential_v2_requires_retained_identities_and_rejects_v1() {
     let value: serde_json::Value = serde_json::from_slice(&report).expect("report JSON");
     assert_eq!(value["schema"], "filament.differential-report/v2");
     assert_eq!(value["producer"]["name"], env!("CARGO_PKG_NAME"));
-    assert_eq!(value["producer"]["version"], env!("CARGO_PKG_VERSION"));
+    assert_eq!(value["producer"]["version"], env!("FILAMENT_BUILD_VERSION"));
     assert_eq!(
         value["assertions"][0]["clause"],
         "agent-ix/analysis-test:REQ-v2-identity@1:C-v2-identity"
@@ -1336,6 +1336,36 @@ fn differential_v2_requires_retained_identities_and_rejects_v1() {
     let bytes = canonical_report(v1);
     assert!(validate_report_document(&bytes).is_err());
     assert!(validate_differential_report(&bytes, &query, &run).is_err());
+}
+
+#[trace("TC-007", "FR-005-AC-8")]
+#[test]
+fn differential_report_producer_version_identifies_git_build() {
+    let request = AnalysisRequest::dead_antecedent(
+        vec![],
+        statement("build-identity", literal(false), &[]),
+        vec![],
+    )
+    .expect("request");
+    let query = lower_analysis_request(&request).expect("lower");
+    let run = compare_solver_records(
+        &query,
+        &execute_engine_response(&query, "unsat\n", SolverEngine::Z3),
+        &execute_engine_response(&query, "unsat\n", SolverEngine::Cvc5),
+    );
+    let report = render_differential_report(&query, &run).expect("v2 report");
+    let value: serde_json::Value = serde_json::from_slice(&report).expect("report JSON");
+    let git_version = Command::new("git")
+        .args(["describe", "--tags", "--dirty", "--always"])
+        .output()
+        .expect("git describe");
+    assert!(git_version.status.success(), "git describe must succeed");
+    let git_version = String::from_utf8(git_version.stdout)
+        .expect("git describe output is UTF-8")
+        .trim()
+        .to_owned();
+    let git_version = git_version.strip_prefix('v').unwrap_or(&git_version);
+    assert_eq!(value["producer"]["version"], git_version);
 }
 
 /// FR-005-AC-1: a schema rejection names the failing member by its JSON pointer.

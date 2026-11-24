@@ -1,0 +1,236 @@
+{
+  "entries": [
+    {
+      "config": {
+        "FILAMENT_CVC5": "unset",
+        "FILAMENT_CVC5_version": "unavailable",
+        "FILAMENT_Z3": "unset",
+        "FILAMENT_Z3_version": "unavailable",
+        "cargo_version": "cargo 1.94.1 (29ea6fb6a 2026-03-24)",
+        "command": "cargo test --locked --test analysis_semantics official_z3_cvc5_differential_corpus_agrees -- --ignored --exact",
+        "error": "FILAMENT_CVC5: FILAMENT_CVC5 is unset and cvc5 is not on PATH; FILAMENT_Z3: FILAMENT_Z3 is unset and z3 is not on PATH",
+        "execution_state": "not-executed",
+        "quoin_version": "0.36.10-51-g9aaf3416",
+        "solver_limits": "AdapterLimits::default()",
+        "source_trace_ids": "FR-005-AC-3,MP-001-M-06,TC-006",
+        "test_inputs": "fixtures constructed by the ignored test body",
+        "test_source": "tests/analysis_semantics.rs"
+      },
+      "outcome": "error",
+      "symbol": "analysis_semantics::official_z3_cvc5_differential_corpus_agrees",
+      "traceIds": [
+        "FR-005-AC-3"
+      ]
+    },
+    {
+      "config": {
+        "FILAMENT_CVC5": "unset",
+        "FILAMENT_CVC5_version": "unavailable",
+        "FILAMENT_Z3": "unset",
+        "FILAMENT_Z3_version": "unavailable",
+        "cargo_version": "cargo 1.94.1 (29ea6fb6a 2026-03-24)",
+        "command": "cargo test --locked --test datatype_translation the_official_engines_decide_the_enum_membership_fixtures -- --ignored --exact",
+        "error": "FILAMENT_CVC5: FILAMENT_CVC5 is unset and cvc5 is not on PATH; FILAMENT_Z3: FILAMENT_Z3 is unset and z3 is not on PATH",
+        "execution_state": "not-executed",
+        "quoin_version": "0.36.10-51-g9aaf3416",
+        "solver_limits": "AdapterLimits::default()",
+        "source_trace_ids": "FR-022-AC-1,TC-020",
+        "test_inputs": "fixtures constructed by the ignored test body",
+        "test_source": "tests/datatype_translation.rs"
+      },
+      "outcome": "error",
+      "symbol": "datatype_translation::the_official_engines_decide_the_enum_membership_fixtures",
+      "traceIds": [
+        "FR-022-AC-1"
+      ]
+    },
+    {
+      "config": {
+        "FILAMENT_CVC5": "unset",
+        "FILAMENT_CVC5_version": "unavailable",
+        "FILAMENT_Z3": "unset",
+        "FILAMENT_Z3_version": "unavailable",
+        "cargo_version": "cargo 1.94.1 (29ea6fb6a 2026-03-24)",
+        "command": "cargo test --locked --test enum_lowering real_z3_cvc5_decide_membership_fixtures -- --ignored --exact",
+        "error": "FILAMENT_CVC5: FILAMENT_CVC5 is unset and cvc5 is not on PATH; FILAMENT_Z3: FILAMENT_Z3 is unset and z3 is not on PATH",
+        "execution_state": "not-executed",
+        "quoin_version": "0.36.10-51-g9aaf3416",
+        "solver_limits": "AdapterLimits::default()",
+        "source_trace_ids": "FR-020-AC-1,TC-020",
+        "test_inputs": "fixtures constructed by the ignored test body",
+        "test_source": "tests/enum_lowering.rs"
+      },
+      "outcome": "error",
+      "symbol": "enum_lowering::real_z3_cvc5_decide_membership_fixtures",
+      "traceIds": [
+        "FR-020-AC-1"
+      ]
+    },
+    {
+      "config": {
+        "FILAMENT_CVC5": "unset",
+        "FILAMENT_CVC5_version": "unavailable",
+        "FILAMENT_Z3": "unset",
+        "FILAMENT_Z3_version": "unavailable",
+        "cargo_version": "cargo 1.94.1 (29ea6fb6a 2026-03-24)",
+        "command": "cargo test --locked --test datatype_replay real_z3_cvc5_models_replay -- --ignored --exact",
+        "error": "FILAMENT_CVC5: FILAMENT_CVC5 is unset and cvc5 is not on PATH; FILAMENT_Z3: FILAMENT_Z3 is unset and z3 is not on PATH",
+        "execution_state": "not-executed",
+        "quoin_version": "0.36.10-51-g9aaf3416",
+        "solver_limits": "AdapterLimits::default()",
+        "source_trace_ids": "FR-021-AC-1,FR-021-AC-3,TC-020",
+        "test_inputs": "fixtures constructed by the ignored test body",
+        "test_source": "tests/datatype_replay.rs"
+      },
+      "outcome": "error",
+      "symbol": "datatype_replay::real_z3_cvc5_models_replay",
+      "traceIds": [
+        "FR-021-AC-1",
+        "FR-021-AC-3"
+      ]
+    },
+    {
+      "config": {
+        "FILAMENT_CVC5": "unset",
+        "FILAMENT_CVC5_version": "unavailable",
+        "FILAMENT_Z3": "unset",
+        "FILAMENT_Z3_version": "unavailable",
+        "cargo_version": "cargo 1.94.1 (29ea6fb6a 2026-03-24)",
+        "command": "cargo test --locked --test integer_lowering real_z3_cvc5_decide_integer_fixtures_identically -- --ignored --exact",
+        "error": "FILAMENT_CVC5: FILAMENT_CVC5 is unset and cvc5 is not on PATH; FILAMENT_Z3: FILAMENT_Z3 is unset and z3 is not on PATH",
+        "execution_state": "not-executed",
+        "quoin_version": "0.36.10-51-g9aaf3416",
+        "solver_limits": "AdapterLimits::default()",
+        "source_trace_ids": "FR-010-AC-7,FR-011-AC-1,FR-011-AC-11,TC-016,TC-017",
+        "test_inputs": "fixtures constructed by the ignored test body",
+        "test_source": "tests/integer_lowering.rs"
+      },
+      "outcome": "error",
+      "symbol": "integer_lowering::real_z3_cvc5_decide_integer_fixtures_identically",
+      "traceIds": [
+        "FR-010-AC-7",
+        "FR-011-AC-1",
+        "FR-011-AC-11"
+      ]
+    },
+    {
+      "config": {
+        "FILAMENT_CVC5": "unset",
+        "FILAMENT_CVC5_version": "unavailable",
+        "FILAMENT_Z3": "unset",
+        "FILAMENT_Z3_version": "unavailable",
+        "cargo_version": "cargo 1.94.1 (29ea6fb6a 2026-03-24)",
+        "command": "cargo test --locked --test record_option_lowering real_z3_cvc5_decide_record_and_option_fixtures -- --ignored --exact",
+        "error": "FILAMENT_CVC5: FILAMENT_CVC5 is unset and cvc5 is not on PATH; FILAMENT_Z3: FILAMENT_Z3 is unset and z3 is not on PATH",
+        "execution_state": "not-executed",
+        "quoin_version": "0.36.10-51-g9aaf3416",
+        "solver_limits": "AdapterLimits::default()",
+        "source_trace_ids": "FR-020-AC-3,TC-020",
+        "test_inputs": "fixtures constructed by the ignored test body",
+        "test_source": "tests/record_option_lowering.rs"
+      },
+      "outcome": "error",
+      "symbol": "record_option_lowering::real_z3_cvc5_decide_record_and_option_fixtures",
+      "traceIds": [
+        "FR-020-AC-3"
+      ]
+    },
+    {
+      "config": {
+        "FILAMENT_CVC5": "unset",
+        "FILAMENT_CVC5_version": "unavailable",
+        "FILAMENT_Z3": "unset",
+        "FILAMENT_Z3_version": "unavailable",
+        "cargo_version": "cargo 1.94.1 (29ea6fb6a 2026-03-24)",
+        "command": "cargo test --locked --test range_quantifier_lowering real_z3_cvc5_decide_range_fixtures -- --ignored --exact",
+        "error": "FILAMENT_CVC5: FILAMENT_CVC5 is unset and cvc5 is not on PATH; FILAMENT_Z3: FILAMENT_Z3 is unset and z3 is not on PATH",
+        "execution_state": "not-executed",
+        "quoin_version": "0.36.10-51-g9aaf3416",
+        "solver_limits": "AdapterLimits::default()",
+        "source_trace_ids": "FR-032-AC-1,NFR-032-AC-3,TC-030",
+        "test_inputs": "fixtures constructed by the ignored test body",
+        "test_source": "tests/range_quantifier_lowering.rs"
+      },
+      "outcome": "error",
+      "symbol": "range_quantifier_lowering::real_z3_cvc5_decide_range_fixtures",
+      "traceIds": [
+        "FR-032-AC-1",
+        "NFR-032-AC-3"
+      ]
+    },
+    {
+      "config": {
+        "FILAMENT_CVC5": "unset",
+        "FILAMENT_CVC5_version": "unavailable",
+        "FILAMENT_Z3": "unset",
+        "FILAMENT_Z3_version": "unavailable",
+        "cargo_version": "cargo 1.94.1 (29ea6fb6a 2026-03-24)",
+        "command": "cargo test --locked --test range_quantifier_lowering real_solver_timeout_on_a_quantified_query_is_inconclusive -- --ignored --exact",
+        "error": "FILAMENT_CVC5: FILAMENT_CVC5 is unset and cvc5 is not on PATH; FILAMENT_Z3: FILAMENT_Z3 is unset and z3 is not on PATH",
+        "execution_state": "not-executed",
+        "quoin_version": "0.36.10-51-g9aaf3416",
+        "solver_limits": "wall_time_ms=1; cleanup_time_ms=1000; graceful_cleanup_ms=20; monitor_interval_ms=1",
+        "source_trace_ids": "NFR-032-AC-3,TC-030",
+        "test_inputs": "fixtures constructed by the ignored test body",
+        "test_source": "tests/range_quantifier_lowering.rs"
+      },
+      "outcome": "error",
+      "symbol": "range_quantifier_lowering::real_solver_timeout_on_a_quantified_query_is_inconclusive",
+      "traceIds": [
+        "NFR-032-AC-3"
+      ]
+    },
+    {
+      "config": {
+        "FILAMENT_CVC5": "unset",
+        "FILAMENT_CVC5_version": "unavailable",
+        "FILAMENT_Z3": "unset",
+        "FILAMENT_Z3_version": "unavailable",
+        "cargo_version": "cargo 1.94.1 (29ea6fb6a 2026-03-24)",
+        "command": "cargo test --locked --test range_quantifier_lowering real_z3_cvc5_decide_domain_fixtures -- --ignored --exact",
+        "error": "FILAMENT_CVC5: FILAMENT_CVC5 is unset and cvc5 is not on PATH; FILAMENT_Z3: FILAMENT_Z3 is unset and z3 is not on PATH",
+        "execution_state": "not-executed",
+        "quoin_version": "0.36.10-51-g9aaf3416",
+        "solver_limits": "AdapterLimits::default()",
+        "source_trace_ids": "FR-031-AC-1,FR-031-AC-2,TC-030",
+        "test_inputs": "fixtures constructed by the ignored test body",
+        "test_source": "tests/range_quantifier_lowering.rs"
+      },
+      "outcome": "error",
+      "symbol": "range_quantifier_lowering::real_z3_cvc5_decide_domain_fixtures",
+      "traceIds": [
+        "FR-031-AC-1",
+        "FR-031-AC-2"
+      ]
+    },
+    {
+      "config": {
+        "FILAMENT_CVC5": "unset",
+        "FILAMENT_CVC5_version": "unavailable",
+        "FILAMENT_ENGINEERING_ASSURANCE": "/home/peter/.local/bin/engineering-assurance",
+        "FILAMENT_ENGINEERING_ASSURANCE_version": "engineering-assurance 0.10.1",
+        "FILAMENT_Z3": "unset",
+        "FILAMENT_Z3_version": "unavailable",
+        "cargo_version": "cargo 1.94.1 (29ea6fb6a 2026-03-24)",
+        "command": "cargo test --locked --test package_runner real_solvers_agree_with_the_controlled_run_on_the_dose_fixtures -- --ignored --exact",
+        "error": "FILAMENT_CVC5: FILAMENT_CVC5 is unset and cvc5 is not on PATH; FILAMENT_Z3: FILAMENT_Z3 is unset and z3 is not on PATH",
+        "execution_state": "not-executed",
+        "quoin_version": "0.36.10-51-g9aaf3416",
+        "solver_limits": "AdapterLimits::default()",
+        "source_trace_ids": "FR-012-AC-8",
+        "test_inputs": "fixtures constructed by the ignored test body",
+        "test_source": "tests/package_runner.rs"
+      },
+      "outcome": "error",
+      "symbol": "package_runner::real_solvers_agree_with_the_controlled_run_on_the_dose_fixtures",
+      "traceIds": [
+        "FR-012-AC-8"
+      ]
+    }
+  ],
+  "evidenceKind": "Integration",
+  "schemaVersion": 1,
+  "suite": "SUITE-004",
+  "timestamp": "2026-11-24T20:38:04Z",
+  "tool": "filament-analyze real-tool-test (cargo 1.94.1 (29ea6fb6a 2026-03-24); quoin 0.36.10-51-g9aaf3416)"
+}

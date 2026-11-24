@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Copyright (C) 2026 Agent-IX
+
 use std::{env, process::Command};
 
 fn git_output(args: &[&str]) -> Option<String> {
@@ -24,6 +27,8 @@ fn main() {
     watch_git_path("HEAD");
     watch_git_path("index");
     watch_git_path("packed-refs");
+    watch_git_path("refs");
+    watch_git_path("refs/tags");
 
     if let Some(files) = git_output(&["ls-files"]) {
         for file in files.lines() {

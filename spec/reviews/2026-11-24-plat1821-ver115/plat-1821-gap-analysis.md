@@ -45,3 +45,6 @@ Performed a planless repository audit of the Filament specification, computed ma
 | FND-001 | deferred | The 44 untagged criteria predate PLAT-1821 and VER-115 and do not describe behavior changed by this PR; the repository-wide gap remains visible under AP-001 for project-level follow-up. |
 | FND-002 | deferred | These four ignored-only criteria predate PLAT-1821 and VER-115 and do not describe behavior changed by this PR; their coverage status remains visible under AP-001 for project-level follow-up. |
 | FND-003 | deferred | The 80 untracked trace symbols predate PLAT-1821 and VER-115 and do not describe behavior changed by this PR; the repository-wide trace debt remains visible under AP-001 for project-level follow-up. |
+| FND-001 | deferred | Round 2 confirms the 44 repository-wide untagged criteria are unchanged and outside the two ticket changes; the AP-001 follow-up remains visible. |
+| FND-002 | deferred | Round 2 confirms the four repository-wide ignored-only criteria are unchanged and outside the two ticket changes; the AP-001 follow-up remains visible. |
+| FND-003 | deferred | Round 2 confirms the 80 repository-wide untracked trace symbols are unchanged and outside the two ticket changes; the AP-001 follow-up remains visible. |

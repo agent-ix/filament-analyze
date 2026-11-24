@@ -30,3 +30,4 @@ FR-005-AC-8 is structurally valid and has a trace-tagged test. The new anomaly r
 | FND | outcome | reason |
 | --- | --- | --- |
 | FND-001 | fixed | FR-005-AC-8 and TC-007 now describe only the current Git-worktree comparison that the added trace-tagged test exercises. |
+| FND-001 | fixed | Round 2 confirms FR-005-AC-8 and TC-007 now claim only the current Git-worktree comparison exercised by the tagged test. |

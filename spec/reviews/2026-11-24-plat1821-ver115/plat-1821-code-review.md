@@ -41,3 +41,5 @@ AP-001 (`spec/assurance/AP-001-analyze-release.md`) applies: its scope is the fi
 | --- | --- | --- |
 | FND-001 | fixed | The build script now watches `refs` and `refs/tags` directories, so new loose refs invalidate its cached output. |
 | FND-002 | fixed | The standard SPDX and copyright lines now precede the Rust source. |
+| FND-001 | fixed | Round 2 confirms the refs and refs/tags directory watches invalidate build-script output when loose refs are created. |
+| FND-002 | fixed | Round 2 confirms the required SPDX and copyright header is present. |

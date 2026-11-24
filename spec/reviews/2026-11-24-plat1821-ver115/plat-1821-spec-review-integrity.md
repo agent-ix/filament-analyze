@@ -26,3 +26,4 @@ Reviewed the changed requirement and architecture claims for atomicity, consiste
 | FND | outcome | reason |
 | --- | --- | --- |
 | FND-001 | fixed | FR-005-AC-8 and TC-007 no longer claim tagged, dirty, or source-archive cases beyond the focused test. |
+| FND-001 | fixed | Round 2 confirms FR-005-AC-8 and TC-007 contain no tagged-build, dirty-build, or source-archive verification claim. |

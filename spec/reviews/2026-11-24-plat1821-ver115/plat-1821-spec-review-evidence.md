@@ -30,3 +30,4 @@ The computed quoin matrix reports FR-005-AC-8 as `tagged` by `differential_repor
 | FND | outcome | reason |
 | --- | --- | --- |
 | FND-001 | fixed | The requirement and test procedure were narrowed to the current Git-worktree comparison covered by the tagged test. |
+| FND-001 | fixed | Round 2 confirms the current Git-worktree-only criterion and procedure match the focused test binding. |

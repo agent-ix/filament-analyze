@@ -17,7 +17,7 @@ The Rust library consumes typed expressions and clause identities from `filament
 closed-request validation, Boolean-v1 lowering, bounded solver execution, conclusion classification,
 source mapping, and differential report rendering. The solver engines and operating-system process
 behavior remain external. The CLI currently validates and publishes an existing library report;
-it does not run the analysis pipeline. Human reviewers retain release and consuming-project
+it also runs an analysis from a supplied FSL contract package through `run-package`. Human reviewers retain release and consuming-project
 qualification authority. Architecture acceptance is scoped to this implemented structure and the
 explicit limitations below; it does not qualify an engine or authorize source release.
 AD-001 and interface_001 are accepted by the independent IR-1294 architecture review for the
@@ -41,7 +41,7 @@ same-status differential `Agreement`, as FR-005 requires.
 | Request and exact lowering | `src/analysis.rs` `AnalysisRequest`, `lower_analysis_request`; `src/smt.rs` `lower_boolean_statements` | Validate closed analysis kinds and produce the Boolean-v1 SMT-LIB2 query plus source maps. |
 | Bounded engine execution | `src/solver.rs` `execute_solver` | Run the external engine under resource bounds and retain a normalized record; never certify its answer. |
 | Conclusion classification | `src/analysis.rs` `classify_analysis` | Apply analysis-kind-specific sat/unsat rules; preserve the logical status while recording a failed SAT model replay as incomplete explanation evidence. |
-| Differential evidence and publication | `src/report.rs` `execute_differential`, `render_differential_report`, `validate_report_document`, `publish_report_new`; `src/main.rs` `publish-report` | Compare and retain both engine records, render and validate report bytes, and atomically publish a pre-existing report through the CLI. |
+| Differential evidence and publication | `src/report.rs` `execute_differential`, `render_differential_report`, `validate_report_document`, `publish_report_new`; `src/main.rs` `run-package` and `publish-report` | Compare and retain both engine records, render and validate report bytes, and either analyze a package or atomically publish a pre-existing report through the CLI. |
 | Separate method providers | `src/hybrid_tool.rs` `reach_hybrid` (delegated PHAVer tool path), `src/hybrid_synthesis.rs` `synthesize`, `validate_candidate`; `crates/method-contract` `AnalyzeOutcome` | Return bounded hybrid reachability and synthesis outcomes through their own method-result seam; these do not become SMT proof classifications. |
 
 The proof identity view binds selected clause content, explicit bindings, query bytes and maps,
@@ -115,3 +115,25 @@ retain the ownership, source identities, failure detail and evidence distinction
 that compose a new analysis CLI, widen the exact fragment, alter variable sharing, change report
 compatibility, or promote another method's outcomes into SMT conclusions require a separately
 reviewed contract change. No such behavior is implied by this acceptance.
+
+## Soundness Scope and Assumptions
+
+For the SMT analysis path, `sat` is evidence that the emitted query has a satisfying model; `unsat`
+is evidence that the emitted query has no model. Neither answer alone proves a source-level contract
+claim. A source-level conclusion also depends on the applicable FR's translation being exact for the
+selected constructs, the upstream typed contract IR preserving its declared meaning, and the solver
+implementing the declared SMT-LIB logic. Z3/cvc5 agreement is not a proof that both engines or the
+translation are correct. A SAT explanation is published as verified only after the model is replayed
+against the lowered assertions and source map under FR-004, FR-011, FR-021 and FR-033.
+
+| Theory or method | Meaning of a result | Translation and external assumptions |
+|---|---|---|
+| Linear integer arithmetic (FR-010) | `sat` gives an integer model of the exact linear query; `unsat` means no integer assignment satisfies that query. | Arithmetic is over mathematical integers. Lowering emits only the listed exact operators; unsupported terms refuse before execution. Definedness and reject-overflow obligations are established by the upstream IR validator. The configured solver implements LIA as specified. |
+| Enumerated datatypes (FR-020–FR-022) | `sat` gives an assignment in the emitted enum, record or option algebra; `unsat` means no assignment in those declared sorts satisfies the query. | Datatype constructors, selectors, equality and presence operations must follow the complete selected declaration environment. Unsupported types and unproved option unwraps refuse. The solver implements the selected algebraic datatype logic. |
+| Bounded quantifiers (FR-030–FR-034) | `sat` gives a model satisfying the finite-domain or guarded quantified query; `unsat` means no such model under the exact emitted domain and guard. | Expanded domains must enumerate every member, and bounded solver quantifiers must preserve both endpoints and the formula body. Replay checks a returned quantified model over the original finite range. No unbounded, sampled, truncated or relaxed domain is accepted. These claims assume the solver correctly implements the emitted logic; no decidability claim is made for quantified formulas with datatypes. |
+| Delegated hybrid reachability (FR-041–FR-042) | This method does not return SMT `sat` or `unsat`. An enclosure is the configured PHAVer tool's reported interval enclosure for every requested step; incomplete or refused execution returns no enclosure. | The request and result schema are checked locally, but enclosure soundness still assumes the configured PHAVer executable computes sound enclosures for the submitted model. The finite-execution oracle and adversarial cases in FR-041/TC-041 test selected cases; they do not establish universal tool correctness. The tool path, producer-execute path and runtime library path come from explicit configuration, not a workstation-specific home directory. |
+
+These are conditional soundness arguments for the implemented translation boundaries, not a formal
+proof of the implementation or an independent qualification of Z3, cvc5, PHAVer, the IR validator,
+or the process adapter. Unsupported, unavailable, unknown, timed-out and incomplete outcomes remain
+non-conclusive under the relevant requirements.

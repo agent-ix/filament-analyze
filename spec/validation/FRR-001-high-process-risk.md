@@ -51,31 +51,6 @@ relationships:
 ---
 # Proposed high process-risk supplier ratings for filament-analyze
 
-## Feature assessments
-
-| Requirement |
-|---|
-| FR-001 |
-| FR-002 |
-| FR-003 |
-| FR-004 |
-| FR-005 |
-| FR-008 |
-| FR-009 |
-| FR-010 |
-| FR-011 |
-| FR-012 |
-| FR-020 |
-| FR-021 |
-| FR-022 |
-| FR-030 |
-| FR-031 |
-| FR-032 |
-| FR-033 |
-| FR-034 |
-| FR-041 |
-| FR-042 |
-
 ## Rationale
 
 These are proposed supplier-side ratings for IU-001. The `rated_by` field names

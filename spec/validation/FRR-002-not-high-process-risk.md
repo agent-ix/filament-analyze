@@ -13,12 +13,6 @@ relationships:
 ---
 # Proposed not-high process-risk supplier rating for vulnerability reporting
 
-## Feature assessments
-
-| Requirement |
-|---|
-| FR-043 |
-
 ## Rationale
 
 This is a proposed supplier-side rating for IU-001. The `rated_by` field names

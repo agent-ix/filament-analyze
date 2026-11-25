@@ -4,7 +4,7 @@ title: Proposed not-high process-risk supplier rating for filament-analyze vulne
 type: FeatureRiskRating
 scope: supplier
 rating: not_high_process_risk
-rated_by: Peter Krenesky
+status: proposed
 relationships:
   - target: ix://agent-ix/filament-analyze/IU-001
     type: uses_intended_use
@@ -15,9 +15,9 @@ relationships:
 
 ## Feature assessments
 
-| Requirement | Failure mode | Detection |
-|---|---|---|
-| FR-043 | A reporting route could be missing or direct a reporter to a public forum, delaying a vulnerability report or exposing details. | Inspect the repository `SECURITY.md` route and verify the private reporting link works without asking a reporter to disclose details publicly. |
+| Requirement |
+|---|
+| FR-043 |
 
 ## Rationale
 

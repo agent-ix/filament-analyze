@@ -53,10 +53,8 @@ relationships:
 
 ## Rationale
 
-These are proposed supplier-side ratings for IU-001. The `rated_by` field names
-Peter Krenesky as the person assigned to review and accept the proposals. This
-record is unsigned and unaccepted pending that decision through the
-signed-commit workflow.
+These are proposed supplier-side ratings for IU-001. They are unsigned and
+unaccepted pending a human decision through the signed-commit workflow.
 
 A failure in these features could make an analysis, witness, solver agreement,
 source mapping, package run, or reachability result appear conclusive or

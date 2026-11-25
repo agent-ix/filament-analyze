@@ -15,10 +15,8 @@ relationships:
 
 ## Rationale
 
-This is a proposed supplier-side rating for IU-001. The `rated_by` field names
-Peter Krenesky as the person assigned to review and accept the proposal. This
-record is unsigned and unaccepted pending that decision through the
-signed-commit workflow.
+This is a proposed supplier-side rating for IU-001. It is unsigned and
+unaccepted pending a human decision through the signed-commit workflow.
 
 The reporting policy provides a route for a security concern but does not
 compute, classify, or validate an analysis result or contract report. Its

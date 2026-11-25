@@ -14,6 +14,7 @@ endif
 override CARGO := cargo
 LOCKED_BUILD ?= locked-build.sh
 QUOIN ?= quoin
+QUIRE_MODULE_ARGS ?=
 
 .PHONY: help
 help:
@@ -25,7 +26,7 @@ help:
 	@echo "  make lint             - Clippy with -D warnings"
 	@echo "  make test             - cargo test"
 	@echo "  make real-tool-test   - Ignored real Z3/cvc5 tests with retained SUITE-004 results"
-	@echo "  make spec             - Quire-validate the specification and plan"
+	@echo "  make spec             - Quire-validate the specification and plan (requires QUIRE_MODULE_ARGS with explicit --module paths)"
 	@echo "  make msrv             - Test the locked graph with Rust 1.98.1"
 	@echo "  make rustdoc          - Build warning-free public documentation"
 	@echo "  make coverage         - Enforce the local line-coverage floor"
@@ -59,9 +60,13 @@ test:
 real-tool-test:
 	LOCKED_BUILD="$(LOCKED_BUILD)" LOCKED_BUILD_DEFAULT="$(if $(filter file,$(origin LOCKED_BUILD)),1,0)" CARGO="$(CARGO)" QUOIN="$(QUOIN)" python3 scripts/real_tool_test.py
 
-.PHONY: spec
-spec:
-	quire validate --scope . 'spec/**/*.md' 'planning/**/*.md' 'plan/**/*.md' 'reviews/**/*.md'
+.PHONY: spec spec-feature-risk-ratings
+spec: spec-feature-risk-ratings
+	quire validate $(QUIRE_MODULE_ARGS) --scope . 'spec/**/*.md' 'planning/**/*.md' 'plan/**/*.md' 'reviews/**/*.md'
+
+spec-feature-risk-ratings:
+	@test -n "$(strip $(QUIRE_MODULE_ARGS))" || { echo "spec validation requires QUIRE_MODULE_ARGS='--module <spec-artifacts-process> --module <spec-artifacts-iso>'" >&2; exit 2; }
+	./scripts/validate-feature-risk-ratings.sh $(QUIRE_MODULE_ARGS)
 
 .PHONY: msrv
 msrv:

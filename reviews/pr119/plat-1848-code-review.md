@@ -29,7 +29,7 @@ AP-001 was inspected. It is marked `proposed`; its scope is a filament-analyze v
 - `spec/validation/IU-001-intended-use.md`: read as context; unchanged.
 - No source or test files changed. Rust review, runtime gap analysis, and test checks were not applicable to this document-only diff.
 - `git diff --check` passed. `quire validate` against the spec-artifacts-process PR module exited 0 for both records; it emitted pre-existing module vocabulary warnings for ADR, FeatureRiskRating, and TestMatrix link registries. A focused metadata/link check confirmed both statuses are proposed, neither frontmatter carries `rated_by`, both IU-001 relationships remain, and every FR relationship target exists.
-- The repository is public. The diff does not name the private destination or discuss licensing tiers.
+- Review scope: the two proposed rating records and their direct relationships.
 
 ## Findings
 

@@ -62,7 +62,7 @@ real-tool-test:
 .PHONY: spec
 spec:
 	quire validate --scope . 'spec/**/*.md' 'planning/**/*.md' 'plan/**/*.md' 'reviews/**/*.md'
-	quire validate --scope . --okf --severity trace:feature-without-risk-rating=error
+	./scripts/validate-feature-risk-ratings.sh
 
 .PHONY: msrv
 msrv:

@@ -9,11 +9,10 @@ relationships: []
 
 ## Purpose
 
-`filament-analyze` is a Rust library and command-line tool that analyzes admitted
-requirement contracts. It translates supported contract expressions into
-solver queries, runs configured external solvers, classifies their results,
-and retains source-mapped evidence. Unsupported constructs and inconclusive
-solver outcomes remain distinct from a satisfied or refuted analysis.
+Maintainers use `filament-analyze` to run a selected contract package under a
+bounded analysis configuration and retain the resulting run report while
+reviewing a contract change. See the [master requirements specification](../index.md)
+for the tool's capabilities and scope.
 
 ## Records produced
 

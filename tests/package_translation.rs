@@ -373,6 +373,7 @@ fn package_collection_contains_size_and_index_operations_are_refused() {
                     "collection",
                     &[&collection, &truth],
                     "scalar_type/boolean",
+                    Value::Null,
                 );
                 (contains.clone(), contains)
             }
@@ -384,6 +385,7 @@ fn package_collection_contains_size_and_index_operations_are_refused() {
                     "collection",
                     &[&collection],
                     &range,
+                    json!({"kind": "type_argument", "declaration": common::id(&range)}),
                 );
                 let zero = document.int_literal(&range, 0);
                 let equals_zero = document.int_op(
@@ -402,6 +404,10 @@ fn package_collection_contains_size_and_index_operations_are_refused() {
                     "query",
                     &[&collection, &zero],
                     "scalar_type/boolean",
+                    json!({
+                        "kind": "element",
+                        "declaration": common::id("composite_type/sequence")
+                    }),
                 );
                 (index.clone(), index)
             }
@@ -462,15 +468,9 @@ fn collection_operation(
     operator: &str,
     arguments: &[&str],
     result_type: &str,
+    member: Value,
 ) -> String {
     let label = document.fresh("expression/application");
-    let member = if identity.ends_with(".index") {
-        json!("element")
-    } else if identity.ends_with(".size") {
-        json!("type_argument")
-    } else {
-        Value::Null
-    };
     let body = json!({
         "term": "application",
         "operator": operator,

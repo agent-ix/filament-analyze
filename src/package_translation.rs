@@ -17,7 +17,7 @@ use filament_contract_model::{
     CheckedNodeKind, CheckedSemanticNodeV2, CheckedTerm, ClaimForm, Clause, ClauseId, ClauseKind,
     CollectionType, ComparisonOperator, CompositeTypeForm, ContractPackage, ContractPackageV1,
     DeclarationEnvironment, Diagnostic, EnumDeclaration, EnumVariantDeclaration, ExecutionPoint,
-    ExecutionPointName, Expression, ExpressionKind, IntegerDomain, IntegerType, NumericOperator,
+    ExecutionPointName, Expression, ExpressionForm, ExpressionKind, IntegerDomain, IntegerType, NumericOperator,
     OverflowPolicy, PackageId, RecordDeclaration, RecordFieldDeclaration, Requirement,
     RequirementId, RequirementRef, RequirementRevision, ScalarTypeForm, SchemaVersion,
     QuantifierDomain, QuantifierKind, SourceDocumentId, SourceIdentity, SourceLocation,
@@ -652,6 +652,7 @@ struct Walker<'a> {
 }
 
 impl<'a> Walker<'a> {
+    #[implements("FR-034-AC-7")]
     fn claim(&mut self, claim: usize, span: SourceSpan) -> Result<Expression, TranslationError> {
         self.span = span;
         self.produced = 0;
@@ -662,6 +663,18 @@ impl<'a> Walker<'a> {
             return Err(cannot_lower(claim, "the node has no typed body"));
         };
         if !self.is_boolean_term(body) {
+            if let CheckedTerm::Reference { target } = body {
+                if let Some(node) = self.lookup(target) {
+                    if self.kind(node)
+                        == Some(CheckedNodeKind::Expression(ExpressionForm::Collection))
+                    {
+                        return Err(cannot_lower(
+                            node,
+                            "a collection term is only admitted in a quantifier domain",
+                        ));
+                    }
+                }
+            }
             return Err(TranslationError::at_node(
                 TranslationErrorKind::NonBooleanClaim,
                 claim,

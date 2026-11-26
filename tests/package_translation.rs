@@ -365,14 +365,17 @@ fn package_collection_contains_size_and_index_operations_are_refused() {
         let mut document = Document::new();
         let truth = document.literal(true);
         let collection = document.collection_literal("sequence", "scalar_type/boolean", &[&truth]);
-        let application = match identity {
-            "filament.op.collection.contains" => collection_operation(
-                &mut document,
-                identity,
-                "collection",
-                &[&collection, &truth],
-                "scalar_type/boolean",
-            ),
+        let (claim_target, expected_node) = match identity {
+            "filament.op.collection.contains" => {
+                let contains = collection_operation(
+                    &mut document,
+                    identity,
+                    "collection",
+                    &[&collection, &truth],
+                    "scalar_type/boolean",
+                );
+                (contains.clone(), contains)
+            }
             "filament.op.collection.size" => {
                 let range = document.range_between("size", 0, 1);
                 let size = collection_operation(
@@ -383,25 +386,31 @@ fn package_collection_contains_size_and_index_operations_are_refused() {
                     &range,
                 );
                 let zero = document.int_literal(&range, 0);
-                document.int_op("filament.op.integer.eq", &[&size, &zero], "scalar_type/boolean")
+                let equals_zero = document.int_op(
+                    "filament.op.integer.eq",
+                    &[&size, &zero],
+                    "scalar_type/boolean",
+                );
+                (equals_zero, size)
             }
             _ => {
                 let range = document.range_between("index", 0, 1);
                 let zero = document.int_literal(&range, 0);
-                collection_operation(
+                let index = collection_operation(
                     &mut document,
                     identity,
                     "query",
                     &[&collection, &zero],
                     "scalar_type/boolean",
-                )
+                );
+                (index.clone(), index)
             }
         };
-        let claim = document.claim(&application);
+        let claim = document.claim(&claim_target);
         let package = document.package(&[&claim]);
         let error = translate_analysis_claims(&package).expect_err(identity);
         assert_eq!(error.kind(), TranslationErrorKind::CannotLower, "{error}");
-        assert_eq!(error.node(), Some(index(&package, &application)), "{identity}");
+        assert_eq!(error.node(), Some(index(&package, &expected_node)), "{identity}");
     }
 }
 
@@ -455,11 +464,18 @@ fn collection_operation(
     result_type: &str,
 ) -> String {
     let label = document.fresh("expression/application");
+    let member = if identity.ends_with(".index") {
+        json!("element")
+    } else if identity.ends_with(".size") {
+        json!("type_argument")
+    } else {
+        Value::Null
+    };
     let body = json!({
         "term": "application",
         "operator": operator,
         "operation": {"identity": identity, "laws": [], "mode": null,
-            "member": null, "leaves": []},
+            "member": member, "leaves": []},
         "result_type": common::id(result_type),
         "arguments": arguments.iter().map(|argument| common::reference(argument)).collect::<Vec<_>>(),
     });

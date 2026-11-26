@@ -1046,8 +1046,11 @@ fn hex(bytes: &[u8]) -> String {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use std::{path::PathBuf, process::Command};
+
+    use ix_trace_rs::trace;
+
+    use super::*;
 
     #[derive(Clone, Copy, Debug, Eq, PartialEq)]
     enum InjectedFault {
@@ -1291,6 +1294,7 @@ mod tests {
     /// through the TC-008 seam, exits `4` and its stderr message names
     /// `published-durability-unknown`.
     #[test]
+    #[trace("FR-009-AC-10")]
     fn runner_maps_published_durability_unknown_to_exit_four() {
         let mut publication = FakePublicationIo::with_fault(InjectedFault::DirectorySync, None);
         let failure = crate::package_runner::publish_with(

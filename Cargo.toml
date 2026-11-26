@@ -25,6 +25,7 @@ workspace = true
 
 [dependencies]
 ix-cli-kit = { git = "https://github.com/agent-ix/ix-cli-kit", branch = "main" }
+ix-trace-rs = { git = "https://github.com/agent-ix/ix-trace-rs", branch = "main" }
 jsonschema = { version = "=0.17.1", default-features = false }
 libc = "=0.2.189"
 filament-contract-model = { git = "https://github.com/agent-ix/filament-contract-ir", branch = "main", version = "=0.1.0" }
@@ -34,7 +35,6 @@ sha2 = "=0.10.9"
 filament-analyze-method-contract = { path = "crates/method-contract", version = "=0.1.0" }
 
 [dev-dependencies]
-ix-trace-rs = { git = "https://github.com/agent-ix/ix-trace-rs", branch = "main" }
 proptest = "~1.8.0"
 serde-saphyr = { version = "2", default-features = false, features = ["deserialize"] }
 

@@ -400,6 +400,7 @@ pub fn translate_analysis_claims_for_request(
     let revision = RequirementRevision::new(1).map_err(|d| construction(&d))?;
     let owner = RequirementRef::new(package_id.clone(), requirement_id.clone(), revision);
     let types = std::mem::take(&mut walker.types).into_values().collect();
+    let quantifier_kinds = std::mem::take(&mut walker.quantifier_kinds);
     let environment = DeclarationEnvironment::new(owner, types, declarations, vec![])
         .map_err(|diagnostics| first_construction(&diagnostics))?;
     let anchor = ExecutionPoint::Handler {
@@ -435,7 +436,7 @@ pub fn translate_analysis_claims_for_request(
         let mut statement =
             StatementInput::from_clause(&contract, requirement, clause, environment.clone())
                 .map_err(|errors| first_lowering(claim, &errors))?;
-        if let Some(formula) = package_formula(statement.expression(), &walker.quantifier_kinds) {
+        if let Some(formula) = package_formula(statement.expression(), &quantifier_kinds) {
             statement = statement
                 .with_formula(formula)
                 .map_err(|errors| first_lowering(claim, &errors))?;

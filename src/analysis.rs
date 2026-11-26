@@ -1392,7 +1392,7 @@ mod tests {
     use super::*;
     use crate::smt::{ReplayExpression, ReplayTerm};
 
-    /// A query for `x >= 1` over `x` declared in `[0, 10]`, built from typed contract nodes.
+    /// A statement for `x >= 1` over `x` declared in `[0, 10]`, built from typed contract nodes.
     fn positive_statement() -> StatementInput {
         use filament_contract_model::{
             AnchorName, Clause, ClauseId, ClauseKind, ContractPackage, DeclarationEnvironment,

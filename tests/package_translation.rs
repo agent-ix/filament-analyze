@@ -213,7 +213,8 @@ fn quantified_expression_tree_accepts_10000_nodes_and_refuses_10001() {
         let mut document = Document::new();
         let binder = document.parameter();
         let collection = document.collection_literal("sequence", "scalar_type/boolean", &[]);
-        let predicate = boolean_tree(&mut document, total_nodes - 2, &mut BTreeMap::new());
+        let predicate =
+            boolean_tree(&mut document, total_nodes - 2, &binder, &mut BTreeMap::new());
         let quantifier = document.quantifier(
             "filament.op.collection.forall",
             &collection,
@@ -222,7 +223,6 @@ fn quantified_expression_tree_accepts_10000_nodes_and_refuses_10001() {
         );
         let claim = document.claim(&quantifier);
         let package = document.package(&[&claim]);
-        let _ = binder;
 
         match translate_analysis_claims(&package) {
             Ok(_) if accepted => {}
@@ -239,23 +239,24 @@ fn quantified_expression_tree_accepts_10000_nodes_and_refuses_10001() {
 fn boolean_tree(
     document: &mut Document,
     node_count: usize,
+    binder: &str,
     shared: &mut BTreeMap<usize, String>,
 ) -> String {
     if let Some(existing) = shared.get(&node_count) {
         return existing.clone();
     }
     let label = match node_count {
-        1 => document.literal(true),
+        1 => binder.to_owned(),
         2 => {
-            let value = boolean_tree(document, 1, shared);
+            let value = boolean_tree(document, 1, binder, shared);
             document.op(NOT, &[&value])
         }
         count => {
             let children = count - 1;
             let left_count = children / 2;
             let right_count = children - left_count;
-            let left = boolean_tree(document, left_count, shared);
-            let right = boolean_tree(document, right_count, shared);
+            let left = boolean_tree(document, left_count, binder, shared);
+            let right = boolean_tree(document, right_count, binder, shared);
             document.op(AND, &[&left, &right])
         }
     };

@@ -27,6 +27,7 @@ use filament_contract_model::{
 
 use ix_trace_rs::implements;
 
+use crate::{AnalysisFormula, CollectionKind, DomainElement, DomainQuantifier};
 use crate::{
     lower_boolean_statements, smt::MAX_EXPRESSION_DEPTH, AnalysisRequest, RunPackageRequest,
     StatementInput,
@@ -376,6 +377,7 @@ pub fn translate_analysis_claims_for_request(
         parameters: BTreeMap::new(),
         saw_parameter: false,
         locals: Vec::new(),
+        quantifier_kinds: BTreeMap::new(),
         span: zero_span(&source)?,
     };
     let mut bodies = Vec::with_capacity(translated_claims.len());
@@ -430,9 +432,14 @@ pub fn translate_analysis_claims_for_request(
     let requirement = &contract.requirements()[0];
     let mut statements = Vec::with_capacity(translated_claims.len());
     for (&claim, clause) in translated_claims.iter().zip(requirement.clauses()) {
-        let statement =
+        let mut statement =
             StatementInput::from_clause(&contract, requirement, clause, environment.clone())
                 .map_err(|errors| first_lowering(claim, &errors))?;
+        if let Some(formula) = package_formula(statement.expression(), &walker.quantifier_kinds) {
+            statement = statement
+                .with_formula(formula)
+                .map_err(|errors| first_lowering(claim, &errors))?;
+        }
         lower_boolean_statements(std::slice::from_ref(&statement), &[])
             .map_err(|errors| first_lowering(claim, &errors))?;
         statements.push(statement);
@@ -627,6 +634,8 @@ struct Walker<'a> {
     parameters: BTreeMap<usize, ValueType>,
     /// Parameters currently bound by package quantifiers, innermost first.
     locals: Vec<(usize, SymbolName)>,
+    /// Domain collection metadata that the contract expression's collection type does not retain.
+    quantifier_kinds: BTreeMap<SymbolName, (CollectionKind, String)>,
     /// Whether a parameter was produced since the flag was last cleared.
     saw_parameter: bool,
     /// The span every `Expression` of the current claim carries.
@@ -1369,6 +1378,17 @@ impl<'a> Walker<'a> {
         }
         let local = SymbolName::new(format!("q{node}_{binder_name}"))
             .map_err(|diagnostic| cannot_lower(node, diagnostic.message))?;
+        let collection_kind = match collection_form {
+            CompositeTypeForm::Set => CollectionKind::Set,
+            CompositeTypeForm::OrderedSet => CollectionKind::OrderedSet,
+            CompositeTypeForm::Sequence => CollectionKind::Sequence,
+            CompositeTypeForm::Bag => CollectionKind::Bag,
+            _ => return Err(cannot_lower(node, "the quantifier domain is not a collection")),
+        };
+        self.quantifier_kinds.insert(
+            local.clone(),
+            (collection_kind, format!("semantic_graph.nodes[{node}]")),
+        );
         let local_source = self.spans.node(binder_node)?;
         self.locals.push((binder_node, local.clone()));
         let predicate = self.expression(value, node, depth + 2, Class::Boolean);
@@ -1423,6 +1443,76 @@ impl<'a> Walker<'a> {
 
     fn make(&self, kind: ExpressionKind) -> Expression {
         Expression::new(kind, self.span.clone())
+    }
+}
+
+#[implements("FR-034-AC-1")]
+#[implements("FR-034-AC-4")]
+fn package_formula(
+    expression: &Expression,
+    quantifier_kinds: &BTreeMap<SymbolName, (CollectionKind, String)>,
+) -> Option<AnalysisFormula> {
+    let term = |expression: &Expression| AnalysisFormula::Term(Box::new(expression.clone()));
+    match expression.kind() {
+        ExpressionKind::Quantifier {
+            quantifier,
+            collection,
+            local,
+            predicate,
+            ..
+        } => {
+            let (kind, identity) = quantifier_kinds.get(local)?;
+            let ExpressionKind::CollectionLiteral { value_type, items } = collection.kind() else {
+                return None;
+            };
+            let elements = items
+                .iter()
+                .map(|item| match item.kind() {
+                    ExpressionKind::BooleanLiteral { value } => Some(DomainElement::Boolean(*value)),
+                    ExpressionKind::IntegerLiteral { value, .. } => Some(DomainElement::Integer(*value)),
+                    ExpressionKind::EnumLiteral { enumeration, variant } => {
+                        Some(DomainElement::Enum {
+                            enumeration: enumeration.clone(),
+                            variant: variant.clone(),
+                        })
+                    }
+                    _ => None,
+                })
+                .collect::<Option<Vec<_>>>()?;
+            let body = package_formula(predicate, quantifier_kinds).unwrap_or_else(|| term(predicate));
+            Some(AnalysisFormula::Domain(Box::new(DomainQuantifier {
+                identity: identity.clone(),
+                kind: *quantifier,
+                local: local.clone(),
+                local_type: value_type.element().clone(),
+                domain: crate::QuantifierDomain::Collection {
+                    kind: *kind,
+                    elements,
+                },
+                body,
+            })))
+        }
+        ExpressionKind::BooleanNot { operand } => package_formula(operand, quantifier_kinds)
+            .map(|operand| AnalysisFormula::Not(Box::new(operand))),
+        ExpressionKind::Boolean { operator, left, right } => {
+            let left_formula = package_formula(left, quantifier_kinds);
+            let right_formula = package_formula(right, quantifier_kinds);
+            if left_formula.is_none() && right_formula.is_none() {
+                return None;
+            }
+            let left = Box::new(left_formula.unwrap_or_else(|| term(left)));
+            let right = Box::new(right_formula.unwrap_or_else(|| term(right)));
+            Some(match operator {
+                BooleanOperator::ShortCircuitAnd | BooleanOperator::TotalAnd => {
+                    AnalysisFormula::And(left, right)
+                }
+                BooleanOperator::ShortCircuitOr | BooleanOperator::TotalOr => {
+                    AnalysisFormula::Or(left, right)
+                }
+                BooleanOperator::Implication => AnalysisFormula::Implies(left, right),
+            })
+        }
+        _ => None,
     }
 }
 

@@ -271,6 +271,80 @@ impl Document {
         label
     }
 
+    /// A collection type node for a bounded quantifier's literal domain.
+    pub fn collection_type(&mut self, kind: &str, element: &str) -> String {
+        let label = format!("composite_type/{kind}");
+        let body = json!({"term": "aggregate", "members": [reference(element)]});
+        self.node(
+            &label,
+            "composite_type",
+            "type",
+            kind,
+            &label,
+            &[element],
+            body,
+        );
+        label
+    }
+
+    /// A collection constructor used only as a bounded quantifier domain.
+    pub fn collection_literal(&mut self, kind: &str, element: &str, values: &[&str]) -> String {
+        let collection_type = self.collection_type(kind, element);
+        let label = self.fresh("expression/collection");
+        let identity = format!("filament.op.collection.{kind}");
+        let body = json!({
+            "term": "application",
+            "operator": "collection",
+            "operation": {"identity": identity, "laws": [], "mode": null,
+                "member": null, "leaves": []},
+            "result_type": id(&collection_type),
+            "arguments": values.iter().map(|value| reference(value)).collect::<Vec<_>>(),
+        });
+        let mut dependencies = vec![element, collection_type.as_str()];
+        dependencies.extend_from_slice(values);
+        self.node(
+            &label,
+            "expression",
+            "expression",
+            "collection",
+            &collection_type,
+            &dependencies,
+            body,
+        );
+        label
+    }
+
+    /// A universal or existential collection quantifier over a named parameter.
+    pub fn quantifier(
+        &mut self,
+        identity: &str,
+        collection: &str,
+        binder_name: &str,
+        body: &str,
+    ) -> String {
+        let label = self.fresh("expression/quantifier");
+        let body_term = json!({
+            "term": "application",
+            "operator": "quantify",
+            "operation": {"identity": identity, "laws": [], "mode": null,
+                "member": null, "leaves": []},
+            "result_type": id("scalar_type/boolean"),
+            "arguments": [reference(collection), {
+                "term": "binding", "name": binder_name, "value": reference(body)
+            }],
+        });
+        self.node(
+            &label,
+            "expression",
+            "expression",
+            "quantify",
+            "scalar_type/boolean",
+            &[collection, body],
+            body_term,
+        );
+        label
+    }
+
     /// A `composite_type/option` named `name` over the type `inner`.
     pub fn option_type(&mut self, name: &str, inner: &str) -> String {
         let label = format!("composite_type/{name}");

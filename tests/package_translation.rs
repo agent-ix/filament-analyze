@@ -12,7 +12,7 @@ use filament_analyze::{
 use filament_contract_model::{
     BooleanOperator, CheckedPackageReadLimits, ComparisonOperator, ContractPackageReadResult,
     ContractPackageV1, ContractPackageWireV1, ExecutionPoint, ExpressionKind, ValueDeclarationKind,
-    ValueType,
+    QuantifierKind, ValueType,
 };
 use ix_trace_rs::trace;
 use serde_json::{json, Value};
@@ -21,6 +21,33 @@ use std::collections::BTreeSet;
 mod common;
 
 use common::*;
+
+#[trace("TC-030", "FR-034-AC-1")]
+#[test]
+fn package_quantifiers_translate_from_literal_collection_domains() {
+    let mut document = Document::new();
+    let first = document.literal(true);
+    let second = document.literal(false);
+    let collection = document.collection_literal("set", "scalar_type/boolean", &[&first, &second]);
+    let binder = document.parameter();
+    let all = document.quantifier("filament.op.collection.forall", &collection, "p1", &binder);
+    let any = document.quantifier("filament.op.collection.exists", &collection, "p1", &binder);
+    let all_claim = document.claim(&all);
+    let any_claim = document.claim(&any);
+    let package = document.package(&[&all_claim, &any_claim]);
+    let translated = translate_analysis_claims(&package).expect("quantifiers translate");
+
+    for position in 0..2 {
+        assert!(matches!(
+            expression(&translated, position).kind(),
+            ExpressionKind::Quantifier { .. }
+        ));
+    }
+    let query = lower_analysis_request(translated.request()).expect("bounded queries lower");
+    assert_eq!(query.quantifiers().len(), 2);
+    assert_eq!(query.quantifiers()[0].kind, QuantifierKind::ForAll);
+    assert_eq!(query.quantifiers()[1].kind, QuantifierKind::Exists);
+}
 
 #[trace("FR-009-AC-20")]
 #[test]

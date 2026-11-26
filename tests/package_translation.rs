@@ -198,6 +198,27 @@ fn package_collection_expansion_accepts_1024_and_refuses_1025_elements() {
     }
 }
 
+#[trace("TC-030", "FR-034-AC-7")]
+#[test]
+fn package_quantifiers_refuse_a_text_domain_at_the_quantifier() {
+    let mut document = Document::new();
+    let text_domain = document.unsupported_type("text");
+    let _binder = document.parameter_of(&text_domain);
+    let collection = document.collection_literal("sequence", &text_domain, &[]);
+    let predicate = document.literal(true);
+    let quantifier = document.quantifier(
+        "filament.op.collection.forall",
+        &collection,
+        "p1",
+        &predicate,
+    );
+    let claim = document.claim(&quantifier);
+    let package = document.package(&[&claim]);
+    let error = translate_analysis_claims(&package).expect_err("text domain refused");
+    assert_eq!(error.kind(), TranslationErrorKind::CannotLower);
+    assert_eq!(error.node(), Some(index(&package, &quantifier)));
+}
+
 #[trace("FR-009-AC-20")]
 #[test]
 fn claims_become_clauses_of_one_requirement_in_node_order() {

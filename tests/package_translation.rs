@@ -143,6 +143,34 @@ fn package_quantifiers_reusing_a_variable_name_get_distinct_locals() {
     assert_ne!(query.quantifiers()[0].source, query.quantifiers()[1].source);
 }
 
+#[trace("TC-030", "FR-034-AC-2")]
+#[test]
+fn package_quantifiers_refuse_text_and_unbounded_integer_elements_at_the_quantifier() {
+    for (element_type, is_text) in [("scalar_type/text", true), ("scalar_type/integer", false)] {
+        let mut document = Document::new();
+        let binder = document.parameter_of(element_type);
+        let item = if is_text {
+            document.text_literal("unbounded")
+        } else {
+            document.int_literal(element_type, 1)
+        };
+        let collection = document.collection_literal("sequence", element_type, &[&item]);
+        let predicate = document.literal(true);
+        let quantifier = document.quantifier(
+            "filament.op.collection.forall",
+            &collection,
+            "p1",
+            &predicate,
+        );
+        let claim = document.claim(&quantifier);
+        let package = document.package(&[&claim]);
+        let quantifier_index = index(&package, &quantifier);
+        let error = translate_analysis_claims(&package).expect_err("unsupported domain refused");
+        assert_eq!(error.kind(), TranslationErrorKind::CannotLower);
+        assert_eq!(error.node(), Some(quantifier_index));
+    }
+}
+
 #[trace("FR-009-AC-20")]
 #[test]
 fn claims_become_clauses_of_one_requirement_in_node_order() {

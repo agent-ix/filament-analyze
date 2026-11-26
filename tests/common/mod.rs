@@ -195,6 +195,22 @@ impl Document {
         label
     }
 
+    /// A literal of the unbounded text scalar type.
+    pub fn text_literal(&mut self, value: &str) -> String {
+        let label = self.fresh("value/literal");
+        let body = literal("scalar_type/text", "text", json!(value));
+        self.node(
+            &label,
+            "value",
+            "expression",
+            "literal",
+            "scalar_type/text",
+            &[],
+            body,
+        );
+        label
+    }
+
     /// An application of `identity` over references to `arguments`, typed `result`.
     pub fn application(&mut self, identity: &str, arguments: &[&str], result: &str) -> String {
         let label = self.fresh("expression/application");

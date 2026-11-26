@@ -89,6 +89,60 @@ fn assert_both_quantifier_forms(document: &mut Document, collection: &str, binde
         .all(|entry| entry.source.starts_with("semantic_graph.nodes[")));
 }
 
+#[trace("TC-030", "FR-034-AC-3")]
+#[test]
+fn package_quantifiers_reusing_a_variable_name_get_distinct_locals() {
+    let mut document = Document::new();
+    let binder = document.parameter();
+    let first = document.literal(true);
+    let second = document.literal(false);
+    let outer_domain = document.collection_literal(
+        "sequence",
+        "scalar_type/boolean",
+        &[&first, &second],
+    );
+    let inner_domain = document.collection_literal(
+        "set",
+        "scalar_type/boolean",
+        &[&first, &second],
+    );
+    let inner = document.quantifier(
+        "filament.op.collection.exists",
+        &inner_domain,
+        "p1",
+        &binder,
+    );
+    let outer = document.quantifier(
+        "filament.op.collection.forall",
+        &outer_domain,
+        "p1",
+        &inner,
+    );
+    let claim = document.claim(&outer);
+    let package = document.package(&[&claim]);
+    let translated = translate_analysis_claims(&package).expect("nested quantifiers translate");
+    let ExpressionKind::Quantifier {
+        local: outer_local,
+        predicate,
+        ..
+    } = expression(&translated, 0).kind()
+    else {
+        panic!("claim is not quantified")
+    };
+    let ExpressionKind::Quantifier {
+        local: inner_local,
+        ..
+    } = predicate.kind()
+    else {
+        panic!("outer predicate is not quantified")
+    };
+    assert_ne!(outer_local, inner_local);
+
+    let query = lower_analysis_request(translated.request()).expect("nested quantifiers lower");
+    assert_eq!(query.quantifiers().len(), 2);
+    assert_ne!(query.quantifiers()[0].source, query.quantifiers()[1].source);
+}
+
 #[trace("FR-009-AC-20")]
 #[test]
 fn claims_become_clauses_of_one_requirement_in_node_order() {

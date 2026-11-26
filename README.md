@@ -67,10 +67,14 @@ dependency order, ties broken by the predicate symbol. Each variable gets one un
 its predicate, outside the assertion map and report assertions[], following the FR-010 integer
 range block, ordered by ascending variable symbol.
 Declared integer ranges are asserted as unnamed assertions after the declarations.
+Contract packages may also contain finite collection quantifiers (`forall` and `exists`)
+over literal Boolean, enum or bounded-integer values. The analyzer expands these domains
+before generating the solver query, with a limit of 1,024 elements. Unbounded quantifiers
+and unsupported collection forms are refused. See [Analyze a quantified package](docs/how-to-analyze-a-quantified-package.md).
 Any other construct is refused when the request is lowered, with a typed error
 naming it: non-linear products, integer division and remainder, saturating
 arithmetic, rationals, text, enum ordering, records or options that nest text or
-collections, collections, quantifiers,
+collections, other collections, unbounded quantifiers,
 pure function calls and local references. (The authoritative list is
 `CAPABILITY_CONTRACT` in [`src/smt.rs`](src/smt.rs).)
 

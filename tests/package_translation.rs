@@ -166,7 +166,7 @@ fn package_quantifiers_refuse_an_unfixed_collection_at_the_quantifier() {
 
 #[trace("TC-030", "FR-034-AC-8")]
 #[test]
-fn package_collection_expansion_accepts_1024_and_refuses_1025_elements() {
+fn package_integer_collection_expansion_accepts_1024_and_refuses_1025_elements() {
     for (count, accepted) in [(1_024, true), (1_025, false)] {
         let mut document = Document::new();
         let range = document.range_between("expansion", 0, 0);
@@ -283,6 +283,105 @@ fn package_quantifiers_refuse_a_text_domain_at_the_quantifier() {
     let error = translate_analysis_claims(&package).expect_err("text domain refused");
     assert_eq!(error.kind(), TranslationErrorKind::CannotLower);
     assert_eq!(error.node(), Some(index(&package, &quantifier)));
+}
+
+#[trace("TC-030", "FR-034-AC-7")]
+#[test]
+fn package_quantifiers_refuse_nonliteral_collection_elements_at_the_quantifier() {
+    let mut document = Document::new();
+    let binder = document.parameter();
+    let element = document.parameter();
+    let collection = document.collection_literal(
+        "sequence",
+        "scalar_type/boolean",
+        &[&element],
+    );
+    let quantifier = document.quantifier(
+        "filament.op.collection.forall",
+        &collection,
+        "p1",
+        &binder,
+    );
+    let claim = document.claim(&quantifier);
+    let package = document.package(&[&claim]);
+    let error = translate_analysis_claims(&package).expect_err("nonliteral element refused");
+    assert_eq!(error.kind(), TranslationErrorKind::CannotLower);
+    assert_eq!(error.node(), Some(index(&package, &quantifier)));
+}
+
+#[trace("TC-030", "FR-034-AC-7")]
+#[test]
+fn package_quantifiers_refuse_rational_record_and_nested_collection_elements() {
+    for element_kind in ["rational", "record", "sequence"] {
+        let mut document = Document::new();
+        let element_type = match element_kind {
+            "rational" | "sequence" => document.unsupported_type(element_kind),
+            "record" => document.record_type("Entry", &[("flag", "scalar_type/boolean")]),
+            _ => unreachable!(),
+        };
+        let collection = document.collection_literal("sequence", &element_type, &[]);
+        let predicate = document.literal(true);
+        let quantifier = document.quantifier(
+            "filament.op.collection.forall",
+            &collection,
+            "unused",
+            &predicate,
+        );
+        let claim = document.claim(&quantifier);
+        let package = document.package(&[&claim]);
+        let error = translate_analysis_claims(&package).expect_err("unsupported element refused");
+        assert_eq!(error.kind(), TranslationErrorKind::CannotLower, "{element_kind}");
+        assert_eq!(error.node(), Some(index(&package, &quantifier)), "{element_kind}");
+    }
+}
+
+#[trace("TC-030", "FR-034-AC-7")]
+#[test]
+fn package_collection_contains_size_and_index_operations_are_refused() {
+    for identity in [
+        "filament.op.collection.contains",
+        "filament.op.collection.size",
+        "filament.op.collection.index",
+    ] {
+        let mut document = Document::new();
+        let truth = document.literal(true);
+        let collection = document.collection_literal("sequence", "scalar_type/boolean", &[&truth]);
+        let application = match identity {
+            "filament.op.collection.contains" => document.application(
+                identity,
+                &[&collection, &truth],
+                "scalar_type/boolean",
+            ),
+            "filament.op.collection.size" => {
+                let range = document.range_between("size", 0, 1);
+                let size = document.application(identity, &[&collection], &range);
+                let zero = document.int_literal(&range, 0);
+                document.int_op("filament.op.integer.eq", &[&size, &zero], "scalar_type/boolean")
+            }
+            _ => document.application(
+                identity,
+                &[&collection, &truth],
+                "scalar_type/boolean",
+            ),
+        };
+        let claim = document.claim(&application);
+        let package = document.package(&[&claim]);
+        let error = translate_analysis_claims(&package).expect_err(identity);
+        assert_eq!(error.kind(), TranslationErrorKind::CannotLower, "{error}");
+        assert_eq!(error.node(), Some(index(&package, &application)), "{identity}");
+    }
+}
+
+#[trace("TC-030", "FR-034-AC-7")]
+#[test]
+fn a_collection_literal_outside_a_quantifier_domain_is_refused_at_the_collection() {
+    let mut document = Document::new();
+    let truth = document.literal(true);
+    let collection = document.collection_literal("sequence", "scalar_type/boolean", &[&truth]);
+    let package = document.package(&[&collection]);
+    let error = translate_analysis_claims(&package).expect_err("top-level collection refused");
+    assert_eq!(error.kind(), TranslationErrorKind::CannotLower);
+    assert_eq!(error.node(), Some(index(&package, &collection)));
 }
 
 #[trace("FR-009-AC-20")]

@@ -11,8 +11,8 @@ use filament_analyze::{
 };
 use filament_contract_model::{
     BooleanOperator, CheckedPackageReadLimits, ComparisonOperator, ContractPackageReadResult,
-    ContractPackageV1, ContractPackageWireV1, ExecutionPoint, ExpressionKind, ValueDeclarationKind,
-    QuantifierKind, ValueType,
+    ContractPackageV1, ContractPackageWireV1, ExecutionPoint, ExpressionKind, QuantifierKind,
+    ValueDeclarationKind, ValueType,
 };
 use ix_trace_rs::trace;
 use serde_json::{json, Value};
@@ -30,11 +30,8 @@ fn package_quantifiers_translate_from_literal_collection_domains() {
         let binder = document.parameter();
         let first = document.literal(true);
         let second = document.literal(false);
-        let collection = document.collection_literal(
-            kind,
-            "scalar_type/boolean",
-            &[&first, &second],
-        );
+        let collection =
+            document.collection_literal(kind, "scalar_type/boolean", &[&first, &second]);
         assert_both_quantifier_forms(&mut document, &collection, "p1", &binder);
     }
 
@@ -52,12 +49,21 @@ fn package_quantifiers_translate_from_literal_collection_domains() {
     let binder = document.parameter_of(&range);
     let one = document.int_literal(&range, 1);
     let two = document.int_literal(&range, 2);
-    let is_one = document.int_op("filament.op.integer.eq", &[&binder, &one], "scalar_type/boolean");
+    let is_one = document.int_op(
+        "filament.op.integer.eq",
+        &[&binder, &one],
+        "scalar_type/boolean",
+    );
     let collection = document.collection_literal("bag", &range, &[&one, &two]);
     assert_both_quantifier_forms(&mut document, &collection, "p1", &is_one);
 }
 
-fn assert_both_quantifier_forms(document: &mut Document, collection: &str, binder: &str, body: &str) {
+fn assert_both_quantifier_forms(
+    document: &mut Document,
+    collection: &str,
+    binder: &str,
+    body: &str,
+) {
     let all = document.quantifier("filament.op.collection.forall", collection, binder, body);
     let any = document.quantifier("filament.op.collection.exists", collection, binder, body);
     let all_claim = document.claim(&all);
@@ -96,28 +102,17 @@ fn package_quantifiers_reusing_a_variable_name_get_distinct_locals() {
     let binder = document.parameter();
     let first = document.literal(true);
     let second = document.literal(false);
-    let outer_domain = document.collection_literal(
-        "sequence",
-        "scalar_type/boolean",
-        &[&first, &second],
-    );
-    let inner_domain = document.collection_literal(
-        "set",
-        "scalar_type/boolean",
-        &[&first, &second],
-    );
+    let outer_domain =
+        document.collection_literal("sequence", "scalar_type/boolean", &[&first, &second]);
+    let inner_domain =
+        document.collection_literal("set", "scalar_type/boolean", &[&first, &second]);
     let inner = document.quantifier(
         "filament.op.collection.exists",
         &inner_domain,
         "p1",
         &binder,
     );
-    let outer = document.quantifier(
-        "filament.op.collection.forall",
-        &outer_domain,
-        "p1",
-        &inner,
-    );
+    let outer = document.quantifier("filament.op.collection.forall", &outer_domain, "p1", &inner);
     let claim = document.claim(&outer);
     let package = document.package(&[&claim]);
     let translated = translate_analysis_claims(&package).expect("nested quantifiers translate");
@@ -130,8 +125,7 @@ fn package_quantifiers_reusing_a_variable_name_get_distinct_locals() {
         panic!("claim is not quantified")
     };
     let ExpressionKind::Quantifier {
-        local: inner_local,
-        ..
+        local: inner_local, ..
     } = predicate.kind()
     else {
         panic!("outer predicate is not quantified")
@@ -150,12 +144,8 @@ fn package_quantifiers_refuse_an_unfixed_collection_at_the_quantifier() {
     let binder = document.parameter();
     let collection_type = document.collection_type("sequence", "scalar_type/boolean", 2);
     let collection = document.parameter_of(&collection_type);
-    let quantifier = document.quantifier(
-        "filament.op.collection.forall",
-        &collection,
-        "p1",
-        &binder,
-    );
+    let quantifier =
+        document.quantifier("filament.op.collection.forall", &collection, "p1", &binder);
     let claim = document.claim(&quantifier);
     let package = document.package(&[&claim]);
     let quantifier_index = index(&package, &quantifier);
@@ -213,8 +203,12 @@ fn quantified_expression_tree_accepts_10000_nodes_and_refuses_10001() {
         let mut document = Document::new();
         let binder = document.parameter();
         let collection = document.collection_literal("sequence", "scalar_type/boolean", &[]);
-        let predicate =
-            boolean_tree(&mut document, total_nodes - 2, &binder, &mut BTreeMap::new());
+        let predicate = boolean_tree(
+            &mut document,
+            total_nodes - 2,
+            &binder,
+            &mut BTreeMap::new(),
+        );
         let quantifier = document.quantifier(
             "filament.op.collection.forall",
             &collection,
@@ -291,17 +285,9 @@ fn package_quantifiers_refuse_nonliteral_collection_elements_at_the_quantifier()
     let mut document = Document::new();
     let binder = document.parameter();
     let element = document.parameter();
-    let collection = document.collection_literal(
-        "sequence",
-        "scalar_type/boolean",
-        &[&element],
-    );
-    let quantifier = document.quantifier(
-        "filament.op.collection.forall",
-        &collection,
-        "p1",
-        &binder,
-    );
+    let collection = document.collection_literal("sequence", "scalar_type/boolean", &[&element]);
+    let quantifier =
+        document.quantifier("filament.op.collection.forall", &collection, "p1", &binder);
     let claim = document.claim(&quantifier);
     let package = document.package(&[&claim]);
     let error = translate_analysis_claims(&package).expect_err("nonliteral element refused");
@@ -330,8 +316,16 @@ fn package_quantifiers_refuse_rational_record_and_nested_collection_elements() {
         let claim = document.claim(&quantifier);
         let package = document.package(&[&claim]);
         let error = translate_analysis_claims(&package).expect_err("unsupported element refused");
-        assert_eq!(error.kind(), TranslationErrorKind::CannotLower, "{element_kind}");
-        assert_eq!(error.node(), Some(index(&package, &quantifier)), "{element_kind}");
+        assert_eq!(
+            error.kind(),
+            TranslationErrorKind::CannotLower,
+            "{element_kind}"
+        );
+        assert_eq!(
+            error.node(),
+            Some(index(&package, &quantifier)),
+            "{element_kind}"
+        );
     }
 }
 
@@ -400,7 +394,11 @@ fn package_collection_contains_size_and_index_operations_are_refused() {
         let package = document.package(&[&claim]);
         let error = translate_analysis_claims(&package).expect_err(identity);
         assert_eq!(error.kind(), TranslationErrorKind::CannotLower, "{error}");
-        assert_eq!(error.node(), Some(index(&package, &expected_node)), "{identity}");
+        assert_eq!(
+            error.node(),
+            Some(index(&package, &expected_node)),
+            "{identity}"
+        );
     }
 }
 
@@ -429,21 +427,33 @@ fn package_translation_without_quantifiers_keeps_the_golden_queries() {
     let claim = document.claim(&body);
     let package = document.package(&[&claim]);
     let translated = translate_analysis_claims(&package).expect("Boolean fixture translates");
-    let boolean_query = lower_analysis_request(translated.request()).expect("Boolean fixture lowers");
+    let boolean_query =
+        lower_analysis_request(translated.request()).expect("Boolean fixture lowers");
     assert!(boolean_query.quantifiers().is_empty());
-    assert_eq!(boolean_query.query(), include_str!("golden/package-boolean-v2.smt2"));
+    assert_eq!(
+        boolean_query.query(),
+        include_str!("golden/package-boolean-v2.smt2")
+    );
 
     let mut document = Document::new();
     let range = document.range_between("golden-integer", 0, 10);
     let value = document.parameter_of(&range);
     let ten = document.int_literal(&range, 10);
-    let body = document.int_op("filament.op.integer.eq", &[&value, &ten], "scalar_type/boolean");
+    let body = document.int_op(
+        "filament.op.integer.eq",
+        &[&value, &ten],
+        "scalar_type/boolean",
+    );
     let claim = document.claim(&body);
     let package = document.package(&[&claim]);
     let translated = translate_analysis_claims(&package).expect("integer fixture translates");
-    let integer_query = lower_analysis_request(translated.request()).expect("integer fixture lowers");
+    let integer_query =
+        lower_analysis_request(translated.request()).expect("integer fixture lowers");
     assert!(integer_query.quantifiers().is_empty());
-    assert_eq!(integer_query.query(), include_str!("golden/package-integer-v2.smt2"));
+    assert_eq!(
+        integer_query.query(),
+        include_str!("golden/package-integer-v2.smt2")
+    );
 }
 
 fn collection_operation(

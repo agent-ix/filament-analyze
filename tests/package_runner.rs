@@ -1631,12 +1631,8 @@ fn quantified_package_runs_publish_deterministic_report_bytes() {
     let binder = document.parameter();
     let first = document.literal(true);
     let collection = document.collection_literal("sequence", "scalar_type/boolean", &[&first]);
-    let quantified = document.quantifier(
-        "filament.op.collection.forall",
-        &collection,
-        "p1",
-        &binder,
-    );
+    let quantified =
+        document.quantifier("filament.op.collection.forall", &collection, "p1", &binder);
     let claim = document.claim(&quantified);
     let bytes = document.bytes(&[&claim]);
     let fixture = Fixture::new(&bytes);
@@ -1648,7 +1644,10 @@ fn quantified_package_runs_publish_deterministic_report_bytes() {
     fixture.retime(3_000_000, 7_000_000);
     assert_eq!(fixture.run().code, Some(0));
     let second_report = fs::read(fixture.output()).expect("second report");
-    assert_ne!(first_report, second_report, "elapsedMs carries measured time");
+    assert_ne!(
+        first_report, second_report,
+        "elapsedMs carries measured time"
+    );
     assert_eq!(normalised(&first_report), normalised(&second_report));
 }
 

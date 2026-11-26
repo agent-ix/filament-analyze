@@ -1624,6 +1624,39 @@ fn identical_inputs_give_identical_bytes_and_leave_no_trace() {
     assert!(staged.contains("(check-sat)"), "{staged}");
 }
 
+#[trace("TC-030", "FR-034-AC-4")]
+#[test]
+fn quantified_package_runs_publish_deterministic_report_bytes() {
+    let mut document = Document::new();
+    let binder = document.parameter();
+    let first = document.literal(true);
+    let second = document.literal(false);
+    let collection = document.collection_literal(
+        "sequence",
+        "scalar_type/boolean",
+        &[&first, &second],
+    );
+    let quantified = document.quantifier(
+        "filament.op.collection.forall",
+        &collection,
+        "p1",
+        &binder,
+    );
+    let claim = document.claim(&quantified);
+    let bytes = document.bytes(&[&claim]);
+    let fixture = Fixture::new(&bytes);
+    fixture.both("sat\n(model)\n", "sat\n(model)\n");
+
+    assert_eq!(fixture.run().code, Some(0));
+    let first_report = fs::read(fixture.output()).expect("first report");
+    fs::remove_file(fixture.output()).expect("remove first report");
+    fixture.retime(3_000_000, 7_000_000);
+    assert_eq!(fixture.run().code, Some(0));
+    let second_report = fs::read(fixture.output()).expect("second report");
+    assert_ne!(first_report, second_report, "elapsedMs carries measured time");
+    assert_eq!(normalised(&first_report), normalised(&second_report));
+}
+
 #[trace("FR-009-AC-12")]
 #[test]
 fn the_capability_root_is_gone_after_every_exit_path() {

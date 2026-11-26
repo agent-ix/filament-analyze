@@ -264,6 +264,14 @@ pub(crate) fn analysis_claim_indices(package: &ContractPackageV1) -> Vec<usize> 
 /// remaining claims are the approved set. Consistency analyzes only selected claims. Contradiction
 /// compares approved claims on the left with draft claims on the right. Redundancy checks the one
 /// selected draft against all remaining claims as peers.
+#[implements("FR-034-AC-1")]
+#[implements("FR-034-AC-2")]
+#[implements("FR-034-AC-3")]
+#[implements("FR-034-AC-4")]
+#[implements("FR-034-AC-5")]
+#[implements("FR-034-AC-6")]
+#[implements("FR-034-AC-7")]
+#[implements("FR-034-AC-8")]
 pub fn translate_analysis_claims_for_request(
     package: &ContractPackageV1,
     selected_claims: Option<&BTreeSet<usize>>,

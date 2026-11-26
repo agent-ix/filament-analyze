@@ -1630,12 +1630,7 @@ fn quantified_package_runs_publish_deterministic_report_bytes() {
     let mut document = Document::new();
     let binder = document.parameter();
     let first = document.literal(true);
-    let second = document.literal(false);
-    let collection = document.collection_literal(
-        "sequence",
-        "scalar_type/boolean",
-        &[&first, &second],
-    );
+    let collection = document.collection_literal("sequence", "scalar_type/boolean", &[&first]);
     let quantified = document.quantifier(
         "filament.op.collection.forall",
         &collection,

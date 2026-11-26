@@ -16,7 +16,7 @@ use filament_contract_model::{
 };
 use ix_trace_rs::trace;
 use serde_json::{json, Value};
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 
 mod common;
 

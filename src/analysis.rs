@@ -1393,7 +1393,7 @@ mod tests {
     use crate::smt::{ReplayExpression, ReplayTerm};
 
     /// A query for `x >= 1` over `x` declared in `[0, 10]`, built from typed contract nodes.
-    fn lower_positive_query() -> QueryBundle {
+    fn positive_statement() -> StatementInput {
         use filament_contract_model::{
             AnchorName, Clause, ClauseId, ClauseKind, ContractPackage, DeclarationEnvironment,
             ExecutionPoint, Expression, ExpressionKind, IntegerDomain, IntegerType, OverflowPolicy,
@@ -1473,14 +1473,17 @@ mod tests {
             vec![requirement],
         )
         .expect("package");
-        let statement = StatementInput::from_clause(
+        StatementInput::from_clause(
             &package,
             &package.requirements()[0],
             &package.requirements()[0].clauses()[0],
             environment,
         )
-        .expect("statement");
-        crate::lower_boolean_statements(&[statement], &[]).expect("query")
+        .expect("statement")
+    }
+
+    fn lower_positive_query() -> QueryBundle {
+        crate::lower_boolean_statements(&[positive_statement()], &[]).expect("query")
     }
 
     /// FR-011-AC-9: replay reads the typed expressions and the parsed assignment, never the
@@ -1500,6 +1503,71 @@ mod tests {
                 assert_eq!(verdict.is_ok(), verifies, "{value}");
             }
         }
+    }
+
+    #[trace("FR-033-AC-5")]
+    #[test]
+    fn a_model_of_a_weakened_query_must_pass_the_original_quantifier() {
+        use crate::{AnalysisFormula, AnalysisRequest, RangeBound, RangeQuantifier};
+        use filament_contract_model::{
+            Expression, ExpressionKind, IntegerDomain, IntegerType, OverflowPolicy, QuantifierKind,
+            StateObservation, SymbolName,
+        };
+
+        let weak = lower_positive_query();
+        let symbol = &weak.variables()[0].symbol;
+        let model = format!("(model (define-fun {symbol} () Int 2))");
+        verify_model(&weak, model.as_bytes(), ModelPurpose::Shared)
+            .expect("x=2 satisfies the weakened x>=1 query");
+
+        let statement = positive_statement();
+        let span = statement.expression().span().clone();
+        let body = Expression::new(
+            ExpressionKind::Compare {
+                operator: ComparisonOperator::LessEqual,
+                left: Box::new(Expression::new(
+                    ExpressionKind::LocalReference {
+                        name: SymbolName::new("i").expect("local"),
+                    },
+                    span.clone(),
+                )),
+                right: Box::new(Expression::new(
+                    ExpressionKind::ValueReference {
+                        name: SymbolName::new("x").expect("input"),
+                        observation: StateObservation::Current,
+                    },
+                    span.clone(),
+                )),
+            },
+            span,
+        );
+        let quantified = statement
+            .with_formula(AnalysisFormula::Range(Box::new(RangeQuantifier {
+                identity: "original-forall".to_owned(),
+                kind: QuantifierKind::ForAll,
+                local: SymbolName::new("i").expect("local"),
+                local_type: IntegerType::new(IntegerDomain::Signed, 0, 10, OverflowPolicy::Reject)
+                    .expect("local type"),
+                lower: RangeBound::Literal(1),
+                upper: RangeBound::Literal(3),
+                body: AnalysisFormula::Term(body),
+            })))
+            .expect("quantified statement");
+        let request =
+            AnalysisRequest::consistency(vec![], vec![quantified], vec![]).expect("request");
+        let mut query = crate::lower_analysis_request(&request).expect("quantified query");
+        assert_eq!(query.variables()[0].symbol, *symbol);
+        assert_ne!(query.query(), weak.query());
+        query.set_query_text(weak.query());
+        assert_eq!(query.query(), weak.query());
+        let failure = verify_model(&query, model.as_bytes(), ModelPurpose::Shared)
+            .expect_err("the original forall still rejects x=2 despite the weakened SMT text");
+        assert_eq!(failure.reason(), ReplayFailureReason::AssertionFalse);
+        let result = failure.quantifier().expect("original quantifier failure");
+        assert_eq!(result.source(), "original-forall");
+        assert_eq!(result.element(), Some("3"));
+        assert_eq!(result.evaluated_count(), 3);
+        assert!(!result.holds());
     }
 
     fn declared<'a>(entries: &[(&'a str, Sort)]) -> BTreeMap<&'a str, Sort> {

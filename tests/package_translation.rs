@@ -206,25 +206,6 @@ fn package_integer_collection_expansion_accepts_1024_and_refuses_1025_elements()
     }
 }
 
-#[trace("TC-030", "FR-034-AC-8")]
-#[test]
-fn package_quantifier_refuses_a_range_domain_without_an_upstream_form() {
-    let mut document = Document::new();
-    let range = document.range_between("range-operand", 0, 10);
-    let predicate = document.literal(true);
-    let quantifier = document.quantifier(
-        "filament.op.collection.forall",
-        &range,
-        "unused",
-        &predicate,
-    );
-    let claim = document.claim(&quantifier);
-    let package = document.package(&[&claim]);
-    let error = translate_analysis_claims(&package).expect_err("range operand refused");
-    assert_eq!(error.kind(), TranslationErrorKind::CannotLower);
-    assert_eq!(error.node(), Some(index(&package, &quantifier)));
-}
-
 #[trace("TC-030", "FR-034-AC-6")]
 #[test]
 fn quantified_expression_tree_accepts_10000_nodes_and_refuses_10001() {

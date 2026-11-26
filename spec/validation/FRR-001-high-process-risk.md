@@ -8,17 +8,9 @@ status: proposed
 relationships:
   - target: ix://agent-ix/filament-analyze/IU-001
     type: uses_intended_use
-  - target: ix://agent-ix/filament-analyze/FR-001
-    type: rates_feature
-  - target: ix://agent-ix/filament-analyze/FR-002
-    type: rates_feature
-  - target: ix://agent-ix/filament-analyze/FR-003
-    type: rates_feature
   - target: ix://agent-ix/filament-analyze/FR-004
     type: rates_feature
   - target: ix://agent-ix/filament-analyze/FR-005
-    type: rates_feature
-  - target: ix://agent-ix/filament-analyze/FR-008
     type: rates_feature
   - target: ix://agent-ix/filament-analyze/FR-009
     type: rates_feature
@@ -26,27 +18,9 @@ relationships:
     type: rates_feature
   - target: ix://agent-ix/filament-analyze/FR-011
     type: rates_feature
-  - target: ix://agent-ix/filament-analyze/FR-012
-    type: rates_feature
-  - target: ix://agent-ix/filament-analyze/FR-020
-    type: rates_feature
   - target: ix://agent-ix/filament-analyze/FR-021
     type: rates_feature
-  - target: ix://agent-ix/filament-analyze/FR-022
-    type: rates_feature
-  - target: ix://agent-ix/filament-analyze/FR-030
-    type: rates_feature
-  - target: ix://agent-ix/filament-analyze/FR-031
-    type: rates_feature
-  - target: ix://agent-ix/filament-analyze/FR-032
-    type: rates_feature
   - target: ix://agent-ix/filament-analyze/FR-033
-    type: rates_feature
-  - target: ix://agent-ix/filament-analyze/FR-034
-    type: rates_feature
-  - target: ix://agent-ix/filament-analyze/FR-041
-    type: rates_feature
-  - target: ix://agent-ix/filament-analyze/FR-042
     type: rates_feature
 ---
 # Proposed high process-risk supplier ratings for filament-analyze
@@ -63,27 +37,28 @@ change or misrepresent records relied on when reviewing requirement contracts.
 The proposed rating is a human decision for this intended use, not a computed
 score or product-safety classification.
 
+These reasons describe the false assurance each feature could emit under IU-001; the rating is a human proposal, not a computed score.
+
+## Feature-specific reasons for retained high ratings
+
+| FR | False-claim reason |
+| --- | --- |
+| FR-004 | Result classification can claim a proof or counterexample state unsupported by solver or replay evidence. |
+| FR-005 | Evidence report and differential output can state a verified result unsupported by the recorded analysis. |
+| FR-009 | Package analysis can report a requirement result contrary to the solver evidence. |
+| FR-010 | Integer arithmetic decision can report a proof or refutation result that is invalid. |
+| FR-011 | Witness replay can claim a model satisfies all assertions when it does not. |
+| FR-021 | Enum, record, or options witness replay can claim an invalid model is valid. |
+| FR-033 | Bounded-quantifier replay can claim an assertion holds when the witness violates it. |
+
 ## Assurance activities
 
 | Activity | Acceptance criterion |
 |---|---|
-| Check the independent analysis truth table, bindings, identities, and invalid-request cases. | FR-001-AC-1 through FR-001-AC-5 |
-| Compare canonical query fixtures, capability refusals, and complete source mappings. | FR-002-AC-1 through FR-002-AC-5 |
-| Exercise adapter bounds, timeout/cancellation cleanup, malformed responses, and both configured solvers. | FR-003-AC-1 through FR-003-AC-6 |
 | Check classification, source mapping, incomplete explanations, and model replay with adversarial results. | FR-004-AC-1 through FR-004-AC-5 |
 | Validate report schema/envelope, differential outcomes, atomic publication, and retained regression cases. | FR-005-AC-1 through FR-005-AC-8 |
-| Check canonical candidate identity/order and keep candidate discovery separate from independent validation. | FR-008-AC-1 through FR-008-AC-3 |
 | Run package fixtures across input, selection, solver, output, and failure boundaries. | FR-009-AC-1 through FR-009-AC-39 |
 | Verify integer query logic, exact lowering, solver outcomes, and refusal cases. | FR-010-AC-1 through FR-010-AC-11 |
 | Replay integer witnesses against all assertions and declared bounds. | FR-011-AC-1 through FR-011-AC-11 |
-| Translate supported integer package terms and verify source identity and refusal behavior. | FR-012-AC-1 through FR-012-AC-9 |
-| Verify datatype declarations, range constraints, and model replay. | FR-020-AC-1 through FR-020-AC-10 |
 | Replay datatype witnesses and reject incomplete or invalid models. | FR-021-AC-1 through FR-021-AC-7 |
-| Translate datatype package terms and verify exact mapping and refusals. | FR-022-AC-1 through FR-022-AC-5 |
-| Verify refusal of unsupported and unbounded quantifier domains before solver execution. | FR-030-AC-1 through FR-030-AC-6 |
-| Compare finite-domain expansion with expected instances, order, and bounds. | FR-031-AC-1 through FR-031-AC-6 |
-| Check bounded integer quantifier selection, guards, solver logic, and failure boundaries. | FR-032-AC-1 through FR-032-AC-9 |
 | Replay quantified models across their full bound and verify typed failure outcomes. | FR-033-AC-1 through FR-033-AC-9 |
-| Translate admitted package quantifiers and verify refused forms and bounded expansion. | FR-034-AC-1 through FR-034-AC-8 |
-| Inspect the independent reachability enumeration, review findings, and exactly one selected disposition. | FR-041-AC-1 through FR-041-AC-7 |
-| Exercise the recorded path, tool boundary, error results, and no-fallback behavior. | FR-042-AC-1 through FR-042-AC-10 |

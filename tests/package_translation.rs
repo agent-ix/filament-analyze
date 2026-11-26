@@ -35,7 +35,7 @@ fn package_quantifiers_translate_from_literal_collection_domains() {
             "scalar_type/boolean",
             &[&first, &second],
         );
-        assert_both_quantifier_forms(&document, &collection, "p1", &binder);
+        assert_both_quantifier_forms(&mut document, &collection, "p1", &binder);
     }
 
     let mut document = Document::new();
@@ -45,7 +45,7 @@ fn package_quantifiers_translate_from_literal_collection_domains() {
     let blue = document.enum_literal(&color, "blue");
     let is_red = document.op(ENUM_EQ, &[&binder, &red]);
     let collection = document.collection_literal("sequence", &color, &[&red, &blue]);
-    assert_both_quantifier_forms(&document, &collection, "p1", &is_red);
+    assert_both_quantifier_forms(&mut document, &collection, "p1", &is_red);
 
     let mut document = Document::new();
     let range = document.range_between("quantified", 0, 3);
@@ -54,7 +54,7 @@ fn package_quantifiers_translate_from_literal_collection_domains() {
     let two = document.int_literal(&range, 2);
     let is_one = document.int_op("filament.op.integer.eq", &[&binder, &one], "scalar_type/boolean");
     let collection = document.collection_literal("bag", &range, &[&one, &two]);
-    assert_both_quantifier_forms(&document, &collection, "p1", &is_one);
+    assert_both_quantifier_forms(&mut document, &collection, "p1", &is_one);
 }
 
 fn assert_both_quantifier_forms(document: &mut Document, collection: &str, binder: &str, body: &str) {

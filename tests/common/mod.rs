@@ -300,7 +300,7 @@ impl Document {
             "result_type": id(&collection_type),
             "arguments": values.iter().map(|value| reference(value)).collect::<Vec<_>>(),
         });
-        let mut dependencies = vec![element, collection_type.as_str()];
+        let mut dependencies = vec![collection_type.as_str()];
         dependencies.extend_from_slice(values);
         self.node(
             &label,

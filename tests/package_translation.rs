@@ -374,6 +374,7 @@ fn package_collection_contains_size_and_index_operations_are_refused() {
                     &[&collection, &truth],
                     "scalar_type/boolean",
                     Value::Null,
+                    None,
                 );
                 (contains.clone(), contains)
             }
@@ -386,6 +387,7 @@ fn package_collection_contains_size_and_index_operations_are_refused() {
                     &[&collection],
                     &range,
                     json!({"kind": "type_argument", "declaration": common::id(&range)}),
+                    Some(&range),
                 );
                 let zero = document.int_literal(&range, 0);
                 let equals_zero = document.int_op(
@@ -408,6 +410,7 @@ fn package_collection_contains_size_and_index_operations_are_refused() {
                         "kind": "element",
                         "declaration": common::id("composite_type/sequence")
                     }),
+                    Some("composite_type/sequence"),
                 );
                 (index.clone(), index)
             }
@@ -469,6 +472,7 @@ fn collection_operation(
     arguments: &[&str],
     result_type: &str,
     member: Value,
+    member_declaration: Option<&str>,
 ) -> String {
     let label = document.fresh("expression/application");
     let body = json!({
@@ -479,13 +483,18 @@ fn collection_operation(
         "result_type": common::id(result_type),
         "arguments": arguments.iter().map(|argument| common::reference(argument)).collect::<Vec<_>>(),
     });
+    let dependencies = arguments
+        .iter()
+        .copied()
+        .chain(member_declaration)
+        .collect::<Vec<_>>();
     document.node(
         &label,
         "expression",
         "expression",
         operator,
         result_type,
-        arguments,
+        &dependencies,
         body,
     );
     label

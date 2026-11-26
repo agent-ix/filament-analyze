@@ -169,16 +169,24 @@ fn package_quantifiers_refuse_an_unfixed_collection_at_the_quantifier() {
 fn package_collection_expansion_accepts_1024_and_refuses_1025_elements() {
     for (count, accepted) in [(1_024, true), (1_025, false)] {
         let mut document = Document::new();
-        let binder = document.parameter();
-        let truth = document.literal(true);
-        let values = vec![truth.as_str(); count];
-        let collection =
-            document.collection_literal("sequence", "scalar_type/boolean", &values);
+        let range = document.range_between("expansion", 0, 0);
+        let binder = document.parameter_of(&range);
+        let values = (0..count)
+            .map(|_| document.int_literal(&range, 0))
+            .collect::<Vec<_>>();
+        let value_refs = values.iter().map(String::as_str).collect::<Vec<_>>();
+        let collection = document.collection_literal("sequence", &range, &value_refs);
+        let zero = document.int_literal(&range, 0);
+        let predicate = document.int_op(
+            "filament.op.integer.eq",
+            &[&binder, &zero],
+            "scalar_type/boolean",
+        );
         let quantifier = document.quantifier(
             "filament.op.collection.forall",
             &collection,
             "p1",
-            &binder,
+            &predicate,
         );
         let claim = document.claim(&quantifier);
         let package = document.package(&[&claim]);
@@ -196,6 +204,63 @@ fn package_collection_expansion_accepts_1024_and_refuses_1025_elements() {
             Err(error) => panic!("{count} elements unexpectedly refused: {error}"),
         }
     }
+}
+
+#[trace("TC-030", "FR-034-AC-6")]
+#[test]
+fn quantified_expression_tree_accepts_10000_nodes_and_refuses_10001() {
+    for (total_nodes, accepted) in [(10_000, true), (10_001, false)] {
+        let mut document = Document::new();
+        let binder = document.parameter();
+        let collection = document.collection_literal("sequence", "scalar_type/boolean", &[]);
+        let predicate = boolean_tree(&mut document, total_nodes - 2, &mut BTreeMap::new());
+        let quantifier = document.quantifier(
+            "filament.op.collection.forall",
+            &collection,
+            "p1",
+            &predicate,
+        );
+        let claim = document.claim(&quantifier);
+        let package = document.package(&[&claim]);
+        let _ = binder;
+
+        match translate_analysis_claims(&package) {
+            Ok(_) if accepted => {}
+            Err(error) if !accepted => {
+                assert_eq!(error.kind(), TranslationErrorKind::ExpressionNodeBound);
+                assert_eq!(error.node(), Some(index(&package, &quantifier)));
+            }
+            Ok(_) => panic!("{total_nodes} expression nodes unexpectedly translated"),
+            Err(error) => panic!("{total_nodes} expression nodes unexpectedly refused: {error}"),
+        }
+    }
+}
+
+fn boolean_tree(
+    document: &mut Document,
+    node_count: usize,
+    shared: &mut BTreeMap<usize, String>,
+) -> String {
+    if let Some(existing) = shared.get(&node_count) {
+        return existing.clone();
+    }
+    let label = match node_count {
+        1 => document.literal(true),
+        2 => {
+            let value = boolean_tree(document, 1, shared);
+            document.op(NOT, &[&value])
+        }
+        count => {
+            let children = count - 1;
+            let left_count = children / 2;
+            let right_count = children - left_count;
+            let left = boolean_tree(document, left_count, shared);
+            let right = boolean_tree(document, right_count, shared);
+            document.op(AND, &[&left, &right])
+        }
+    };
+    shared.insert(node_count, label.clone());
+    label
 }
 
 #[trace("TC-030", "FR-034-AC-7")]

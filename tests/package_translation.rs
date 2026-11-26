@@ -25,13 +25,41 @@ use common::*;
 #[trace("TC-030", "FR-034-AC-1")]
 #[test]
 fn package_quantifiers_translate_from_literal_collection_domains() {
+    for kind in ["set", "ordered_set", "sequence", "bag"] {
+        let mut document = Document::new();
+        let binder = document.parameter();
+        let first = document.literal(true);
+        let second = document.literal(false);
+        let collection = document.collection_literal(
+            kind,
+            "scalar_type/boolean",
+            &[&first, &second],
+        );
+        assert_both_quantifier_forms(&document, &collection, "p1", &binder);
+    }
+
     let mut document = Document::new();
-    let binder = document.parameter();
-    let first = document.literal(true);
-    let second = document.literal(false);
-    let collection = document.collection_literal("set", "scalar_type/boolean", &[&first, &second]);
-    let all = document.quantifier("filament.op.collection.forall", &collection, "p1", &binder);
-    let any = document.quantifier("filament.op.collection.exists", &collection, "p1", &binder);
+    let color = document.enum_type("Color", &["red", "blue"]);
+    let binder = document.parameter_of(&color);
+    let red = document.enum_literal(&color, "red");
+    let blue = document.enum_literal(&color, "blue");
+    let is_red = document.op(ENUM_EQ, &[&binder, &red]);
+    let collection = document.collection_literal("sequence", &color, &[&red, &blue]);
+    assert_both_quantifier_forms(&document, &collection, "p1", &is_red);
+
+    let mut document = Document::new();
+    let range = document.range_between("quantified", 0, 3);
+    let binder = document.parameter_of(&range);
+    let one = document.int_literal(&range, 1);
+    let two = document.int_literal(&range, 2);
+    let is_one = document.int_op("filament.op.integer.eq", &[&binder, &one], "scalar_type/boolean");
+    let collection = document.collection_literal("bag", &range, &[&one, &two]);
+    assert_both_quantifier_forms(&document, &collection, "p1", &is_one);
+}
+
+fn assert_both_quantifier_forms(document: &mut Document, collection: &str, binder: &str, body: &str) {
+    let all = document.quantifier("filament.op.collection.forall", collection, binder, body);
+    let any = document.quantifier("filament.op.collection.exists", collection, binder, body);
     let all_claim = document.claim(&all);
     let any_claim = document.claim(&any);
     let package = document.package(&[&all_claim, &any_claim]);
@@ -43,10 +71,22 @@ fn package_quantifiers_translate_from_literal_collection_domains() {
             ExpressionKind::Quantifier { .. }
         ));
     }
+    assert_eq!(
+        expression(&translated, 0).source().start().byte_offset(),
+        document.region(&all).0
+    );
+    assert_eq!(
+        expression(&translated, 1).source().start().byte_offset(),
+        document.region(&any).0
+    );
     let query = lower_analysis_request(translated.request()).expect("bounded queries lower");
     assert_eq!(query.quantifiers().len(), 2);
     assert_eq!(query.quantifiers()[0].kind, QuantifierKind::ForAll);
     assert_eq!(query.quantifiers()[1].kind, QuantifierKind::Exists);
+    assert!(query
+        .quantifiers()
+        .iter()
+        .all(|entry| entry.source.starts_with("semantic_graph.nodes[")));
 }
 
 #[trace("FR-009-AC-20")]

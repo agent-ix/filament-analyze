@@ -1521,7 +1521,15 @@ mod tests {
             .expect("x=2 satisfies the weakened x>=1 query");
 
         let statement = positive_statement();
-        let span = statement.expression().span().clone();
+        let source = filament_contract_model::SourceIdentity::new(
+            filament_contract_model::SourceDocumentId::new("quantified-replay").expect("source"),
+            filament_contract_model::SourceRevision::new(1).expect("revision"),
+        );
+        let span = filament_contract_model::SourceSpan::new(
+            filament_contract_model::SourceLocation::new(source.clone(), 1, 1, 0).expect("start"),
+            filament_contract_model::SourceLocation::new(source, 1, 2, 1).expect("end"),
+        )
+        .expect("span");
         let body = Expression::new(
             ExpressionKind::Compare {
                 operator: ComparisonOperator::LessEqual,
@@ -1550,7 +1558,7 @@ mod tests {
                     .expect("local type"),
                 lower: RangeBound::Literal(1),
                 upper: RangeBound::Literal(3),
-                body: AnalysisFormula::Term(body),
+                body: AnalysisFormula::Term(Box::new(body)),
             })))
             .expect("quantified statement");
         let request =

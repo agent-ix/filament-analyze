@@ -272,24 +272,41 @@ impl Document {
     }
 
     /// A collection type node for a bounded quantifier's literal domain.
-    pub fn collection_type(&mut self, kind: &str, element: &str) -> String {
-        let label = format!("composite_type/{kind}");
-        let body = json!({"term": "aggregate", "members": [reference(element)]});
+    pub fn collection_type(&mut self, kind: &str, element: &str, maximum: usize) -> String {
+        let collection = format!("composite_type/{kind}");
+        let collection_body = json!({"term": "aggregate", "members": [reference(element)]});
         self.node(
-            &label,
+            &collection,
             "composite_type",
             "type",
             kind,
-            &label,
+            &collection,
             &[element],
-            body,
+            collection_body,
+        );
+        let label = format!("bounded_domain/{kind}");
+        let maximum = maximum.max(1);
+        let bounds = json!({"term": "aggregate", "members": [
+            {"term": "binding", "name": "min",
+                "value": literal("scalar_type/integer", "integer", json!("0"))},
+            {"term": "binding", "name": "max",
+                "value": literal("scalar_type/integer", "integer", json!(maximum.to_string()))},
+        ]});
+        self.node(
+            &label,
+            "bounded_domain",
+            "generated",
+            "collection_bounds",
+            &collection,
+            &[&collection],
+            bounds,
         );
         label
     }
 
     /// A collection constructor used only as a bounded quantifier domain.
     pub fn collection_literal(&mut self, kind: &str, element: &str, values: &[&str]) -> String {
-        let collection_type = self.collection_type(kind, element);
+        let collection_type = self.collection_type(kind, element, values.len());
         let label = self.fresh("expression/collection");
         let identity = format!("filament.op.collection.{kind}");
         let body = json!({

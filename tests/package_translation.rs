@@ -26,10 +26,10 @@ use common::*;
 #[test]
 fn package_quantifiers_translate_from_literal_collection_domains() {
     let mut document = Document::new();
+    let binder = document.parameter();
     let first = document.literal(true);
     let second = document.literal(false);
     let collection = document.collection_literal("set", "scalar_type/boolean", &[&first, &second]);
-    let binder = document.parameter();
     let all = document.quantifier("filament.op.collection.forall", &collection, "p1", &binder);
     let any = document.quantifier("filament.op.collection.exists", &collection, "p1", &binder);
     let all_claim = document.claim(&all);

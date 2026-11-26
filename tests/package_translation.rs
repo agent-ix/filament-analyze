@@ -384,6 +384,34 @@ fn a_collection_literal_outside_a_quantifier_domain_is_refused_at_the_collection
     assert_eq!(error.node(), Some(index(&package, &collection)));
 }
 
+#[trace("TC-030", "FR-009-AC-21", "FR-012-AC-4", "FR-034-AC-5")]
+#[test]
+fn package_translation_without_quantifiers_keeps_the_golden_queries() {
+    let mut document = Document::new();
+    let left = document.parameter();
+    let right = document.parameter();
+    let negated = document.op(NOT, &[&right]);
+    let body = document.op(AND, &[&left, &negated]);
+    let claim = document.claim(&body);
+    let package = document.package(&[&claim]);
+    let translated = translate_analysis_claims(&package).expect("Boolean fixture translates");
+    let boolean_query = lower_analysis_request(translated.request()).expect("Boolean fixture lowers");
+    assert!(boolean_query.quantifiers().is_empty());
+    assert_eq!(boolean_query.query(), include_str!("golden/package-boolean-v2.smt2"));
+
+    let mut document = Document::new();
+    let range = document.range_between("golden-integer", 0, 10);
+    let value = document.parameter_of(&range);
+    let ten = document.int_literal(&range, 10);
+    let body = document.int_op("filament.op.integer.eq", &[&value, &ten], "scalar_type/boolean");
+    let claim = document.claim(&body);
+    let package = document.package(&[&claim]);
+    let translated = translate_analysis_claims(&package).expect("integer fixture translates");
+    let integer_query = lower_analysis_request(translated.request()).expect("integer fixture lowers");
+    assert!(integer_query.quantifiers().is_empty());
+    assert_eq!(integer_query.query(), include_str!("golden/package-integer-v2.smt2"));
+}
+
 #[trace("FR-009-AC-20")]
 #[test]
 fn claims_become_clauses_of_one_requirement_in_node_order() {

@@ -164,6 +164,40 @@ fn package_quantifiers_refuse_an_unfixed_collection_at_the_quantifier() {
     assert_eq!(error.node(), Some(quantifier_index));
 }
 
+#[trace("TC-030", "FR-034-AC-8")]
+#[test]
+fn package_collection_expansion_accepts_1024_and_refuses_1025_elements() {
+    for (count, accepted) in [(1_024, true), (1_025, false)] {
+        let mut document = Document::new();
+        let binder = document.parameter();
+        let truth = document.literal(true);
+        let values = vec![truth.as_str(); count];
+        let collection =
+            document.collection_literal("sequence", "scalar_type/boolean", &values);
+        let quantifier = document.quantifier(
+            "filament.op.collection.forall",
+            &collection,
+            "p1",
+            &binder,
+        );
+        let claim = document.claim(&quantifier);
+        let package = document.package(&[&claim]);
+        match translate_analysis_claims(&package) {
+            Ok(translation) if accepted => {
+                let query = lower_analysis_request(translation.request()).expect("query");
+                assert_eq!(query.quantifiers().len(), 1);
+                assert_eq!(query.quantifiers()[0].instance_count, 1_024);
+            }
+            Err(error) if !accepted => {
+                assert!(error.message().contains("expansion-ceiling"), "{error}");
+                assert!(error.clause().is_some(), "{error}");
+            }
+            Ok(_) => panic!("{count} elements unexpectedly translated"),
+            Err(error) => panic!("{count} elements unexpectedly refused: {error}"),
+        }
+    }
+}
+
 #[trace("FR-009-AC-20")]
 #[test]
 fn claims_become_clauses_of_one_requirement_in_node_order() {

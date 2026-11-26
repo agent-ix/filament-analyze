@@ -206,6 +206,25 @@ fn package_integer_collection_expansion_accepts_1024_and_refuses_1025_elements()
     }
 }
 
+#[trace("TC-030", "FR-034-AC-8")]
+#[test]
+fn package_quantifier_refuses_a_range_domain_without_an_upstream_form() {
+    let mut document = Document::new();
+    let range = document.range_between("range-operand", 0, 10);
+    let predicate = document.literal(true);
+    let quantifier = document.quantifier(
+        "filament.op.collection.forall",
+        &range,
+        "unused",
+        &predicate,
+    );
+    let claim = document.claim(&quantifier);
+    let package = document.package(&[&claim]);
+    let error = translate_analysis_claims(&package).expect_err("range operand refused");
+    assert_eq!(error.kind(), TranslationErrorKind::CannotLower);
+    assert_eq!(error.node(), Some(index(&package, &quantifier)));
+}
+
 #[trace("TC-030", "FR-034-AC-6")]
 #[test]
 fn quantified_expression_tree_accepts_10000_nodes_and_refuses_10001() {
@@ -319,7 +338,7 @@ fn package_quantifiers_refuse_rational_record_and_nested_collection_elements() {
             "record" => document.record_type("Entry", &[("flag", "scalar_type/boolean")]),
             _ => unreachable!(),
         };
-        let collection = document.collection_literal("sequence", &element_type, &[]);
+        let collection = document.collection_literal("bag", &element_type, &[]);
         let predicate = document.literal(true);
         let quantifier = document.quantifier(
             "filament.op.collection.forall",
@@ -347,22 +366,36 @@ fn package_collection_contains_size_and_index_operations_are_refused() {
         let truth = document.literal(true);
         let collection = document.collection_literal("sequence", "scalar_type/boolean", &[&truth]);
         let application = match identity {
-            "filament.op.collection.contains" => document.application(
+            "filament.op.collection.contains" => collection_operation(
+                &mut document,
                 identity,
+                "collection",
                 &[&collection, &truth],
                 "scalar_type/boolean",
             ),
             "filament.op.collection.size" => {
                 let range = document.range_between("size", 0, 1);
-                let size = document.application(identity, &[&collection], &range);
+                let size = collection_operation(
+                    &mut document,
+                    identity,
+                    "collection",
+                    &[&collection],
+                    &range,
+                );
                 let zero = document.int_literal(&range, 0);
                 document.int_op("filament.op.integer.eq", &[&size, &zero], "scalar_type/boolean")
             }
-            _ => document.application(
-                identity,
-                &[&collection, &truth],
-                "scalar_type/boolean",
-            ),
+            _ => {
+                let range = document.range_between("index", 0, 1);
+                let zero = document.int_literal(&range, 0);
+                collection_operation(
+                    &mut document,
+                    identity,
+                    "query",
+                    &[&collection, &zero],
+                    "scalar_type/boolean",
+                )
+            }
         };
         let claim = document.claim(&application);
         let package = document.package(&[&claim]);
@@ -378,7 +411,9 @@ fn a_collection_literal_outside_a_quantifier_domain_is_refused_at_the_collection
     let mut document = Document::new();
     let truth = document.literal(true);
     let collection = document.collection_literal("sequence", "scalar_type/boolean", &[&truth]);
-    let package = document.package(&[&collection]);
+    let claim = document.claim(&truth);
+    document.set_body(&claim, common::reference(&collection), &[&collection]);
+    let package = document.package(&[&claim]);
     let error = translate_analysis_claims(&package).expect_err("top-level collection refused");
     assert_eq!(error.kind(), TranslationErrorKind::CannotLower);
     assert_eq!(error.node(), Some(index(&package, &collection)));
@@ -410,6 +445,34 @@ fn package_translation_without_quantifiers_keeps_the_golden_queries() {
     let integer_query = lower_analysis_request(translated.request()).expect("integer fixture lowers");
     assert!(integer_query.quantifiers().is_empty());
     assert_eq!(integer_query.query(), include_str!("golden/package-integer-v2.smt2"));
+}
+
+fn collection_operation(
+    document: &mut Document,
+    identity: &str,
+    operator: &str,
+    arguments: &[&str],
+    result_type: &str,
+) -> String {
+    let label = document.fresh("expression/application");
+    let body = json!({
+        "term": "application",
+        "operator": operator,
+        "operation": {"identity": identity, "laws": [], "mode": null,
+            "member": null, "leaves": []},
+        "result_type": common::id(result_type),
+        "arguments": arguments.iter().map(|argument| common::reference(argument)).collect::<Vec<_>>(),
+    });
+    document.node(
+        &label,
+        "expression",
+        "expression",
+        operator,
+        result_type,
+        arguments,
+        body,
+    );
+    label
 }
 
 #[trace("FR-009-AC-20")]

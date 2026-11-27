@@ -42,7 +42,7 @@ type: TestMatrix
 | FR-041 | FR-041-AC-5 | Inspection | 🚧 Single-path disposition evidence required |
 | FR-041 | FR-041-AC-6 | Inspection | 🚧 IR-1469 status and disposition evidence required |
 | FR-041 | FR-041-AC-7 | Inspection | 🚧 Tracking-ticket record evidence required |
-| FR-042 | FR-042-AC-1 | Selected path is delegate-and-remove | ✅ Keep-and-harden branch not selected |
+| FR-042 | FR-042-AC-1 | Inspection | ✅ Delegate-and-remove selected; keep-and-harden test branch not applicable |
 | FR-042 | FR-042-AC-2, FR-042-AC-3, FR-042-AC-8, FR-042-AC-9, FR-042-AC-10 | Inspection | 🚧 Code/artifact removal, no fallback, IR-1469 and license evidence required |
 | FR-042 | FR-042-AC-4 | TC-041 | 🚧 Independent-oracle enclosure containment required |
 | FR-042 | FR-042-AC-5, FR-042-AC-6, FR-042-AC-7 | TC-041 | 🚧 Delegated invocation, refusal, and result contract evidence required |

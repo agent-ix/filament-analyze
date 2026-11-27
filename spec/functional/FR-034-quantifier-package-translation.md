@@ -46,8 +46,10 @@ that [FR-030](./FR-030-bounded-quantifier-domains.md) admits.
   outside the signed 64-bit range is refused by the IR; the saturating overflow policy stays
   unsupported). It is expanded under the budget of [NFR-030](../nonfunctional/NFR-030-quantifier-expansion-bound.md);
   over the budget it exits `2` with reason `expansion-ceiling` and is never turned into a solver
-  quantifier. A range-domain operand or identity needs an upstream form that does not exist; a
-  quantifier with a range-domain operand that no upstream form supplies exits `2` naming the node.
+  quantifier. The admitted package catalog has no separate range-domain operand or quantifier
+  identity: integer ranges reach this path only as literal collection elements. A graph that uses a
+  range directly as the collection-quantifier operand is rejected by package admission before the
+  analyzer receives it.
 - **Collection domains.** A first operand that is an `Application` of `filament.op.collection.set`,
   `filament.op.collection.ordered_set`, `filament.op.collection.sequence` or `filament.op.collection.bag`
   whose arguments are all `Literal` terms of Boolean, enum or integer-range type (an enum's literals for an enum domain, integer literals for a range) translates to a
@@ -83,9 +85,9 @@ that [FR-030](./FR-030-bounded-quantifier-domains.md) admits.
 | FR-034-AC-3 | Two quantifiers reusing one variable name in one claim produce distinct, non-colliding symbols. | Test (TC-030) |
 | FR-034-AC-4 | A quantified package run through `run-package` yields the same report bytes, except `elapsedMs`, on repeated runs. | Test (TC-030) |
 | FR-034-AC-5 | For the fixtures of FR-009-AC-21 and FR-012-AC-4, which hold no quantifier node, the lowered queries equal their golden queries. | Test (TC-030) |
-| FR-034-AC-6 | A quantifier whose body is a 10,000-node tree is not refused for size and one whose body is 10,001 nodes exits `2`, as FR-009-AC-23 states for other trees; an integer-literal collection of 1,024 elements translates, and its 1,024 expanded instances do not count toward that node bound. | Test (TC-030) |
+| FR-034-AC-6 | A quantified `Expression` tree of 10,000 nodes, counting its quantifier, collection and predicate, is not refused for size; one of 10,001 nodes exits `2`, as FR-009-AC-23 states for every tree. An integer-literal collection of 1,024 elements translates, and its 1,024 expanded instances do not count toward that node bound. | Test (TC-030) |
 | FR-034-AC-7 | A collection with a non-literal element, a collection of text, rational, record or nested-collection elements, a `Reference` to a collection parameter, `filament.op.collection.contains`, `size` or `index` applied to a literal collection, and a collection literal outside a quantifier domain each exit `2` naming `semantic_graph.nodes[N]`, with no report. | Test (TC-030) |
-| FR-034-AC-8 | An integer-literal collection of 1,025 elements exits `2` with reason `expansion-ceiling` and emits no solver quantifier, and a quantifier with a range-domain operand for which no upstream form exists exits `2` naming `semantic_graph.nodes[N]` with no report. | Test (TC-030) |
+| FR-034-AC-8 | An integer-literal collection of 1,025 elements exits `2` with reason `expansion-ceiling` and emits no solver quantifier. | Test (TC-030) |
 
 ## Dependencies
 

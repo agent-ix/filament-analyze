@@ -1624,6 +1624,66 @@ fn identical_inputs_give_identical_bytes_and_leave_no_trace() {
     assert!(staged.contains("(check-sat)"), "{staged}");
 }
 
+#[trace("TC-030", "FR-034-AC-4")]
+#[test]
+fn quantified_package_runs_publish_deterministic_report_bytes() {
+    let mut document = Document::new();
+    let binder = document.parameter();
+    let first = document.literal(true);
+    let collection = document.collection_literal("sequence", "scalar_type/boolean", &[&first]);
+    let quantified =
+        document.quantifier("filament.op.collection.forall", &collection, "p1", &binder);
+    let claim = document.claim(&quantified);
+    let bytes = document.bytes(&[&claim]);
+    let fixture = Fixture::new(&bytes);
+    fixture.both("sat\n(model)\n", "sat\n(model)\n");
+
+    assert_eq!(fixture.run().code, Some(0));
+    let first_report = fs::read(fixture.output()).expect("first report");
+    fs::remove_file(fixture.output()).expect("remove first report");
+    fixture.retime(3_000_000, 7_000_000);
+    assert_eq!(fixture.run().code, Some(0));
+    let second_report = fs::read(fixture.output()).expect("second report");
+    assert_ne!(
+        first_report, second_report,
+        "elapsedMs carries measured time"
+    );
+    assert_eq!(normalised(&first_report), normalised(&second_report));
+}
+
+#[trace("TC-030", "FR-034-AC-2")]
+#[test]
+fn a_text_quantifier_domain_exits_two_without_a_solver_call_or_report() {
+    let mut document = Document::new();
+    document.source_identity = "spec/fixtures/text-domain.qsl".to_owned();
+    let text = document.unsupported_type("text");
+    let _binder = document.parameter_of(&text);
+    let collection = document.collection_literal("sequence", &text, &[]);
+    let predicate = document.literal(true);
+    let quantifier = document.quantifier(
+        "filament.op.collection.forall",
+        &collection,
+        "p1",
+        &predicate,
+    );
+    let source_region = document.region(&quantifier);
+    let claim = document.claim(&quantifier);
+    let bytes = document.bytes(&[&claim]);
+    let fixture = Fixture::new(&bytes);
+
+    let run = fixture.run();
+    assert_eq!(run.code, Some(2), "{}", run.stderr);
+    let node = format!("semantic_graph.nodes[{}]", node_index(&bytes, &quantifier));
+    let expected = format!(
+        "--package: {node}: text-domain: the collection element type is not supported \
+         (source agent-ix:{} bytes {}..{})",
+        document.source_identity, source_region.0, source_region.1
+    );
+    assert!(run.stderr.contains(&expected), "{expected}: {}", run.stderr);
+    assert!(fixture.requests().is_empty(), "a solver was invoked");
+    fixture.assert_no_report();
+}
+
 #[trace("FR-009-AC-12")]
 #[test]
 fn the_capability_root_is_gone_after_every_exit_path() {

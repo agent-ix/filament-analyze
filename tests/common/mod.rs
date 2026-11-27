@@ -195,6 +195,22 @@ impl Document {
         label
     }
 
+    /// A literal of the unbounded text scalar type.
+    pub fn text_literal(&mut self, value: &str) -> String {
+        let label = self.fresh("value/literal");
+        let body = literal("scalar_type/text", "text", json!(value));
+        self.node(
+            &label,
+            "value",
+            "expression",
+            "literal",
+            "scalar_type/text",
+            &[],
+            body,
+        );
+        label
+    }
+
     /// An application of `identity` over references to `arguments`, typed `result`.
     pub fn application(&mut self, identity: &str, arguments: &[&str], result: &str) -> String {
         let label = self.fresh("expression/application");
@@ -267,6 +283,96 @@ impl Document {
             &label,
             &dependencies,
             body,
+        );
+        label
+    }
+
+    /// A collection type node for a bounded quantifier's literal domain.
+    pub fn collection_type(&mut self, kind: &str, element: &str, maximum: usize) -> String {
+        let collection = format!("composite_type/{kind}");
+        let collection_body = json!({"term": "aggregate", "members": [reference(element)]});
+        self.node(
+            &collection,
+            "composite_type",
+            "type",
+            kind,
+            &collection,
+            &[element],
+            collection_body,
+        );
+        let label = format!("bounded_domain/{kind}");
+        let maximum = maximum.max(1);
+        let bounds = json!({"term": "aggregate", "members": [
+            {"term": "binding", "name": "min",
+                "value": literal("scalar_type/integer", "integer", json!("0"))},
+            {"term": "binding", "name": "max",
+                "value": literal("scalar_type/integer", "integer", json!(maximum.to_string()))},
+        ]});
+        self.node(
+            &label,
+            "bounded_domain",
+            "generated",
+            "collection_bounds",
+            &collection,
+            &[&collection],
+            bounds,
+        );
+        label
+    }
+
+    /// A collection constructor used only as a bounded quantifier domain.
+    pub fn collection_literal(&mut self, kind: &str, element: &str, values: &[&str]) -> String {
+        let collection_type = self.collection_type(kind, element, values.len());
+        let label = self.fresh("expression/collection");
+        let identity = format!("filament.op.collection.{kind}");
+        let body = json!({
+            "term": "application",
+            "operator": "collection",
+            "operation": {"identity": identity, "laws": [], "mode": null,
+                "member": null, "leaves": []},
+            "result_type": id(&collection_type),
+            "arguments": values.iter().map(|value| reference(value)).collect::<Vec<_>>(),
+        });
+        let dependencies = values.to_vec();
+        self.node(
+            &label,
+            "expression",
+            "expression",
+            "collection",
+            &collection_type,
+            &dependencies,
+            body,
+        );
+        label
+    }
+
+    /// A universal or existential collection quantifier over a named parameter.
+    pub fn quantifier(
+        &mut self,
+        identity: &str,
+        collection: &str,
+        binder_name: &str,
+        body: &str,
+    ) -> String {
+        let label = self.fresh("expression/quantifier");
+        let body_term = json!({
+            "term": "application",
+            "operator": "quantify",
+            "operation": {"identity": identity, "laws": [], "mode": null,
+                "member": null, "leaves": []},
+            "result_type": id("scalar_type/boolean"),
+            "arguments": [reference(collection), {
+                "term": "binding", "name": binder_name, "value": reference(body)
+            }],
+        });
+        self.node(
+            &label,
+            "expression",
+            "expression",
+            "quantify",
+            "scalar_type/boolean",
+            &[collection, body],
+            body_term,
         );
         label
     }

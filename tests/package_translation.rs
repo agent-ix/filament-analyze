@@ -11,16 +11,485 @@ use filament_analyze::{
 };
 use filament_contract_model::{
     BooleanOperator, CheckedPackageReadLimits, ComparisonOperator, ContractPackageReadResult,
-    ContractPackageV1, ContractPackageWireV1, ExecutionPoint, ExpressionKind, ValueDeclarationKind,
-    ValueType,
+    ContractPackageV1, ContractPackageWireV1, ExecutionPoint, ExpressionKind, QuantifierKind,
+    ValueDeclarationKind, ValueType,
 };
 use ix_trace_rs::trace;
 use serde_json::{json, Value};
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 
 mod common;
 
 use common::*;
+
+#[trace("TC-030", "FR-034-AC-1")]
+#[test]
+fn package_quantifiers_translate_from_literal_collection_domains() {
+    for kind in ["set", "ordered_set", "sequence", "bag"] {
+        let mut document = Document::new();
+        let binder = document.parameter();
+        let first = document.literal(true);
+        let second = document.literal(false);
+        let collection =
+            document.collection_literal(kind, "scalar_type/boolean", &[&first, &second]);
+        assert_both_quantifier_forms(&mut document, &collection, "p1", &binder);
+    }
+
+    let mut document = Document::new();
+    let color = document.enum_type("Color", &["red", "blue"]);
+    let binder = document.parameter_of(&color);
+    let red = document.enum_literal(&color, "red");
+    let blue = document.enum_literal(&color, "blue");
+    let is_red = document.op(ENUM_EQ, &[&binder, &red]);
+    let collection = document.collection_literal("sequence", &color, &[&red, &blue]);
+    assert_both_quantifier_forms(&mut document, &collection, "p1", &is_red);
+
+    let mut document = Document::new();
+    let range = document.range_between("quantified", 0, 3);
+    let binder = document.parameter_of(&range);
+    let one = document.int_literal(&range, 1);
+    let two = document.int_literal(&range, 2);
+    let is_one = document.int_op(
+        "filament.op.integer.eq",
+        &[&binder, &one],
+        "scalar_type/boolean",
+    );
+    let collection = document.collection_literal("bag", &range, &[&one, &two]);
+    assert_both_quantifier_forms(&mut document, &collection, "p1", &is_one);
+}
+
+fn assert_both_quantifier_forms(
+    document: &mut Document,
+    collection: &str,
+    binder: &str,
+    body: &str,
+) {
+    let all = document.quantifier("filament.op.collection.forall", collection, binder, body);
+    let any = document.quantifier("filament.op.collection.exists", collection, binder, body);
+    let all_claim = document.claim(&all);
+    let any_claim = document.claim(&any);
+    let package = document.package(&[&all_claim, &any_claim]);
+    let translated = translate_analysis_claims(&package).expect("quantifiers translate");
+
+    for position in 0..2 {
+        assert!(matches!(
+            expression(&translated, position).kind(),
+            ExpressionKind::Quantifier { .. }
+        ));
+    }
+    assert_eq!(
+        expression(&translated, 0).source().start().byte_offset(),
+        document.region(&all).0
+    );
+    assert_eq!(
+        expression(&translated, 1).source().start().byte_offset(),
+        document.region(&any).0
+    );
+    let query = lower_analysis_request(translated.request()).expect("bounded queries lower");
+    assert_eq!(query.quantifiers().len(), 2);
+    assert_eq!(query.quantifiers()[0].kind, QuantifierKind::ForAll);
+    assert_eq!(query.quantifiers()[1].kind, QuantifierKind::Exists);
+    assert!(query
+        .quantifiers()
+        .iter()
+        .all(|entry| entry.source.starts_with("semantic_graph.nodes[")));
+}
+
+#[trace("TC-030", "FR-034-AC-3")]
+#[test]
+fn package_quantifiers_reusing_a_variable_name_get_distinct_locals() {
+    let mut document = Document::new();
+    let binder = document.parameter();
+    let first = document.literal(true);
+    let second = document.literal(false);
+    let outer_domain =
+        document.collection_literal("sequence", "scalar_type/boolean", &[&first, &second]);
+    let inner_domain =
+        document.collection_literal("set", "scalar_type/boolean", &[&first, &second]);
+    let inner = document.quantifier(
+        "filament.op.collection.exists",
+        &inner_domain,
+        "p1",
+        &binder,
+    );
+    let outer = document.quantifier("filament.op.collection.forall", &outer_domain, "p1", &inner);
+    let claim = document.claim(&outer);
+    let package = document.package(&[&claim]);
+    let translated = translate_analysis_claims(&package).expect("nested quantifiers translate");
+    let ExpressionKind::Quantifier {
+        local: outer_local,
+        predicate,
+        ..
+    } = expression(&translated, 0).kind()
+    else {
+        panic!("claim is not quantified")
+    };
+    let ExpressionKind::Quantifier {
+        local: inner_local, ..
+    } = predicate.kind()
+    else {
+        panic!("outer predicate is not quantified")
+    };
+    assert_ne!(outer_local, inner_local);
+
+    let query = lower_analysis_request(translated.request()).expect("nested quantifiers lower");
+    assert_eq!(query.quantifiers().len(), 2);
+    assert_ne!(query.quantifiers()[0].source, query.quantifiers()[1].source);
+}
+
+#[trace("TC-030", "FR-034-AC-2")]
+#[test]
+fn package_quantifiers_refuse_an_unfixed_collection_at_the_quantifier() {
+    let mut document = Document::new();
+    let binder = document.parameter();
+    let collection_type = document.collection_type("sequence", "scalar_type/boolean", 2);
+    let collection = document.parameter_of(&collection_type);
+    let quantifier =
+        document.quantifier("filament.op.collection.forall", &collection, "p1", &binder);
+    let claim = document.claim(&quantifier);
+    let package = document.package(&[&claim]);
+    let quantifier_index = index(&package, &quantifier);
+    let error = translate_analysis_claims(&package).expect_err("unfixed collection refused");
+    assert_eq!(error.kind(), TranslationErrorKind::CannotLower);
+    assert_eq!(error.node(), Some(quantifier_index));
+}
+
+#[trace("TC-030", "FR-034-AC-8")]
+#[test]
+fn package_integer_collection_expansion_accepts_1024_and_refuses_1025_elements() {
+    for (count, accepted) in [(1_024, true), (1_025, false)] {
+        let mut document = Document::new();
+        let range = document.range_between("expansion", 0, 0);
+        let binder = document.parameter_of(&range);
+        let values = (0..count)
+            .map(|_| document.int_literal(&range, 0))
+            .collect::<Vec<_>>();
+        let value_refs = values.iter().map(String::as_str).collect::<Vec<_>>();
+        let collection = document.collection_literal("sequence", &range, &value_refs);
+        let zero = document.int_literal(&range, 0);
+        let predicate = document.int_op(
+            "filament.op.integer.eq",
+            &[&binder, &zero],
+            "scalar_type/boolean",
+        );
+        let quantifier = document.quantifier(
+            "filament.op.collection.forall",
+            &collection,
+            "p1",
+            &predicate,
+        );
+        let claim = document.claim(&quantifier);
+        let package = document.package(&[&claim]);
+        match translate_analysis_claims(&package) {
+            Ok(translation) if accepted => {
+                let query = lower_analysis_request(translation.request()).expect("query");
+                assert_eq!(query.quantifiers().len(), 1);
+                assert_eq!(query.quantifiers()[0].instance_count, 1_024);
+            }
+            Err(error) if !accepted => {
+                assert!(error.message().contains("expansion-ceiling"), "{error}");
+                assert!(error.clause().is_some(), "{error}");
+            }
+            Ok(_) => panic!("{count} elements unexpectedly translated"),
+            Err(error) => panic!("{count} elements unexpectedly refused: {error}"),
+        }
+    }
+}
+
+#[trace("TC-030", "FR-034-AC-6")]
+#[test]
+fn quantified_expression_tree_accepts_10000_nodes_and_refuses_10001() {
+    for (total_nodes, accepted) in [(10_000, true), (10_001, false)] {
+        let mut document = Document::new();
+        let binder = document.parameter();
+        let collection = document.collection_literal("sequence", "scalar_type/boolean", &[]);
+        let predicate = boolean_tree(
+            &mut document,
+            total_nodes - 2,
+            &binder,
+            &mut BTreeMap::new(),
+        );
+        let quantifier = document.quantifier(
+            "filament.op.collection.forall",
+            &collection,
+            "p1",
+            &predicate,
+        );
+        let claim = document.claim(&quantifier);
+        let package = document.package(&[&claim]);
+
+        match translate_analysis_claims(&package) {
+            Ok(_) if accepted => {}
+            Err(error) if !accepted => {
+                assert_eq!(error.kind(), TranslationErrorKind::ExpressionNodeBound);
+                assert_eq!(error.node(), Some(index(&package, &quantifier)));
+            }
+            Ok(_) => panic!("{total_nodes} expression nodes unexpectedly translated"),
+            Err(error) => panic!("{total_nodes} expression nodes unexpectedly refused: {error}"),
+        }
+    }
+}
+
+fn boolean_tree(
+    document: &mut Document,
+    node_count: usize,
+    binder: &str,
+    shared: &mut BTreeMap<usize, String>,
+) -> String {
+    if let Some(existing) = shared.get(&node_count) {
+        return existing.clone();
+    }
+    let label = match node_count {
+        1 => binder.to_owned(),
+        2 => {
+            let value = boolean_tree(document, 1, binder, shared);
+            document.op(NOT, &[&value])
+        }
+        count => {
+            let children = count - 1;
+            let left_count = children / 2;
+            let right_count = children - left_count;
+            let left = boolean_tree(document, left_count, binder, shared);
+            let right = boolean_tree(document, right_count, binder, shared);
+            document.op(AND, &[&left, &right])
+        }
+    };
+    shared.insert(node_count, label.clone());
+    label
+}
+
+#[trace("TC-030", "FR-034-AC-7")]
+#[test]
+fn package_quantifiers_refuse_a_text_domain_at_the_quantifier() {
+    let mut document = Document::new();
+    let text_domain = document.unsupported_type("text");
+    let _binder = document.parameter_of(&text_domain);
+    let collection = document.collection_literal("sequence", &text_domain, &[]);
+    let predicate = document.literal(true);
+    let quantifier = document.quantifier(
+        "filament.op.collection.forall",
+        &collection,
+        "p1",
+        &predicate,
+    );
+    let claim = document.claim(&quantifier);
+    let package = document.package(&[&claim]);
+    let error = translate_analysis_claims(&package).expect_err("text domain refused");
+    assert_eq!(error.kind(), TranslationErrorKind::CannotLower);
+    assert_eq!(error.node(), Some(index(&package, &quantifier)));
+}
+
+#[trace("TC-030", "FR-034-AC-7")]
+#[test]
+fn package_quantifiers_refuse_nonliteral_collection_elements_at_the_quantifier() {
+    let mut document = Document::new();
+    let binder = document.parameter();
+    let element = document.parameter();
+    let collection = document.collection_literal("sequence", "scalar_type/boolean", &[&element]);
+    let quantifier =
+        document.quantifier("filament.op.collection.forall", &collection, "p1", &binder);
+    let claim = document.claim(&quantifier);
+    let package = document.package(&[&claim]);
+    let error = translate_analysis_claims(&package).expect_err("nonliteral element refused");
+    assert_eq!(error.kind(), TranslationErrorKind::CannotLower);
+    assert_eq!(error.node(), Some(index(&package, &quantifier)));
+}
+
+#[trace("TC-030", "FR-034-AC-7")]
+#[test]
+fn package_quantifiers_refuse_rational_record_and_nested_collection_elements() {
+    for element_kind in ["rational", "record", "sequence"] {
+        let mut document = Document::new();
+        let element_type = match element_kind {
+            "rational" | "sequence" => document.unsupported_type(element_kind),
+            "record" => document.record_type("Entry", &[("flag", "scalar_type/boolean")]),
+            _ => unreachable!(),
+        };
+        let collection = document.collection_literal("bag", &element_type, &[]);
+        let predicate = document.literal(true);
+        let quantifier = document.quantifier(
+            "filament.op.collection.forall",
+            &collection,
+            "unused",
+            &predicate,
+        );
+        let claim = document.claim(&quantifier);
+        let package = document.package(&[&claim]);
+        let error = translate_analysis_claims(&package).expect_err("unsupported element refused");
+        assert_eq!(
+            error.kind(),
+            TranslationErrorKind::CannotLower,
+            "{element_kind}"
+        );
+        assert_eq!(
+            error.node(),
+            Some(index(&package, &quantifier)),
+            "{element_kind}"
+        );
+    }
+}
+
+#[trace("TC-030", "FR-034-AC-7")]
+#[test]
+fn package_collection_contains_size_and_index_operations_are_refused() {
+    for identity in [
+        "filament.op.collection.contains",
+        "filament.op.collection.size",
+        "filament.op.collection.index",
+    ] {
+        let mut document = Document::new();
+        let truth = document.literal(true);
+        let collection = document.collection_literal("sequence", "scalar_type/boolean", &[&truth]);
+        let (claim_target, expected_node) = match identity {
+            "filament.op.collection.contains" => {
+                let contains = collection_operation(
+                    &mut document,
+                    identity,
+                    "collection",
+                    &[&collection, &truth],
+                    "scalar_type/boolean",
+                    Value::Null,
+                    None,
+                );
+                (contains.clone(), contains)
+            }
+            "filament.op.collection.size" => {
+                let range = document.range_between("size", 0, 1);
+                let size = collection_operation(
+                    &mut document,
+                    identity,
+                    "collection",
+                    &[&collection],
+                    &range,
+                    json!({"kind": "type_argument", "declaration": common::id(&range)}),
+                    Some(&range),
+                );
+                let zero = document.int_literal(&range, 0);
+                let equals_zero = document.int_op(
+                    "filament.op.integer.eq",
+                    &[&size, &zero],
+                    "scalar_type/boolean",
+                );
+                (equals_zero, size)
+            }
+            _ => {
+                let range = document.range_between("index", 0, 1);
+                let zero = document.int_literal(&range, 0);
+                let index = collection_operation(
+                    &mut document,
+                    identity,
+                    "query",
+                    &[&collection, &zero],
+                    "scalar_type/boolean",
+                    json!({
+                        "kind": "element",
+                        "declaration": common::id("composite_type/sequence")
+                    }),
+                    Some("composite_type/sequence"),
+                );
+                (index.clone(), index)
+            }
+        };
+        let claim = document.claim(&claim_target);
+        let package = document.package(&[&claim]);
+        let error = translate_analysis_claims(&package).expect_err(identity);
+        assert_eq!(error.kind(), TranslationErrorKind::CannotLower, "{error}");
+        assert_eq!(
+            error.node(),
+            Some(index(&package, &expected_node)),
+            "{identity}"
+        );
+    }
+}
+
+#[trace("TC-030", "FR-034-AC-7")]
+#[test]
+fn a_collection_literal_outside_a_quantifier_domain_is_refused_at_the_collection() {
+    let mut document = Document::new();
+    let truth = document.literal(true);
+    let collection = document.collection_literal("sequence", "scalar_type/boolean", &[&truth]);
+    let claim = document.claim(&truth);
+    document.set_body(&claim, common::reference(&collection), &[&collection]);
+    let package = document.package(&[&claim]);
+    let error = translate_analysis_claims(&package).expect_err("top-level collection refused");
+    assert_eq!(error.kind(), TranslationErrorKind::CannotLower);
+    assert_eq!(error.node(), Some(index(&package, &collection)));
+}
+
+#[trace("TC-030", "FR-009-AC-21", "FR-012-AC-4", "FR-034-AC-5")]
+#[test]
+fn package_translation_without_quantifiers_keeps_the_golden_queries() {
+    let mut document = Document::new();
+    let left = document.parameter();
+    let right = document.parameter();
+    let negated = document.op(NOT, &[&right]);
+    let body = document.op(AND, &[&left, &negated]);
+    let claim = document.claim(&body);
+    let package = document.package(&[&claim]);
+    let translated = translate_analysis_claims(&package).expect("Boolean fixture translates");
+    let boolean_query =
+        lower_analysis_request(translated.request()).expect("Boolean fixture lowers");
+    assert!(boolean_query.quantifiers().is_empty());
+    assert_eq!(
+        boolean_query.query(),
+        include_str!("golden/package-boolean-v2.smt2")
+    );
+
+    let mut document = Document::new();
+    let range = document.range_between("golden-integer", 0, 10);
+    let value = document.parameter_of(&range);
+    let ten = document.int_literal(&range, 10);
+    let body = document.int_op(
+        "filament.op.integer.eq",
+        &[&value, &ten],
+        "scalar_type/boolean",
+    );
+    let claim = document.claim(&body);
+    let package = document.package(&[&claim]);
+    let translated = translate_analysis_claims(&package).expect("integer fixture translates");
+    let integer_query =
+        lower_analysis_request(translated.request()).expect("integer fixture lowers");
+    assert!(integer_query.quantifiers().is_empty());
+    assert_eq!(
+        integer_query.query(),
+        include_str!("golden/package-integer-v2.smt2")
+    );
+}
+
+fn collection_operation(
+    document: &mut Document,
+    identity: &str,
+    operator: &str,
+    arguments: &[&str],
+    result_type: &str,
+    member: Value,
+    member_declaration: Option<&str>,
+) -> String {
+    let label = document.fresh("expression/application");
+    let body = json!({
+        "term": "application",
+        "operator": operator,
+        "operation": {"identity": identity, "laws": [], "mode": null,
+            "member": member, "leaves": []},
+        "result_type": common::id(result_type),
+        "arguments": arguments.iter().map(|argument| common::reference(argument)).collect::<Vec<_>>(),
+    });
+    let dependencies = arguments
+        .iter()
+        .copied()
+        .chain(member_declaration)
+        .collect::<Vec<_>>();
+    document.node(
+        &label,
+        "expression",
+        "expression",
+        operator,
+        result_type,
+        &dependencies,
+        body,
+    );
+    label
+}
 
 #[trace("FR-009-AC-20")]
 #[test]

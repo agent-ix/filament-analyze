@@ -15,20 +15,24 @@ use std::{
 use filament_contract_model::{
     BooleanOperator, BoundedDomainForm, CheckedJson, CheckedLiteralValue, CheckedNodeId,
     CheckedNodeKind, CheckedSemanticNodeV2, CheckedTerm, ClaimForm, Clause, ClauseId, ClauseKind,
-    ComparisonOperator, CompositeTypeForm, ContractPackage, ContractPackageV1,
+    CollectionType, ComparisonOperator, CompositeTypeForm, ContractPackage, ContractPackageV1,
     DeclarationEnvironment, Diagnostic, EnumDeclaration, EnumVariantDeclaration, ExecutionPoint,
-    ExecutionPointName, Expression, ExpressionKind, IntegerDomain, IntegerType, NumericOperator,
-    OverflowPolicy, PackageId, RecordDeclaration, RecordFieldDeclaration, Requirement,
-    RequirementId, RequirementRef, RequirementRevision, ScalarTypeForm, SchemaVersion,
-    SourceDocumentId, SourceIdentity, SourceLocation, SourceRevision, SourceSpan, StateObservation,
-    SymbolName, TypeDeclaration, TypedExpression, ValueDeclaration, ValueDeclarationKind,
-    ValueForm, ValueType, MAX_EXPRESSION_NODES,
+    ExecutionPointName, Expression, ExpressionForm, ExpressionKind, IntegerDomain, IntegerType,
+    NumericOperator, OverflowPolicy, PackageId, QuantifierDomain, QuantifierKind,
+    RecordDeclaration, RecordFieldDeclaration, Requirement, RequirementId, RequirementRef,
+    RequirementRevision, ScalarTypeForm, SchemaVersion, SourceDocumentId, SourceIdentity,
+    SourceLocation, SourceRevision, SourceSpan, StateObservation, SymbolName, TypeDeclaration,
+    TypedExpression, ValueDeclaration, ValueDeclarationKind, ValueForm, ValueType,
+    MAX_EXPRESSION_NODES,
 };
+
+use ix_trace_rs::implements;
 
 use crate::{
     lower_boolean_statements, smt::MAX_EXPRESSION_DEPTH, AnalysisRequest, RunPackageRequest,
     StatementInput,
 };
+use crate::{AnalysisFormula, CollectionKind, DomainElement, DomainQuantifier};
 
 const SOURCE_DOCUMENT: &str = "contract-package";
 const REQUIREMENT_ID: &str = "analysis";
@@ -63,6 +67,8 @@ const OP_STRUCTURAL_NE: &str = "filament.op.structural.ne";
 const OP_RECORD_PROJECT: &str = "filament.op.record.project";
 const OP_OPTION_PRESENT: &str = "filament.op.option.present";
 const OP_OPTION_VALUE: &str = "filament.op.option.value";
+const OP_FORALL: &str = "filament.op.collection.forall";
+const OP_EXISTS: &str = "filament.op.collection.exists";
 
 /// Why a package cannot be translated. Each kind is a distinct, stable cause.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -259,6 +265,14 @@ pub(crate) fn analysis_claim_indices(package: &ContractPackageV1) -> Vec<usize> 
 /// remaining claims are the approved set. Consistency analyzes only selected claims. Contradiction
 /// compares approved claims on the left with draft claims on the right. Redundancy checks the one
 /// selected draft against all remaining claims as peers.
+#[implements("FR-034-AC-1")]
+#[implements("FR-034-AC-2")]
+#[implements("FR-034-AC-3")]
+#[implements("FR-034-AC-4")]
+#[implements("FR-034-AC-5")]
+#[implements("FR-034-AC-6")]
+#[implements("FR-034-AC-7")]
+#[implements("FR-034-AC-8")]
 pub fn translate_analysis_claims_for_request(
     package: &ContractPackageV1,
     selected_claims: Option<&BTreeSet<usize>>,
@@ -371,6 +385,8 @@ pub fn translate_analysis_claims_for_request(
         total: 0,
         parameters: BTreeMap::new(),
         saw_parameter: false,
+        locals: Vec::new(),
+        quantifier_kinds: BTreeMap::new(),
         span: zero_span(&source)?,
     };
     let mut bodies = Vec::with_capacity(translated_claims.len());
@@ -393,6 +409,7 @@ pub fn translate_analysis_claims_for_request(
     let revision = RequirementRevision::new(1).map_err(|d| construction(&d))?;
     let owner = RequirementRef::new(package_id.clone(), requirement_id.clone(), revision);
     let types = std::mem::take(&mut walker.types).into_values().collect();
+    let quantifier_kinds = std::mem::take(&mut walker.quantifier_kinds);
     let environment = DeclarationEnvironment::new(owner, types, declarations, vec![])
         .map_err(|diagnostics| first_construction(&diagnostics))?;
     let anchor = ExecutionPoint::Handler {
@@ -425,9 +442,14 @@ pub fn translate_analysis_claims_for_request(
     let requirement = &contract.requirements()[0];
     let mut statements = Vec::with_capacity(translated_claims.len());
     for (&claim, clause) in translated_claims.iter().zip(requirement.clauses()) {
-        let statement =
+        let mut statement =
             StatementInput::from_clause(&contract, requirement, clause, environment.clone())
                 .map_err(|errors| first_lowering(claim, &errors))?;
+        if let Some(formula) = package_formula(statement.expression(), &quantifier_kinds) {
+            statement = statement
+                .with_formula(formula)
+                .map_err(|errors| first_lowering(claim, &errors))?;
+        }
         lower_boolean_statements(std::slice::from_ref(&statement), &[])
             .map_err(|errors| first_lowering(claim, &errors))?;
         statements.push(statement);
@@ -556,16 +578,22 @@ struct SpanSource<'a> {
 }
 
 impl SpanSource<'_> {
-    /// Whether the node has a first source region.
-    fn has_region(&self, node: usize) -> bool {
+    /// The first authored source region for a graph node.
+    fn region(&self, node: usize) -> Option<&filament_contract_model::CheckedSourceRegion> {
         self.package
             .wire()
             .source_map
             .nodes
-            .get(node)
-            .and_then(|entry| entry.occurrences.first())
-            .and_then(|occurrence| occurrence.regions.first())
-            .is_some()
+            .get(node)?
+            .occurrences
+            .first()?
+            .regions
+            .first()
+    }
+
+    /// Whether the node has a first source region.
+    fn has_region(&self, node: usize) -> bool {
+        self.region(node).is_some()
     }
 
     fn node(&self, node: usize) -> Result<SourceSpan, TranslationError> {
@@ -620,6 +648,10 @@ struct Walker<'a> {
     total: u32,
     /// Distinct `value/parameter` nodes reached by any claim, with their declared type.
     parameters: BTreeMap<usize, ValueType>,
+    /// Parameters currently bound by package quantifiers, innermost first.
+    locals: Vec<(usize, SymbolName)>,
+    /// Domain collection metadata that the contract expression's collection type does not retain.
+    quantifier_kinds: BTreeMap<SymbolName, (CollectionKind, String)>,
     /// Whether a parameter was produced since the flag was last cleared.
     saw_parameter: bool,
     /// The span every `Expression` of the current claim carries.
@@ -627,15 +659,29 @@ struct Walker<'a> {
 }
 
 impl<'a> Walker<'a> {
+    #[implements("FR-034-AC-7")]
     fn claim(&mut self, claim: usize, span: SourceSpan) -> Result<Expression, TranslationError> {
         self.span = span;
         self.produced = 0;
         self.in_progress.clear();
         self.entered.clear();
+        self.locals.clear();
         let Some(body) = self.terms[claim] else {
             return Err(cannot_lower(claim, "the node has no typed body"));
         };
         if !self.is_boolean_term(body) {
+            if let CheckedTerm::Reference { target } = body {
+                if let Some(node) = self.lookup(target) {
+                    if self.kind(node)
+                        == Some(CheckedNodeKind::Expression(ExpressionForm::Collection))
+                    {
+                        return Err(cannot_lower(
+                            node,
+                            "a collection term is only admitted in a quantifier domain",
+                        ));
+                    }
+                }
+            }
             return Err(TranslationError::at_node(
                 TranslationErrorKind::NonBooleanClaim,
                 claim,
@@ -786,6 +832,28 @@ impl<'a> Walker<'a> {
         } else {
             Ok(self.span.clone())
         }
+    }
+
+    fn quantifier_refusal(
+        &self,
+        node: usize,
+        reason: &str,
+        detail: &str,
+    ) -> TranslationError {
+        let Some(region) = self.spans.region(node) else {
+            return TranslationError::at_node(
+                TranslationErrorKind::SourceRegion,
+                node,
+                "the node has no source region",
+            );
+        };
+        cannot_lower(
+            node,
+            format!(
+                "{reason}: {detail} (source {}:{} bytes {}..{})",
+                region.source.authority, region.source.identity, region.start, region.end
+            ),
+        )
     }
 
     /// The type node a term of an application argument has: the `semantic_type` of a reference
@@ -979,6 +1047,7 @@ impl<'a> Walker<'a> {
 
     /// Follows reference hops to an expression or literal node in a loop, so that a
     /// long chain of references does not deepen the stack; only operands recurse.
+    #[implements("FR-034-AC-3")]
     fn follow(
         &mut self,
         mut term: &'a CheckedTerm,
@@ -1007,6 +1076,16 @@ impl<'a> Walker<'a> {
                     node = target_node;
                 }
                 Some(CheckedNodeKind::Value(ValueForm::Parameter)) => {
+                    if let Some((_, name)) = self
+                        .locals
+                        .iter()
+                        .rev()
+                        .find(|(parameter, _)| *parameter == target_node)
+                    {
+                        let name = name.clone();
+                        self.count(node, depth)?;
+                        return Ok(self.make(ExpressionKind::LocalReference { name }));
+                    }
                     let nodes = self.nodes;
                     let semantic = &nodes[target_node].semantic_type;
                     let value_type = match want {
@@ -1048,6 +1127,10 @@ impl<'a> Walker<'a> {
         }
     }
 
+    #[implements("FR-034-AC-1")]
+    #[implements("FR-034-AC-2")]
+    #[implements("FR-034-AC-7")]
+    #[implements("FR-034-AC-8")]
     fn produce(
         &mut self,
         term: &'a CheckedTerm,
@@ -1111,6 +1194,9 @@ impl<'a> Walker<'a> {
                 let Some(identity) = operation.identity() else {
                     return Err(cannot_lower(node, "the operation has no catalog identity"));
                 };
+                if matches!(identity, OP_FORALL | OP_EXISTS) {
+                    return self.quantifier(identity, arguments, result_type, node, depth, want);
+                }
                 let Some(operation_kind) = Operation::from_identity(identity) else {
                     let message = match identity {
                         OP_INT_DIV | OP_INT_REM | OP_INT_MOD => {
@@ -1177,6 +1263,289 @@ impl<'a> Walker<'a> {
         }
     }
 
+    #[implements("FR-034-AC-1")]
+    #[implements("FR-034-AC-2")]
+    #[implements("FR-034-AC-6")]
+    #[implements("FR-034-AC-7")]
+    #[implements("FR-034-AC-8")]
+    fn quantifier(
+        &mut self,
+        identity: &str,
+        arguments: &'a [CheckedTerm],
+        result_type: &'a CheckedNodeId,
+        node: usize,
+        depth: usize,
+        want: Class,
+    ) -> Result<Expression, TranslationError> {
+        if want != Class::Boolean || arguments.len() != 2 || !self.is_boolean_type(result_type) {
+            return Err(cannot_lower(
+                node,
+                "the quantifier is not a Boolean binary operation",
+            ));
+        }
+        let (domain_node, domain_arguments, domain_result, domain_identity) = match &arguments[0] {
+            CheckedTerm::Reference { target } => {
+                let Some(domain_node) = self.lookup(target) else {
+                    return Err(cannot_lower(node, "the quantifier domain is not a node"));
+                };
+                let Some(CheckedTerm::Application {
+                    operation,
+                    arguments,
+                    result_type,
+                    ..
+                }) = self.terms[domain_node]
+                else {
+                    return Err(cannot_lower(
+                        node,
+                        "the quantifier domain is not a collection literal",
+                    ));
+                };
+                let Some(domain_identity) = operation.identity() else {
+                    return Err(cannot_lower(node, "the collection has no catalog identity"));
+                };
+                (
+                    domain_node,
+                    arguments.as_slice(),
+                    result_type,
+                    domain_identity,
+                )
+            }
+            CheckedTerm::Application {
+                operation,
+                arguments,
+                result_type,
+                ..
+            } => {
+                let Some(domain_identity) = operation.identity() else {
+                    return Err(cannot_lower(node, "the collection has no catalog identity"));
+                };
+                (node, arguments.as_slice(), result_type, domain_identity)
+            }
+            _ => {
+                return Err(cannot_lower(
+                    node,
+                    "the quantifier domain is not a collection literal",
+                ))
+            }
+        };
+        let collection_form = match domain_identity {
+            "filament.op.collection.set" => CompositeTypeForm::Set,
+            "filament.op.collection.ordered_set" => CompositeTypeForm::OrderedSet,
+            "filament.op.collection.sequence" => CompositeTypeForm::Sequence,
+            "filament.op.collection.bag" => CompositeTypeForm::Bag,
+            _ => {
+                return Err(cannot_lower(
+                    node,
+                    "the quantifier domain is not an admitted collection",
+                ))
+            }
+        };
+        let Some(domain_type_node) = self.lookup(domain_result) else {
+            return Err(cannot_lower(node, "the collection type is not a node"));
+        };
+        let collection_type_id = if self.kind(domain_type_node)
+            == Some(CheckedNodeKind::BoundedDomain(
+                BoundedDomainForm::CollectionBounds,
+            )) {
+            &self.nodes[domain_type_node].semantic_type
+        } else {
+            domain_result
+        };
+        let Some(collection_type_node) = self.lookup(collection_type_id) else {
+            return Err(cannot_lower(node, "the collection type is not a node"));
+        };
+        if self.kind(collection_type_node) != Some(CheckedNodeKind::CompositeType(collection_form))
+        {
+            return Err(cannot_lower(
+                node,
+                "the collection constructor and type disagree",
+            ));
+        }
+        let Some(CheckedTerm::Aggregate { members }) = self.terms[collection_type_node] else {
+            return Err(cannot_lower(
+                node,
+                "the collection type has no element type",
+            ));
+        };
+        let [CheckedTerm::Reference {
+            target: element_type_id,
+        }] = members.as_slice()
+        else {
+            return Err(cannot_lower(
+                node,
+                "the collection type has no single element type",
+            ));
+        };
+        let Some(element_type_node) = self.lookup(element_type_id) else {
+            return Err(cannot_lower(
+                node,
+                "the collection element type is not a node",
+            ));
+        };
+        let element_type_kind = self.kind(element_type_node);
+        if !matches!(
+            element_type_kind,
+            Some(
+                CheckedNodeKind::ScalarType(ScalarTypeForm::Boolean | ScalarTypeForm::Enum)
+                    | CheckedNodeKind::BoundedDomain(BoundedDomainForm::IntegerRange)
+            )
+        ) {
+            if element_type_kind
+                == Some(CheckedNodeKind::BoundedDomain(BoundedDomainForm::TextBounds))
+            {
+                return Err(self.quantifier_refusal(
+                    node,
+                    "text-domain",
+                    "the collection element type is not supported",
+                ));
+            }
+            return Err(cannot_lower(
+                node,
+                "the collection element type is not supported",
+            ));
+        }
+        let element_type = self.payload(element_type_id, node, 1)?;
+
+        let mut items = Vec::with_capacity(domain_arguments.len());
+        for item in domain_arguments {
+            match item {
+                CheckedTerm::Literal { .. } => {}
+                CheckedTerm::Reference { target } => {
+                    let Some(position) = self.lookup(target) else {
+                        return Err(cannot_lower(
+                            node,
+                            "the collection contains a missing element",
+                        ));
+                    };
+                    if !matches!(
+                        self.kind(position),
+                        Some(CheckedNodeKind::Value(
+                            ValueForm::Literal | ValueForm::EnumValue
+                        ))
+                    ) {
+                        return Err(cannot_lower(
+                            node,
+                            "the collection contains a non-literal element",
+                        ));
+                    }
+                    let _ = position;
+                }
+                _ => {
+                    return Err(cannot_lower(
+                        node,
+                        "the collection contains a non-literal element",
+                    ))
+                }
+            }
+            if self.term_type(item) != Some(element_type_id) {
+                return Err(cannot_lower(
+                    node,
+                    "the collection literal element has a different type",
+                ));
+            }
+            let class = self.class_of_type(element_type_id).ok_or_else(|| {
+                cannot_lower(node, "the collection element type is not supported")
+            })?;
+            items.push(self.expression(item, domain_node, depth + 2, class)?);
+        }
+        let maximum_items = u32::try_from(items.len().max(1))
+            .map_err(|_| cannot_lower(node, "the collection literal exceeds the item bound"))?;
+        let collection_value_type = CollectionType::new(element_type.clone(), maximum_items)
+            .map_err(|diagnostic| cannot_lower(node, diagnostic.message))?;
+        self.count(domain_node, depth + 1)?;
+        let collection = Expression::new(
+            ExpressionKind::CollectionLiteral {
+                value_type: collection_value_type,
+                items,
+            },
+            self.spans.node(domain_node)?,
+        );
+
+        let CheckedTerm::Binding { name, value, .. } = &arguments[1] else {
+            return Err(cannot_lower(
+                node,
+                "the quantifier body is not a named binder",
+            ));
+        };
+        let binder_name = name.as_ref();
+        let mut binder = None;
+        for (position, kind) in self.kinds.iter().enumerate() {
+            if *kind != Some(CheckedNodeKind::Value(ValueForm::Parameter)) {
+                continue;
+            }
+            let Some(CheckedTerm::Aggregate { members }) = self.terms[position] else {
+                continue;
+            };
+            let parameter_name = members.iter().find_map(|member| match member {
+                CheckedTerm::Binding { name, value, .. } if name.as_ref() == "name" => {
+                    match value.as_ref() {
+                        CheckedTerm::Literal { value, .. } => value.as_str(),
+                        _ => None,
+                    }
+                }
+                _ => None,
+            });
+            if parameter_name == Some(binder_name) {
+                if binder.replace(position).is_some() {
+                    return Err(cannot_lower(
+                        node,
+                        "the quantifier binder name is ambiguous",
+                    ));
+                }
+            }
+        }
+        let Some(binder_node) = binder else {
+            return Err(cannot_lower(node, "the quantifier binder has no parameter"));
+        };
+        if self.nodes[binder_node].semantic_type != *element_type_id || !self.is_boolean_term(value)
+        {
+            return Err(cannot_lower(
+                node,
+                "the quantifier binder or body has the wrong type",
+            ));
+        }
+        let local = SymbolName::new(format!("q{node}_{binder_name}"))
+            .map_err(|diagnostic| cannot_lower(node, diagnostic.message))?;
+        let collection_kind = match collection_form {
+            CompositeTypeForm::Set => CollectionKind::Set,
+            CompositeTypeForm::OrderedSet => CollectionKind::OrderedSet,
+            CompositeTypeForm::Sequence => CollectionKind::Sequence,
+            CompositeTypeForm::Bag => CollectionKind::Bag,
+            _ => {
+                return Err(cannot_lower(
+                    node,
+                    "the quantifier domain is not a collection",
+                ))
+            }
+        };
+        self.quantifier_kinds.insert(
+            local.clone(),
+            (collection_kind, format!("semantic_graph.nodes[{node}]")),
+        );
+        let local_source = self.spans.node(binder_node)?;
+        self.locals.push((binder_node, local.clone()));
+        let predicate = self.expression(value, node, depth + 2, Class::Boolean);
+        self.locals.pop();
+        let predicate = predicate?;
+        self.count(node, depth)?;
+        let quantifier = if identity == OP_FORALL {
+            QuantifierKind::ForAll
+        } else {
+            QuantifierKind::Exists
+        };
+        Ok(Expression::new(
+            ExpressionKind::Quantifier {
+                quantifier,
+                domain: QuantifierDomain::Elements,
+                collection: Box::new(collection),
+                local,
+                local_source,
+                predicate: Box::new(predicate),
+            },
+            self.spans.node(node)?,
+        ))
+    }
+
     /// Counts one produced `Expression` at `depth`, refusing the first over a bound.
     fn count(&mut self, node: usize, depth: usize) -> Result<(), TranslationError> {
         self.produced = self.produced.saturating_add(1);
@@ -1207,6 +1576,86 @@ impl<'a> Walker<'a> {
 
     fn make(&self, kind: ExpressionKind) -> Expression {
         Expression::new(kind, self.span.clone())
+    }
+}
+
+#[implements("FR-034-AC-1")]
+#[implements("FR-034-AC-4")]
+fn package_formula(
+    expression: &Expression,
+    quantifier_kinds: &BTreeMap<SymbolName, (CollectionKind, String)>,
+) -> Option<AnalysisFormula> {
+    let term = |expression: &Expression| AnalysisFormula::Term(Box::new(expression.clone()));
+    match expression.kind() {
+        ExpressionKind::Quantifier {
+            quantifier,
+            collection,
+            local,
+            predicate,
+            ..
+        } => {
+            let (kind, identity) = quantifier_kinds.get(local)?;
+            let ExpressionKind::CollectionLiteral { value_type, items } = collection.kind() else {
+                return None;
+            };
+            let elements = items
+                .iter()
+                .map(|item| match item.kind() {
+                    ExpressionKind::BooleanLiteral { value } => {
+                        Some(DomainElement::Boolean(*value))
+                    }
+                    ExpressionKind::IntegerLiteral { value, .. } => {
+                        Some(DomainElement::Integer(*value))
+                    }
+                    ExpressionKind::EnumLiteral {
+                        enumeration,
+                        variant,
+                    } => Some(DomainElement::Enum {
+                        enumeration: enumeration.clone(),
+                        variant: variant.clone(),
+                    }),
+                    _ => None,
+                })
+                .collect::<Option<Vec<_>>>()?;
+            let body =
+                package_formula(predicate, quantifier_kinds).unwrap_or_else(|| term(predicate));
+            Some(AnalysisFormula::Domain(Box::new(DomainQuantifier {
+                identity: identity.clone(),
+                kind: *quantifier,
+                local: local.clone(),
+                local_type: value_type.element().clone(),
+                domain: crate::QuantifierDomain::Collection {
+                    kind: *kind,
+                    elements,
+                },
+                body,
+            })))
+        }
+        ExpressionKind::BooleanNot { operand } => package_formula(operand, quantifier_kinds)
+            .map(|operand| AnalysisFormula::Not(Box::new(operand))),
+        ExpressionKind::Boolean {
+            operator,
+            left,
+            right,
+        } => {
+            let left_formula = package_formula(left, quantifier_kinds);
+            let right_formula = package_formula(right, quantifier_kinds);
+            if left_formula.is_none() && right_formula.is_none() {
+                return None;
+            }
+            let left = Box::new(left_formula.unwrap_or_else(|| term(left)));
+            let right = Box::new(right_formula.unwrap_or_else(|| term(right)));
+            Some(match operator {
+                BooleanOperator::ShortCircuitAnd | BooleanOperator::TotalAnd => {
+                    AnalysisFormula::And(left, right)
+                }
+                BooleanOperator::ShortCircuitOr | BooleanOperator::TotalOr => {
+                    AnalysisFormula::Or(left, right)
+                }
+                BooleanOperator::Implication => AnalysisFormula::Implies(left, right),
+            })
+        }
+        _ => None,
     }
 }
 

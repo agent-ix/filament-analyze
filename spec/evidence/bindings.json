@@ -1,4 +1,112 @@
 {
-  "bindings": [],
+  "bindings": [
+    {
+      "obligation": "FR-005-AC-3",
+      "suite": "SUITE-004",
+      "symbols": [
+        "analysis_semantics::official_z3_cvc5_differential_corpus_agrees"
+      ]
+    },
+    {
+      "obligation": "FR-010-AC-7",
+      "suite": "SUITE-004",
+      "symbols": [
+        "integer_lowering::real_z3_cvc5_decide_integer_fixtures_identically"
+      ]
+    },
+    {
+      "obligation": "FR-011-AC-1",
+      "suite": "SUITE-004",
+      "symbols": [
+        "integer_lowering::real_z3_cvc5_decide_integer_fixtures_identically"
+      ]
+    },
+    {
+      "obligation": "FR-011-AC-11",
+      "suite": "SUITE-004",
+      "symbols": [
+        "integer_lowering::real_z3_cvc5_decide_integer_fixtures_identically"
+      ]
+    },
+    {
+      "obligation": "FR-012-AC-8",
+      "suite": "SUITE-004",
+      "symbols": [
+        "package_runner::real_solvers_agree_with_the_controlled_run_on_the_dose_fixtures"
+      ]
+    },
+    {
+      "obligation": "FR-020-AC-1",
+      "suite": "SUITE-004",
+      "symbols": [
+        "enum_lowering::real_z3_cvc5_decide_membership_fixtures"
+      ]
+    },
+    {
+      "obligation": "FR-020-AC-3",
+      "suite": "SUITE-004",
+      "symbols": [
+        "record_option_lowering::real_z3_cvc5_decide_record_and_option_fixtures"
+      ]
+    },
+    {
+      "obligation": "FR-021-AC-1",
+      "suite": "SUITE-004",
+      "symbols": [
+        "datatype_replay::real_z3_cvc5_models_replay"
+      ]
+    },
+    {
+      "obligation": "FR-021-AC-3",
+      "suite": "SUITE-004",
+      "symbols": [
+        "datatype_replay::real_z3_cvc5_models_replay"
+      ]
+    },
+    {
+      "obligation": "FR-022-AC-1",
+      "suite": "SUITE-004",
+      "symbols": [
+        "datatype_translation::the_official_engines_decide_the_enum_membership_fixtures"
+      ]
+    },
+    {
+      "obligation": "FR-031-AC-1",
+      "suite": "SUITE-004",
+      "symbols": [
+        "range_quantifier_lowering::real_z3_cvc5_decide_domain_fixtures"
+      ]
+    },
+    {
+      "obligation": "FR-031-AC-2",
+      "suite": "SUITE-004",
+      "symbols": [
+        "range_quantifier_lowering::real_z3_cvc5_decide_domain_fixtures"
+      ]
+    },
+    {
+      "obligation": "FR-032-AC-1",
+      "suite": "SUITE-004",
+      "symbols": [
+        "range_quantifier_lowering::real_z3_cvc5_decide_range_fixtures"
+      ]
+    },
+    {
+      "obligation": "FR-033-AC-8",
+      "suite": "SUITE-004",
+      "symbols": [
+        "range_quantifier_lowering::real_z3_cvc5_decide_domain_fixtures",
+        "range_quantifier_lowering::real_z3_cvc5_decide_range_fixtures"
+      ]
+    },
+    {
+      "obligation": "NFR-032-AC-3",
+      "suite": "SUITE-004",
+      "symbols": [
+        "range_quantifier_lowering::real_solver_timeout_on_a_quantified_query_is_inconclusive",
+        "range_quantifier_lowering::real_z3_cvc5_decide_range_fixtures"
+      ]
+    }
+  ],
   "schemaVersion": 1
 }

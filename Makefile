@@ -25,7 +25,7 @@ help:
 	@echo "  make fmt-check        - Verify formatting (CI gate)"
 	@echo "  make lint             - Clippy with -D warnings"
 	@echo "  make test             - cargo test"
-	@echo "  make real-tool-test   - Ignored real Z3/cvc5 tests with retained SUITE-004 results"
+	@echo "  make real-tool-test   - Real Z3/cvc5 tests with retained SUITE-004 results"
 	@echo "  make spec             - Quire-validate the specification and plan (requires QUIRE_MODULE_ARGS with explicit --module paths)"
 	@echo "  make msrv             - Test the locked graph with Rust 1.98.1"
 	@echo "  make rustdoc          - Build warning-free public documentation"

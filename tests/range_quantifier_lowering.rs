@@ -395,10 +395,10 @@ fn every_bounded_quantifier_carries_its_interval_guard() {
     assert!(text.contains("(exists ((bv_0 Int)) (and (<= 0 bv_0) (<= bv_0 2000)"));
 }
 
-/// FR-032-AC-6: a bounded quantifier whose body mentions an enum declares `UFDTLIA`.
+/// FR-032-AC-6: a bounded quantifier with a datatype declares the interoperable logic `ALL`.
 #[trace("TC-030", "FR-032-AC-6", "FR-005-AC-6")]
 #[test]
-fn bounded_quantifier_over_an_enum_body_declares_ufdtlia() {
+fn bounded_quantifier_over_an_enum_body_declares_all_logic() {
     let enum_body = AnalysisFormula::And(
         Box::new(below_x()),
         Box::new(term(compare(
@@ -414,13 +414,13 @@ fn bounded_quantifier_over_an_enum_body_declares_ufdtlia() {
         "enum",
         literal_range("Q-enum", QuantifierKind::Exists, 0, 5000, enum_body.clone()),
     );
-    assert_eq!(query.logic(), "UFDTLIA");
-    assert!(query.query().contains("(set-logic UFDTLIA)"));
+    assert_eq!(query.logic(), "ALL");
+    assert!(query.query().contains("(set-logic ALL)"));
     let expanded = lower_one(
         "enum-small",
         literal_range("Q-enum", QuantifierKind::Exists, 0, 5, enum_body),
     );
-    assert_eq!(expanded.logic(), "QF_UFDTLIA");
+    assert_eq!(expanded.logic(), "ALL");
 }
 
 /// NFR-030-AC-1: instance counts summing to exactly 1,024 expand; one more takes the bounded
@@ -1143,7 +1143,7 @@ fn bounded_query_reports_the_quantified_logic_and_validation_requires_it() {
     assert_eq!(value["logic"], "LIA");
     validate_report_document(&report).expect("document valid");
     validate_differential_report(&report, &query, &run).expect("valid");
-    for wrong in ["QF_LIA", "UFDTLIA", "QF_UFDTLIA", "QF_UF"] {
+    for wrong in ["QF_LIA", "ALL", "QF_UFDTLIA", "QF_UF"] {
         let mut mutated = value.clone();
         mutated["logic"] = serde_json::Value::String(wrong.to_owned());
         let bytes = serde_json::to_vec(&mutated).expect("bytes");
@@ -1155,7 +1155,7 @@ fn bounded_query_reports_the_quantified_logic_and_validation_requires_it() {
 /// FR-032-AC-1 (controlled responses): a satisfiable expanded query is replayed exactly, because
 /// expansion is quantifier-free: a model satisfying every instance verifies and one that fails
 /// the expanded disjunction does not.
-#[trace("TC-030", "FR-032-AC-1", "FR-032-AC-3")]
+#[trace("TC-030", "FR-032-AC-1", "FR-032-AC-3", "FR-033-AC-5")]
 #[test]
 fn expanded_range_models_replay_against_every_instance() {
     let query = analysis_query(vec![statement(
@@ -1404,7 +1404,7 @@ fn bounded_quantifier_over_an_enum_body_is_verified_on_first_match() {
         "enum-model",
         literal_range("Q-enum", QuantifierKind::Exists, 0, 5000, enum_body),
     )]);
-    assert_eq!(query.logic(), "UFDTLIA");
+    assert_eq!(query.logic(), "ALL");
     let sort = &query.enum_sorts()[0];
     let admin = sort
         .constructors
@@ -1707,14 +1707,16 @@ fn enum_and_collection_domains_cover_complementary_outcomes() {
     );
 }
 
-/// FR-032-AC-1: real solvers decide the expanded and bounded fixtures; run only where installed.
-#[trace("TC-030", "FR-032-AC-1", "NFR-032-AC-3")]
+/// FR-032-AC-1 and FR-033-AC-8: real solvers decide range fixtures and verify returned models.
+#[trace("TC-030", "FR-032-AC-1", "FR-033-AC-8", "NFR-032-AC-3")]
 #[test]
-#[ignore = "requires official Z3 and cvc5 executables at FILAMENT_Z3 and FILAMENT_CVC5"]
 fn real_z3_cvc5_decide_range_fixtures() {
-    let z3_path = PathBuf::from(std::env::var_os("FILAMENT_Z3").expect("FILAMENT_Z3 is required"));
-    let cvc5_path =
-        PathBuf::from(std::env::var_os("FILAMENT_CVC5").expect("FILAMENT_CVC5 is required"));
+    let z3_path = PathBuf::from(
+        std::env::var_os("FILAMENT_Z3").expect("solver path FILAMENT_Z3 is required"),
+    );
+    let cvc5_path = PathBuf::from(
+        std::env::var_os("FILAMENT_CVC5").expect("solver path FILAMENT_CVC5 is required"),
+    );
     let z3 = SolverConfig::new(SolverEngine::Z3, z3_path, AdapterLimits::default()).expect("z3");
     let cvc5 =
         SolverConfig::new(SolverEngine::Cvc5, cvc5_path, AdapterLimits::default()).expect("cvc5");
@@ -1763,7 +1765,7 @@ fn real_z3_cvc5_decide_range_fixtures() {
         let report = render_differential_report(query, &run).expect("report");
         validate_differential_report(&report, query, &run).expect("valid report");
     }
-    assert_eq!(unsat[2].logic(), "UFDTLIA");
+    assert_eq!(unsat[2].logic(), "ALL");
     // Satisfiable bounded and expanded fixtures: both solvers agree on sat, and both returned
     // models verify only after replaying every original quantified assertion.
     let sat = [
@@ -2194,7 +2196,7 @@ fn enum_domains_lower_to_the_golden_query() {
         ])
     };
     let query = build();
-    assert_eq!(query.logic(), "QF_UFDTLIA");
+    assert_eq!(query.logic(), "ALL");
     assert_eq!(query.query(), include_str!("golden/enum-domain-v2.smt2"));
     assert_eq!(query.query(), build().query());
     let entries = query.quantifiers();
@@ -2654,7 +2656,7 @@ fn a_domain_inside_a_bounded_range_counts_from_its_own_width() {
             (QuantifierEncoding::Expanded, 2)
         ]
     );
-    assert_eq!(query.logic(), "UFDTLIA");
+    assert_eq!(query.logic(), "ALL");
 }
 
 /// FR-030-AC-6: a collection's element sort must be encodable even when its literal is empty.
@@ -2791,14 +2793,16 @@ fn an_unsat_response_on_a_domain_fixture_is_a_refutation() {
 }
 
 /// FR-031-AC-1 and FR-031-AC-2: real solvers decide each domain fixture as its recorded status;
-/// run only where installed.
-#[trace("TC-030", "FR-031-AC-1", "FR-031-AC-2")]
+/// The solver paths are required and are reported when missing.
+#[trace("TC-030", "FR-031-AC-1", "FR-031-AC-2", "FR-033-AC-8")]
 #[test]
-#[ignore = "requires official Z3 and cvc5 executables at FILAMENT_Z3 and FILAMENT_CVC5"]
 fn real_z3_cvc5_decide_domain_fixtures() {
-    let z3_path = PathBuf::from(std::env::var_os("FILAMENT_Z3").expect("FILAMENT_Z3 is required"));
-    let cvc5_path =
-        PathBuf::from(std::env::var_os("FILAMENT_CVC5").expect("FILAMENT_CVC5 is required"));
+    let z3_path = PathBuf::from(
+        std::env::var_os("FILAMENT_Z3").expect("solver path FILAMENT_Z3 is required"),
+    );
+    let cvc5_path = PathBuf::from(
+        std::env::var_os("FILAMENT_CVC5").expect("solver path FILAMENT_CVC5 is required"),
+    );
     let z3 = SolverConfig::new(SolverEngine::Z3, z3_path, AdapterLimits::default()).expect("z3");
     let cvc5 =
         SolverConfig::new(SolverEngine::Cvc5, cvc5_path, AdapterLimits::default()).expect("cvc5");

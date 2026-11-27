@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # Copyright (C) 2026 Agent-IX
 
-"""Run ignored real-solver tests and retain their outcomes in Quoin."""
+"""Run real-solver tests and retain their outcomes in Quoin."""
 
 from __future__ import annotations
 
@@ -79,8 +79,8 @@ def configured_executable(
     return (candidate.resolve() if canonicalize else candidate.absolute()), None
 
 
-def ignored_tests() -> dict[str, dict[str, Any]]:
-    """Read test identities and trace IDs from authoritative Rust attributes."""
+def selected_tests() -> dict[str, dict[str, Any]]:
+    """Read test identities, ignore state, and trace IDs from Rust attributes."""
     found: dict[str, dict[str, Any]] = {}
     for name, binary in REAL_TESTS.items():
         source = ROOT / "tests" / f"{binary}.rs"
@@ -96,22 +96,23 @@ def ignored_tests() -> dict[str, dict[str, Any]]:
                 attrs.append(prefix[cursor].strip())
                 cursor -= 1
             attributes = " ".join(reversed(attrs))
-            if "#[test]" not in attributes or "#[ignore" not in attributes:
-                raise ValueError(f"{source}: {name} is no longer an ignored test")
+            if "#[test]" not in attributes:
+                raise ValueError(f"{source}: {name} is no longer a test")
             source_trace_ids = sorted(set(TRACE_ID.findall(attributes)))
             trace_ids = [trace_id for trace_id in source_trace_ids if "-AC-" in trace_id]
             if not trace_ids:
-                raise ValueError(f"{source}: ignored test {name} has no criterion IDs in #[trace]")
+                raise ValueError(f"{source}: real-tool test {name} has no criterion IDs in #[trace]")
             found[name] = {
                 "binary": binary,
                 "symbol": f"{binary}::{name}",
                 "traceIds": trace_ids,
                 "sourceTraceIds": source_trace_ids,
                 "source": source.relative_to(ROOT).as_posix(),
+                "ignored": "#[ignore" in attributes,
             }
             break
         if name not in found:
-            raise ValueError(f"{source}: ignored test {name} not found")
+            raise ValueError(f"{source}: test {name} not found")
     return found
 
 
@@ -131,7 +132,7 @@ def classified_result(returncode: int, output: str) -> dict[str, str]:
         }
     if observed.group(2) == "ok" and returncode == 0:
         return {"status": "pass"}
-    return {"status": "fail", "error": "ignored real-tool test failed; see focused output"}
+    return {"status": "fail", "error": "real-tool test failed; see focused output"}
 
 
 def result_entry(
@@ -197,10 +198,14 @@ def record_results(
 def run_plan(path: Path) -> int:
     plan = json.loads(path.read_text(encoding="utf-8"))
     cargo = plan["cargo"]
+    tests = selected_tests()
     results: dict[str, dict[str, Any]] = {}
     for name in plan["tests"]:
         binary = REAL_TESTS[name]
-        command = [cargo, "test", "--locked", "--test", binary, name, "--", "--ignored", "--exact"]
+        command = [cargo, "test", "--locked", "--test", binary, name, "--"]
+        if tests[name]["ignored"]:
+            command.append("--ignored")
+        command.append("--exact")
         print("Focused command: " + " ".join(command), flush=True)
         try:
             process = subprocess.run(command, cwd=ROOT, capture_output=True, text=True, check=False)
@@ -220,7 +225,7 @@ def main() -> int:
         return run_plan(Path(sys.argv[2]))
 
     try:
-        tests = ignored_tests()
+        tests = selected_tests()
     except (OSError, ValueError) as error:
         print(f"real-tool-test configuration error: {error}", file=sys.stderr)
         return 2
@@ -335,11 +340,12 @@ def main() -> int:
     failed = False
     entries: list[dict[str, Any]] = []
     for name, test in tests.items():
+        test_args = "--ignored --exact" if test["ignored"] else "--exact"
         source = test["source"]
         config: dict[str, str] = {
             "test_source": source,
             "source_trace_ids": ",".join(test["sourceTraceIds"]),
-            "command": f"cargo test --locked --test {test['binary']} {name} -- --ignored --exact",
+            "command": f"cargo test --locked --test {test['binary']} {name} -- {test_args}",
             "cargo_version": cargo_version or "unavailable",
             "quoin_version": quoin_version or "unavailable",
             "FILAMENT_Z3": str(executables.get("FILAMENT_Z3", os.environ.get("FILAMENT_Z3", "unset"))),
@@ -347,7 +353,7 @@ def main() -> int:
             "FILAMENT_CVC5": str(executables.get("FILAMENT_CVC5", os.environ.get("FILAMENT_CVC5", "unset"))),
             "FILAMENT_CVC5_version": versions["FILAMENT_CVC5"],
             "solver_limits": "AdapterLimits::default()" if name != "real_solver_timeout_on_a_quantified_query_is_inconclusive" else "wall_time_ms=1; cleanup_time_ms=1000; graceful_cleanup_ms=20; monitor_interval_ms=1",
-            "test_inputs": "fixtures constructed by the ignored test body",
+            "test_inputs": "fixtures constructed by the selected test body",
         }
         if name not in SOLVER_TESTS:
             config["FILAMENT_ENGINEERING_ASSURANCE"] = str(producer or os.environ.get("FILAMENT_ENGINEERING_ASSURANCE", "unset"))

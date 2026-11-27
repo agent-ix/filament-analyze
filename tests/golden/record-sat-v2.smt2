@@ -1,7 +1,7 @@
 (set-info :smt-lib-version 2.6)
 (set-info :source |filament.smtlib2/v2|)
 (set-option :produce-models true)
-(set-logic QF_UFDTLIA)
+(set-logic ALL)
 (declare-datatypes ((s_65fbeb08dbffdcecf76b0d1470908cfef0b9266d8a08b6dd6540ed7de498ef1c 0)) (((c_65fbeb08dbffdcecf76b0d1470908cfef0b9266d8a08b6dd6540ed7de498ef1c_41646d696e) (c_65fbeb08dbffdcecf76b0d1470908cfef0b9266d8a08b6dd6540ed7de498ef1c_41756469746f72) (c_65fbeb08dbffdcecf76b0d1470908cfef0b9266d8a08b6dd6540ed7de498ef1c_4775657374) (c_65fbeb08dbffdcecf76b0d1470908cfef0b9266d8a08b6dd6540ed7de498ef1c_55736572))))
 (declare-datatypes ((r_8fa163d78da1d5ca70b452a56270e04ed5facca0505de30efbef2618d9648495 0)) (((k_8fa163d78da1d5ca70b452a56270e04ed5facca0505de30efbef2618d9648495 (f_8fa163d78da1d5ca70b452a56270e04ed5facca0505de30efbef2618d9648495_616374697665 Bool) (f_8fa163d78da1d5ca70b452a56270e04ed5facca0505de30efbef2618d9648495_6c6576656c Int) (f_8fa163d78da1d5ca70b452a56270e04ed5facca0505de30efbef2618d9648495_726f6c65 s_65fbeb08dbffdcecf76b0d1470908cfef0b9266d8a08b6dd6540ed7de498ef1c)))))
 (define-fun p_cc2bdecffec5c85ded77dbb3369bade15dae7bba8040660c4bfbcf9d890b56be ((x r_8fa163d78da1d5ca70b452a56270e04ed5facca0505de30efbef2618d9648495)) Bool (and (<= 0 (f_8fa163d78da1d5ca70b452a56270e04ed5facca0505de30efbef2618d9648495_6c6576656c x)) (<= (f_8fa163d78da1d5ca70b452a56270e04ed5facca0505de30efbef2618d9648495_6c6576656c x) 100)))

@@ -1,7 +1,7 @@
 (set-info :smt-lib-version 2.6)
 (set-info :source |filament.smtlib2/v2|)
 (set-option :produce-models true)
-(set-logic QF_UFDTLIA)
+(set-logic ALL)
 (declare-datatypes ((s_1c36d7e87b96fd700c6db6db0b53db87ee0f291701be8b3fda0be6e03210c1d3 0)) (((c_1c36d7e87b96fd700c6db6db0b53db87ee0f291701be8b3fda0be6e03210c1d3_41646d696e) (c_1c36d7e87b96fd700c6db6db0b53db87ee0f291701be8b3fda0be6e03210c1d3_4775657374))))
 (declare-fun v_s_0de009a58a40696e9d72ac749a432a82692310bd6332f6a3b56eb2257f0b6159 () s_1c36d7e87b96fd700c6db6db0b53db87ee0f291701be8b3fda0be6e03210c1d3)
 (declare-fun v_s_71ffc8436f9067da354a8cada119bb8c6c47de0a350b5267638ab3de8879f056 () s_1c36d7e87b96fd700c6db6db0b53db87ee0f291701be8b3fda0be6e03210c1d3)

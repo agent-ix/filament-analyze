@@ -47,8 +47,8 @@ consequent and redundancy negates the candidate.
 
 ## Supported constructs
 
-Queries are in SMT-LIB 2.6 under profile `filament.smtlib2/v2`, logic `QF_LIA`, or `QF_UFDTLIA`
-when the query declares an enum, record or option datatype.
+Queries are in SMT-LIB 2.6 under profile `filament.smtlib2/v2`, logic `QF_LIA` without
+datatypes and `ALL` when the query declares an enum, record or option datatype.
 Lowering accepts Boolean literals, value references, `not`, `and`, `or` (both
 short-circuit and total forms), implication, and Boolean equality and inequality,
 plus linear integer arithmetic: integer literals and references, negation,

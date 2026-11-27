@@ -57,6 +57,10 @@ quantifier's bound, so that a model is `verified` only when the assertion holds 
 - Enumeration oracle: for a fixture with a small finite input space, the evaluator run over every
   assignment of the inputs yields the fixture's `sat`/`unsat` status independently of any solver.
   Tests use it as the expected-status check of [TC-030](../test/TC-030-bounded-quantifiers.md).
+- Solver logic: a query that declares a datatype uses SMT-LIB logic `ALL` so both Z3 and cvc5 accept
+  the query. A solver that cannot decide a query still yields an
+  inconclusive differential result; the declared logic does not turn unsupported responses into
+  conclusive results.
 
 ## Acceptance Criteria
 
@@ -66,10 +70,10 @@ quantifier's bound, so that a model is `verified` only when the assertion holds 
 | FR-033-AC-2 | Replay of an existential quantifier stops at and reports its first holding instance with its element and source identity, does not evaluate later elements, and completes the assertion successfully; when none holds, it reports no holding instance and the count enumerated. | Test (TC-030) |
 | FR-033-AC-3 | A bound whose next instance would exceed the limit in NFR-031 yields `incomplete` with reason `replay_limit_exceeded`; that instance is not evaluated and the model is never `verified`. | Test (TC-030) |
 | FR-033-AC-4 | For each of an enum domain, a finite collection and an integer range, and for each of universal and existential, one passing model and one failing model are replayed to the expected outcome. | Test (TC-030) |
-| FR-033-AC-5 | A solver model that satisfies the lowered query but fails one instance of the original quantifier is not published as verified. | Test (TC-030) |
+| FR-033-AC-5 | A solver response of `sat` whose model fails one instance of the original quantifier is not published as verified. | Test (TC-030) |
 | FR-033-AC-6 | A declared range bound that is missing from the model, repeated, malformed or outside its declared type yields `incomplete` with reason `bound_undecodable`; a model with lower bound above upper bound replays as an empty range. | Test (TC-030) |
 | FR-033-AC-7 | A body whose evaluation overflows yields `incomplete` with reason `evaluation_overflow`, never a wrapped value. | Test (TC-030) |
-| FR-033-AC-8 | Where Z3 and cvc5 are installed, each satisfiable quantified fixture in TC-030 is decided `sat` by both solvers with agreement, and each returned model is published as `verified` only after replay passes. | Test (TC-030, real solvers) |
+| FR-033-AC-8 | The real-solver tests run each satisfiable quantified fixture in TC-030 against Z3 and cvc5 and require both to decide `sat` with agreement; each returned model is published as `verified` only after replay passes. A query declaring a datatype uses logic `ALL`. Missing solver paths fail the tests with the missing `FILAMENT_Z3` or `FILAMENT_CVC5` path named. | Test |
 | FR-033-AC-9 | When replay evaluates every assertion for a returned model and each holds, the model is published as `verified`; if an assertion fails or replay is incomplete, it is not. | Test (TC-030) |
 
 ## Dependencies

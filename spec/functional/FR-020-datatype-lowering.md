@@ -80,12 +80,12 @@ follows the feature set of the query, and this requirement owns the datatype cas
 | Query | Logic |
 |---|---|
 | No datatype declaration (including a Boolean-only query) | `QF_LIA` (FR-010) |
-| Declares at least one datatype (enum, record or option), with or without integer terms | `QF_UFDTLIA` |
+| Declares at least one datatype (enum, record or option), with or without integer terms | `ALL` |
 | Holds a bounded solver quantifier ([FR-032](./FR-032-bounded-integer-range-quantifier-lowering.md)) and declares no datatype | `LIA` |
-| Holds a bounded solver quantifier and declares at least one datatype | `UFDTLIA` |
+| Holds a bounded solver quantifier and declares at least one datatype | `ALL` |
 
-The logic is determined by whether the query declares a datatype and whether it holds a bounded solver quantifier, never by a solver or host. A report
-for a datatype query without a bounded solver quantifier names `filament.smtlib2/v2` and `QF_UFDTLIA`, and report validation
+The logic is determined by whether the query declares a datatype and whether it holds a bounded solver quantifier, never by a solver or host. `ALL` is required for datatype queries because both official Z3 and cvc5 accept it while Z3 reports `QF_UFDTLIA` and `UFDTLIA` as unsupported. A report
+for a datatype query names `filament.smtlib2/v2` and `ALL`, and report validation
 ([FR-005](./FR-005-evidence-cli.md)) accepts exactly the logic the query's feature set requires and
 refuses `filament.smtlib2/v1` and `QF_UF`.
 
@@ -152,7 +152,7 @@ the nine [FR-011](./FR-011-integer-witness-replay.md) reasons.
 | FR-020-AC-6 | The capability contract of `filament.smtlib2/v2` lists the constructs above as exact and `collection`, `collection_access` and `text` as unsupported, and no construct appears in both lists. | Test |
 | FR-020-AC-7 | Permuting environment type order, variant order, field order and statement order yields byte-identical queries and maps, and two enums with identical variant names produce distinct sorts. | Test |
 | FR-020-AC-8 | A membership disjunction with a repeated literal is lowered as written, and a `CollectionLiteral` or any other collection expression returns `UnsupportedConstruct`, except a collection literal consumed as a quantifier domain per [FR-030](./FR-030-bounded-quantifier-domains.md) and [FR-034](./FR-034-quantifier-package-translation.md). | Test |
-| FR-020-AC-9 | The `(set-logic ...)` of a query declaring no datatype is `QF_LIA` and of a query declaring at least one datatype is `QF_UFDTLIA`, in both cases under `filament.smtlib2/v2`, that of a query holding a bounded solver quantifier is `LIA` without and `UFDTLIA` with a datatype, and a report naming `filament.smtlib2/v1`, `QF_UF`, or a logic other than the one the feature set requires is refused by validation. | Test |
+| FR-020-AC-9 | The `(set-logic ...)` of a query declaring no datatype is `QF_LIA` without a bounded quantifier and `LIA` with one; a query declaring at least one datatype uses `ALL`, in each case under `filament.smtlib2/v2`. A report naming `filament.smtlib2/v1`, `QF_UF`, or a logic other than the one the feature set requires is refused by validation. | Test |
 | FR-020-AC-10 | A satisfiable model for a query declaring any datatype (enum, record or option), including one whose terms are only datatype literals, is replayed by FR-021: it is verified when every assertion holds under the typed evaluation and is incomplete, with one of the FR-011 reasons, when it does not; no datatype kind is refused as unreplayable. | Test |
 
 ## Dependencies

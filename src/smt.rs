@@ -25,12 +25,14 @@ pub const ANALYSIS_MODEL_PROFILE: &str = "filament.analysis-model/v1";
 pub const SMTLIB2_PROFILE: &str = "filament.smtlib2/v2";
 /// The logic of every query that declares no datatypes.
 pub const SMTLIB2_LOGIC: &str = "QF_LIA";
-/// The logic of every query that declares at least one datatype.
-pub const SMTLIB2_DATATYPE_LOGIC: &str = "QF_UFDTLIA";
+/// The interoperable logic of every query that declares at least one datatype.
+/// Z3 4.13.3 does not recognize `QF_UFDTLIA`, while both official solvers accept `ALL`.
+pub const SMTLIB2_DATATYPE_LOGIC: &str = "ALL";
 /// The logic of a query that holds a bounded solver quantifier and declares no datatype.
 pub const SMTLIB2_QUANTIFIED_LOGIC: &str = "LIA";
-/// The logic of a query that holds a bounded solver quantifier and declares a datatype.
-pub const SMTLIB2_QUANTIFIED_DATATYPE_LOGIC: &str = "UFDTLIA";
+/// The interoperable logic for bounded solver quantifiers over queries declaring a datatype.
+/// `ALL` is accepted by Z3 and cvc5; `UFDTLIA` is not recognized by Z3.
+pub const SMTLIB2_QUANTIFIED_DATATYPE_LOGIC: &str = "ALL";
 /// Bound on variants of one enum.
 pub const MAX_ENUM_VARIANTS: usize = 256;
 /// Bound on datatypes declared in one query.
@@ -4258,8 +4260,8 @@ pub(crate) struct QueryLogic {
 
 /// Scans the top-level commands of a query, skipping comments, quoted symbols and string
 /// literals. Returns `None` unless there is exactly one `set-logic` that precedes every
-/// declaration. Datatypes need `QF_UFDTLIA`, otherwise `QF_LIA`; a solver quantifier removes the
-/// quantifier-free prefix (`UFDTLIA`, `LIA`).
+/// declaration. Datatypes need `ALL`, otherwise `QF_LIA`; a solver quantifier removes the
+/// quantifier-free prefix (`ALL`, `LIA`).
 pub(crate) fn query_logic(query: &[u8]) -> Option<QueryLogic> {
     let mut depth = 0_usize;
     let mut cursor = 0;
@@ -4556,10 +4558,10 @@ mod tests {
             "(declare-datatype S ((a)))",
             "(declare-datatypes ((S 0)) (((a))))",
         ] {
-            let query = format!("(set-logic QF_UFDTLIA)\n{command}\n");
+            let query = format!("(set-logic ALL)\n{command}\n");
             assert_eq!(
                 logic_of(&query),
-                Some(("QF_UFDTLIA", "QF_UFDTLIA".to_owned())),
+                Some(("ALL", "ALL".to_owned())),
                 "{command}"
             );
         }
@@ -4589,11 +4591,8 @@ mod tests {
         let quantified = "(set-logic LIA)\n(assert (forall ((q Int)) (=> (<= 0 q) (<= 0 q))))\n";
         assert_eq!(logic_of(quantified), Some(("LIA", "LIA".to_owned())));
         let existential =
-            "(set-logic UFDTLIA)\n(declare-datatype S ((a)))\n(assert (exists ((q Int)) true))\n";
-        assert_eq!(
-            logic_of(existential),
-            Some(("UFDTLIA", "UFDTLIA".to_owned()))
-        );
+            "(set-logic ALL)\n(declare-datatype S ((a)))\n(assert (exists ((q Int)) true))\n";
+        assert_eq!(logic_of(existential), Some(("ALL", "ALL".to_owned())));
         assert_eq!(
             logic_of("(set-logic QF_LIA)\n(assert (forall ((q Int)) true))\n"),
             Some(("LIA", "QF_LIA".to_owned()))

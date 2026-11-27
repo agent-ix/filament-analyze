@@ -1,7 +1,7 @@
 (set-info :smt-lib-version 2.6)
 (set-info :source |filament.smtlib2/v2|)
 (set-option :produce-models true)
-(set-logic QF_UFDTLIA)
+(set-logic ALL)
 (declare-datatypes ((o_3ded343f06bd440e0d7861b7dadbf6e9be7cb2df6f13d4b8e04ee5b06f2e9e7a 0)) (((n_3ded343f06bd440e0d7861b7dadbf6e9be7cb2df6f13d4b8e04ee5b06f2e9e7a) (m_3ded343f06bd440e0d7861b7dadbf6e9be7cb2df6f13d4b8e04ee5b06f2e9e7a (u_3ded343f06bd440e0d7861b7dadbf6e9be7cb2df6f13d4b8e04ee5b06f2e9e7a Int)))))
 (define-fun p_fe10d905214737b8289dd55a49307be5fc0d6411e8f0ffce1488eb94a4b41ade ((x o_3ded343f06bd440e0d7861b7dadbf6e9be7cb2df6f13d4b8e04ee5b06f2e9e7a)) Bool (=> ((_ is m_3ded343f06bd440e0d7861b7dadbf6e9be7cb2df6f13d4b8e04ee5b06f2e9e7a) x) (and (<= 0 (u_3ded343f06bd440e0d7861b7dadbf6e9be7cb2df6f13d4b8e04ee5b06f2e9e7a x)) (<= (u_3ded343f06bd440e0d7861b7dadbf6e9be7cb2df6f13d4b8e04ee5b06f2e9e7a x) 100))))
 (declare-fun v_s_e5c1f3107e8399dd319eca2d51f2f878d703e42423faccece1a11c0aaf6c76cc () o_3ded343f06bd440e0d7861b7dadbf6e9be7cb2df6f13d4b8e04ee5b06f2e9e7a)

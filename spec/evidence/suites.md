@@ -12,10 +12,13 @@ type: SuiteRegistry
 |---|---|---|---|---|
 | SUITE-004 | Real Z3 and cvc5 solver integration tests | `make real-tool-test` | cargo test with caller-supplied Z3 and cvc5 | Integration |
 
-SUITE-004 runs the repository's ignored tests that invoke real Z3 and cvc5
-executables. Set `FILAMENT_Z3` and `FILAMENT_CVC5` to absolute executable
-paths. The dose-package test also requires `engineering-assurance` on `PATH`
-or at `FILAMENT_ENGINEERING_ASSURANCE`.
+SUITE-004 runs the repository's real-solver tests with Z3 and cvc5 executables.
+Set `FILAMENT_Z3` and `FILAMENT_CVC5` to absolute executable paths. The
+range and domain tests for FR-033-AC-8 are required tests and fail with the
+missing solver-path variable named when either path is unset. Other optional
+real-tool tests remain ignored for ordinary `cargo test` runs and are selected
+by this suite. The dose-package test also requires `engineering-assurance` on
+`PATH` or at `FILAMENT_ENGINEERING_ASSURANCE`.
 
 The lane records each selected test's result, the exact configured solver paths
 and reported versions, Cargo and Quoin versions, test source, source trace IDs,

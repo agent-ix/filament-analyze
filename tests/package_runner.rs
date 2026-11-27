@@ -2092,7 +2092,7 @@ fn dose_package(contradiction: bool) -> Built {
 }
 
 #[trace("FR-012-AC-1")]
-#[ignore = "needs VER-82 integer witness replay"]
+#[ignore = "blocked by VER-113: remove the unavailable PGM-01 report placeholder"]
 #[test]
 fn a_dose_bounded_by_a_maximum_runs_end_to_end() {
     let built = dose_package(false);
@@ -2102,6 +2102,13 @@ fn a_dose_bounded_by_a_maximum_runs_end_to_end() {
     assert_eq!(run.code, Some(0), "{}", run.stderr);
     let bytes = fs::read(fixture.output()).expect("report");
     validate_report_document(&bytes).expect("report validates");
+    let report: Value = serde_json::from_slice(&bytes).expect("report json");
+    assert_eq!(
+        report["assertions"].as_array().expect("assertions").len(),
+        2,
+        "both dose <= max and max <= 1 * weight must reach the report"
+    );
+    assert_eq!(report["differential"]["agreedStatus"], "satisfied");
 }
 
 #[trace("FR-012-AC-2")]

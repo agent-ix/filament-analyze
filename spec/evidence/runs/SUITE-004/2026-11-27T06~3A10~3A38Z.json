@@ -1,0 +1,233 @@
+{
+  "entries": [
+    {
+      "config": {
+        "FILAMENT_CVC5": "/tmp/plat1967-solvers/cvc5-Linux-x86_64-libcxx-static/bin/cvc5",
+        "FILAMENT_CVC5_version": "cvc5 1.4.2 [git 282d5e0 on branch HEAD]",
+        "FILAMENT_Z3": "/tmp/plat1967-solvers/z3-4.13.3-x64-glibc-2.35/bin/z3",
+        "FILAMENT_Z3_version": "Z3 version 4.13.3 - 64 bit",
+        "cargo_version": "cargo 1.98.1 (797e8a9bc 2026-08-05)",
+        "command": "cargo test --locked --test analysis_semantics official_z3_cvc5_differential_corpus_agrees -- --ignored --exact",
+        "execution_state": "executed",
+        "quoin_version": "0.37.0",
+        "solver_limits": "AdapterLimits::default()",
+        "source_trace_ids": "FR-005-AC-3,MP-001-M-06,TC-006",
+        "test_inputs": "fixtures constructed by the ignored test body",
+        "test_source": "tests/analysis_semantics.rs"
+      },
+      "outcome": "pass",
+      "symbol": "analysis_semantics::official_z3_cvc5_differential_corpus_agrees",
+      "traceIds": [
+        "FR-005-AC-3"
+      ]
+    },
+    {
+      "config": {
+        "FILAMENT_CVC5": "/tmp/plat1967-solvers/cvc5-Linux-x86_64-libcxx-static/bin/cvc5",
+        "FILAMENT_CVC5_version": "cvc5 1.4.2 [git 282d5e0 on branch HEAD]",
+        "FILAMENT_Z3": "/tmp/plat1967-solvers/z3-4.13.3-x64-glibc-2.35/bin/z3",
+        "FILAMENT_Z3_version": "Z3 version 4.13.3 - 64 bit",
+        "cargo_version": "cargo 1.98.1 (797e8a9bc 2026-08-05)",
+        "command": "cargo test --locked --test datatype_translation the_official_engines_decide_the_enum_membership_fixtures -- --ignored --exact",
+        "error": "ignored real-tool test failed; see focused output",
+        "execution_state": "executed",
+        "quoin_version": "0.37.0",
+        "solver_limits": "AdapterLimits::default()",
+        "source_trace_ids": "FR-022-AC-1,TC-020",
+        "test_inputs": "fixtures constructed by the ignored test body",
+        "test_source": "tests/datatype_translation.rs"
+      },
+      "outcome": "fail",
+      "symbol": "datatype_translation::the_official_engines_decide_the_enum_membership_fixtures",
+      "traceIds": [
+        "FR-022-AC-1"
+      ]
+    },
+    {
+      "config": {
+        "FILAMENT_CVC5": "/tmp/plat1967-solvers/cvc5-Linux-x86_64-libcxx-static/bin/cvc5",
+        "FILAMENT_CVC5_version": "cvc5 1.4.2 [git 282d5e0 on branch HEAD]",
+        "FILAMENT_Z3": "/tmp/plat1967-solvers/z3-4.13.3-x64-glibc-2.35/bin/z3",
+        "FILAMENT_Z3_version": "Z3 version 4.13.3 - 64 bit",
+        "cargo_version": "cargo 1.98.1 (797e8a9bc 2026-08-05)",
+        "command": "cargo test --locked --test enum_lowering real_z3_cvc5_decide_membership_fixtures -- --ignored --exact",
+        "error": "ignored real-tool test failed; see focused output",
+        "execution_state": "executed",
+        "quoin_version": "0.37.0",
+        "solver_limits": "AdapterLimits::default()",
+        "source_trace_ids": "FR-020-AC-1,TC-020",
+        "test_inputs": "fixtures constructed by the ignored test body",
+        "test_source": "tests/enum_lowering.rs"
+      },
+      "outcome": "fail",
+      "symbol": "enum_lowering::real_z3_cvc5_decide_membership_fixtures",
+      "traceIds": [
+        "FR-020-AC-1"
+      ]
+    },
+    {
+      "config": {
+        "FILAMENT_CVC5": "/tmp/plat1967-solvers/cvc5-Linux-x86_64-libcxx-static/bin/cvc5",
+        "FILAMENT_CVC5_version": "cvc5 1.4.2 [git 282d5e0 on branch HEAD]",
+        "FILAMENT_Z3": "/tmp/plat1967-solvers/z3-4.13.3-x64-glibc-2.35/bin/z3",
+        "FILAMENT_Z3_version": "Z3 version 4.13.3 - 64 bit",
+        "cargo_version": "cargo 1.98.1 (797e8a9bc 2026-08-05)",
+        "command": "cargo test --locked --test datatype_replay real_z3_cvc5_models_replay -- --ignored --exact",
+        "error": "ignored real-tool test failed; see focused output",
+        "execution_state": "executed",
+        "quoin_version": "0.37.0",
+        "solver_limits": "AdapterLimits::default()",
+        "source_trace_ids": "FR-021-AC-1,FR-021-AC-3,TC-020",
+        "test_inputs": "fixtures constructed by the ignored test body",
+        "test_source": "tests/datatype_replay.rs"
+      },
+      "outcome": "fail",
+      "symbol": "datatype_replay::real_z3_cvc5_models_replay",
+      "traceIds": [
+        "FR-021-AC-1",
+        "FR-021-AC-3"
+      ]
+    },
+    {
+      "config": {
+        "FILAMENT_CVC5": "/tmp/plat1967-solvers/cvc5-Linux-x86_64-libcxx-static/bin/cvc5",
+        "FILAMENT_CVC5_version": "cvc5 1.4.2 [git 282d5e0 on branch HEAD]",
+        "FILAMENT_Z3": "/tmp/plat1967-solvers/z3-4.13.3-x64-glibc-2.35/bin/z3",
+        "FILAMENT_Z3_version": "Z3 version 4.13.3 - 64 bit",
+        "cargo_version": "cargo 1.98.1 (797e8a9bc 2026-08-05)",
+        "command": "cargo test --locked --test integer_lowering real_z3_cvc5_decide_integer_fixtures_identically -- --ignored --exact",
+        "execution_state": "executed",
+        "quoin_version": "0.37.0",
+        "solver_limits": "AdapterLimits::default()",
+        "source_trace_ids": "FR-010-AC-7,FR-011-AC-1,FR-011-AC-11,TC-016,TC-017",
+        "test_inputs": "fixtures constructed by the ignored test body",
+        "test_source": "tests/integer_lowering.rs"
+      },
+      "outcome": "pass",
+      "symbol": "integer_lowering::real_z3_cvc5_decide_integer_fixtures_identically",
+      "traceIds": [
+        "FR-010-AC-7",
+        "FR-011-AC-1",
+        "FR-011-AC-11"
+      ]
+    },
+    {
+      "config": {
+        "FILAMENT_CVC5": "/tmp/plat1967-solvers/cvc5-Linux-x86_64-libcxx-static/bin/cvc5",
+        "FILAMENT_CVC5_version": "cvc5 1.4.2 [git 282d5e0 on branch HEAD]",
+        "FILAMENT_Z3": "/tmp/plat1967-solvers/z3-4.13.3-x64-glibc-2.35/bin/z3",
+        "FILAMENT_Z3_version": "Z3 version 4.13.3 - 64 bit",
+        "cargo_version": "cargo 1.98.1 (797e8a9bc 2026-08-05)",
+        "command": "cargo test --locked --test record_option_lowering real_z3_cvc5_decide_record_and_option_fixtures -- --ignored --exact",
+        "error": "ignored real-tool test failed; see focused output",
+        "execution_state": "executed",
+        "quoin_version": "0.37.0",
+        "solver_limits": "AdapterLimits::default()",
+        "source_trace_ids": "FR-020-AC-3,TC-020",
+        "test_inputs": "fixtures constructed by the ignored test body",
+        "test_source": "tests/record_option_lowering.rs"
+      },
+      "outcome": "fail",
+      "symbol": "record_option_lowering::real_z3_cvc5_decide_record_and_option_fixtures",
+      "traceIds": [
+        "FR-020-AC-3"
+      ]
+    },
+    {
+      "config": {
+        "FILAMENT_CVC5": "/tmp/plat1967-solvers/cvc5-Linux-x86_64-libcxx-static/bin/cvc5",
+        "FILAMENT_CVC5_version": "cvc5 1.4.2 [git 282d5e0 on branch HEAD]",
+        "FILAMENT_Z3": "/tmp/plat1967-solvers/z3-4.13.3-x64-glibc-2.35/bin/z3",
+        "FILAMENT_Z3_version": "Z3 version 4.13.3 - 64 bit",
+        "cargo_version": "cargo 1.98.1 (797e8a9bc 2026-08-05)",
+        "command": "cargo test --locked --test range_quantifier_lowering real_z3_cvc5_decide_range_fixtures -- --ignored --exact",
+        "error": "ignored real-tool test failed; see focused output",
+        "execution_state": "executed",
+        "quoin_version": "0.37.0",
+        "solver_limits": "AdapterLimits::default()",
+        "source_trace_ids": "FR-032-AC-1,FR-033-AC-8,NFR-032-AC-3,TC-030",
+        "test_inputs": "fixtures constructed by the ignored test body",
+        "test_source": "tests/range_quantifier_lowering.rs"
+      },
+      "outcome": "fail",
+      "symbol": "range_quantifier_lowering::real_z3_cvc5_decide_range_fixtures",
+      "traceIds": [
+        "FR-032-AC-1",
+        "FR-033-AC-8",
+        "NFR-032-AC-3"
+      ]
+    },
+    {
+      "config": {
+        "FILAMENT_CVC5": "/tmp/plat1967-solvers/cvc5-Linux-x86_64-libcxx-static/bin/cvc5",
+        "FILAMENT_CVC5_version": "cvc5 1.4.2 [git 282d5e0 on branch HEAD]",
+        "FILAMENT_Z3": "/tmp/plat1967-solvers/z3-4.13.3-x64-glibc-2.35/bin/z3",
+        "FILAMENT_Z3_version": "Z3 version 4.13.3 - 64 bit",
+        "cargo_version": "cargo 1.98.1 (797e8a9bc 2026-08-05)",
+        "command": "cargo test --locked --test range_quantifier_lowering real_solver_timeout_on_a_quantified_query_is_inconclusive -- --ignored --exact",
+        "execution_state": "executed",
+        "quoin_version": "0.37.0",
+        "solver_limits": "wall_time_ms=1; cleanup_time_ms=1000; graceful_cleanup_ms=20; monitor_interval_ms=1",
+        "source_trace_ids": "NFR-032-AC-3,TC-030",
+        "test_inputs": "fixtures constructed by the ignored test body",
+        "test_source": "tests/range_quantifier_lowering.rs"
+      },
+      "outcome": "pass",
+      "symbol": "range_quantifier_lowering::real_solver_timeout_on_a_quantified_query_is_inconclusive",
+      "traceIds": [
+        "NFR-032-AC-3"
+      ]
+    },
+    {
+      "config": {
+        "FILAMENT_CVC5": "/tmp/plat1967-solvers/cvc5-Linux-x86_64-libcxx-static/bin/cvc5",
+        "FILAMENT_CVC5_version": "cvc5 1.4.2 [git 282d5e0 on branch HEAD]",
+        "FILAMENT_Z3": "/tmp/plat1967-solvers/z3-4.13.3-x64-glibc-2.35/bin/z3",
+        "FILAMENT_Z3_version": "Z3 version 4.13.3 - 64 bit",
+        "cargo_version": "cargo 1.98.1 (797e8a9bc 2026-08-05)",
+        "command": "cargo test --locked --test range_quantifier_lowering real_z3_cvc5_decide_domain_fixtures -- --ignored --exact",
+        "error": "ignored real-tool test failed; see focused output",
+        "execution_state": "executed",
+        "quoin_version": "0.37.0",
+        "solver_limits": "AdapterLimits::default()",
+        "source_trace_ids": "FR-031-AC-1,FR-031-AC-2,TC-030",
+        "test_inputs": "fixtures constructed by the ignored test body",
+        "test_source": "tests/range_quantifier_lowering.rs"
+      },
+      "outcome": "fail",
+      "symbol": "range_quantifier_lowering::real_z3_cvc5_decide_domain_fixtures",
+      "traceIds": [
+        "FR-031-AC-1",
+        "FR-031-AC-2"
+      ]
+    },
+    {
+      "config": {
+        "FILAMENT_CVC5": "/tmp/plat1967-solvers/cvc5-Linux-x86_64-libcxx-static/bin/cvc5",
+        "FILAMENT_CVC5_version": "cvc5 1.4.2 [git 282d5e0 on branch HEAD]",
+        "FILAMENT_ENGINEERING_ASSURANCE": "/home/peter/.local/bin/engineering-assurance",
+        "FILAMENT_ENGINEERING_ASSURANCE_version": "engineering-assurance 0.10.1",
+        "FILAMENT_Z3": "/tmp/plat1967-solvers/z3-4.13.3-x64-glibc-2.35/bin/z3",
+        "FILAMENT_Z3_version": "Z3 version 4.13.3 - 64 bit",
+        "cargo_version": "cargo 1.98.1 (797e8a9bc 2026-08-05)",
+        "command": "cargo test --locked --test package_runner real_solvers_agree_with_the_controlled_run_on_the_dose_fixtures -- --ignored --exact",
+        "execution_state": "executed",
+        "quoin_version": "0.37.0",
+        "solver_limits": "AdapterLimits::default()",
+        "source_trace_ids": "FR-012-AC-8",
+        "test_inputs": "fixtures constructed by the ignored test body",
+        "test_source": "tests/package_runner.rs"
+      },
+      "outcome": "pass",
+      "symbol": "package_runner::real_solvers_agree_with_the_controlled_run_on_the_dose_fixtures",
+      "traceIds": [
+        "FR-012-AC-8"
+      ]
+    }
+  ],
+  "evidenceKind": "Integration",
+  "schemaVersion": 1,
+  "suite": "SUITE-004",
+  "timestamp": "2026-11-27T06:10:38Z",
+  "tool": "filament-analyze real-tool-test (cargo 1.98.1 (797e8a9bc 2026-08-05); quoin 0.37.0)"
+}

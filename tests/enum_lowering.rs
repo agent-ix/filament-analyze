@@ -346,13 +346,13 @@ fn capability_contract_lists_enum_constructs_as_exact() {
 }
 
 /// FR-020-AC-1, FR-020-AC-9 and NFR-020-AC-2: membership lowers to a golden datatype query under
-/// `QF_UFDTLIA`, and repeated lowering is byte-identical.
+/// `ALL`, and repeated lowering is byte-identical.
 #[trace("TC-020", "FR-020-AC-1", "FR-020-AC-9", "NFR-020-AC-2")]
 #[test]
 fn membership_fixture_lowers_to_the_golden_query() {
     let query = lower(sat_fixture());
     assert_eq!(query.profile(), "filament.smtlib2/v2");
-    assert_eq!(query.logic(), "QF_UFDTLIA");
+    assert_eq!(query.logic(), "ALL");
     assert_eq!(query.query(), include_str!("golden/enum-sat-v2.smt2"));
     assert_eq!(query.query(), lower(sat_fixture()).query());
     assert_eq!(query.enum_sorts().len(), 1);
@@ -385,7 +385,7 @@ fn query_without_datatype_declares_qf_lia() {
 }
 
 /// FR-020-AC-1 (controlled responses): the unsatisfiable fixture agrees on unsat and its report
-/// names `QF_UFDTLIA`.
+/// names `ALL`.
 #[trace("TC-020", "FR-020-AC-1", "FR-020-AC-9")]
 #[test]
 fn unsatisfiable_membership_agrees_and_reports_the_datatype_logic() {
@@ -398,7 +398,7 @@ fn unsatisfiable_membership_agrees_and_reports_the_datatype_logic() {
     let report = render_differential_report(&query, &run).expect("report");
     let value: serde_json::Value = serde_json::from_slice(&report).expect("json");
     assert_eq!(value["encodingProfile"], "filament.smtlib2/v2");
-    assert_eq!(value["logic"], "QF_UFDTLIA");
+    assert_eq!(value["logic"], "ALL");
     validate_report_document(&report).expect("document valid");
     validate_differential_report(&report, &query, &run).expect("valid");
 }
@@ -472,7 +472,7 @@ fn reports_naming_a_logic_the_feature_set_does_not_require_are_refused() {
                 ("encodingProfile", "filament.smtlib2/v1"),
                 ("logic", "QF_UF"),
                 ("logic", "QF_LIA"),
-                ("logic", "UFDTLIA"),
+                ("logic", "QF_UFDTLIA"),
             ],
         ),
         (
@@ -763,7 +763,7 @@ fn literal_only_enum_query_is_replayed() {
     )
     .expect("statements");
     let query = lower(statements);
-    assert_eq!(query.logic(), "QF_UFDTLIA");
+    assert_eq!(query.logic(), "ALL");
     let flag = &query.variables()[0].symbol;
     let verdict = |model: &str| {
         let record = response_record(&query, model, SolverEngine::Z3);

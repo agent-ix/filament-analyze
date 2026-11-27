@@ -757,6 +757,14 @@ fn real_z3_cvc5_decide_integer_fixtures_identically() {
     let (query, run) = run_for(unsat_fixture());
     assert_eq!(run.disposition(), DifferentialDisposition::Agreement);
     assert_eq!(
+        run.z3().solver().outcome(),
+        filament_analyze::SolverOutcome::Unsat
+    );
+    assert_eq!(
+        run.cvc5().solver().outcome(),
+        filament_analyze::SolverOutcome::Unsat
+    );
+    assert_eq!(
         run.agreed_status(),
         Some(filament_analyze::AnalysisStatus::Refuted)
     );

@@ -82,9 +82,11 @@ solver quantifier.
   dependency of the package path for the bounded-solver-quantifier encoding only; the encoding itself
   is specified and tested at the lowering layer.
 - Logic: a query holding a bounded solver quantifier declares the logic of its feature set
-  ([FR-020](./FR-020-datatype-lowering.md)) with the quantifier-free prefix removed: `LIA` when it
-  declares no datatype and `UFDTLIA` when it declares at least one (an enum, record or option in the
-  body). Every other query keeps `QF_LIA` or `QF_UFDTLIA`. The logic is part of the one profile
+  ([FR-020](./FR-020-datatype-lowering.md)): `LIA` when it declares no datatype and `ALL` when it
+  declares at least one (an enum, record or option in the body). `ALL` is used because both Z3 and
+  cvc5 accept datatype queries; Z3 reports `QF_UFDTLIA` and `UFDTLIA` as unsupported. A query
+  without a datatype keeps `QF_LIA` or `LIA` according to whether it has a bounded solver
+  quantifier. The logic is part of the one profile
   `filament.smtlib2/v2`, not a second profile.
 - Decidability argument: expansion is quantifier-free linear integer arithmetic. Quantified linear
   integer arithmetic is decidable in principle (Presburger arithmetic), independent of the interval
@@ -112,7 +114,7 @@ solver quantifier.
 | FR-032-AC-3 | A literal range whose instance count fits the budget is expanded, and one exceeding it is emitted as a bounded quantifier and not refused; the quantifier map records each choice. | Test (TC-030) |
 | FR-032-AC-4 | In the bounded form every quantifier carries a finite interval guard; a quantifier without one is never emitted. | Test (TC-030) |
 | FR-032-AC-5 | Lowering a range-quantified package twice yields byte-identical SMT-LIB2 output. | Test (TC-030) |
-| FR-032-AC-6 | A bounded quantifier whose body mentions an enum declares `UFDTLIA`, and one whose body is integer-only declares `LIA`. | Test (TC-030) |
+| FR-032-AC-6 | A bounded quantifier whose body mentions an enum declares `ALL`, and one whose body is integer-only declares `LIA`. | Test |
 | FR-032-AC-7 | `with_formula` refuses an empty quantifier identity, a bound-variable reference with no enclosing quantifier, a non-empty literal range outside `local_type` and a declared bound outside `local_type`, each as `InvalidStatement`. | Test (TC-030) |
 | FR-032-AC-8 | A satisfiable model of a query containing a bounded solver quantifier is replayed over the original range as specified by FR-033; it is published as verified only when replay succeeds, and the solver's logical response is unchanged. | Test (TC-030) |
 | FR-032-AC-9 | A contested budget gives the same encodings and the same quantifier map for any order of the caller's statements, and spends the budget in depth-first pre-order within a statement. | Test (TC-030) |

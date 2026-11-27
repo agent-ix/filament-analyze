@@ -68,7 +68,7 @@ resource_limits:
 lowering_v2:
   request_kind: boolean_conjunction
   profile: filament.smtlib2/v2
-  logic: QF_LIA for queries without datatype declarations; QF_UFDTLIA with datatypes; LIA or UFDTLIA for a query that holds a bounded solver quantifier (FR-032)
+  logic: QF_LIA for queries without datatype declarations; ALL with datatypes; LIA for a bounded solver quantifier without datatypes (FR-032)
   identities: [binding_set_digest, analysis_request_digest, query_digest]
   maps: [named_assertion_to_clause_and_span, variable_to_complete_origins_and_binding, quantifier_to_source_domain_encoding_instances_and_domain_data]
   analysis_model_quantifier_input: [AnalysisFormula, RangeQuantifier, DomainQuantifier, RangeBound, QuantifierDomain, DomainElement, CollectionKind, UnboundedDomain, QuantifierEntryDomain, StatementInput.with_formula]

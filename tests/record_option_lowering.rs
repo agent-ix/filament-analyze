@@ -456,13 +456,13 @@ fn capability_contract_lists_record_and_option_constructs_as_exact() {
 }
 
 /// FR-020-AC-3, FR-020-AC-9 and NFR-020-AC-2: the record fixture lowers to a golden datatype
-/// query under `QF_UFDTLIA`, byte-identical on repetition.
+/// query under `ALL`, byte-identical on repetition.
 #[trace("TC-020", "FR-020-AC-3", "FR-020-AC-9", "NFR-020-AC-2")]
 #[test]
 fn record_fixture_lowers_to_the_golden_query() {
     let query = lower(record_sat_fixture());
     assert_eq!(query.profile(), "filament.smtlib2/v2");
-    assert_eq!(query.logic(), "QF_UFDTLIA");
+    assert_eq!(query.logic(), "ALL");
     assert_eq!(query.query(), include_str!("golden/record-sat-v2.smt2"));
     assert_eq!(query.query(), lower(record_sat_fixture()).query());
     assert_eq!(query.record_sorts().len(), 1);
@@ -487,7 +487,7 @@ fn record_fixture_lowers_to_the_golden_query() {
 #[test]
 fn option_fixture_lowers_to_the_golden_query() {
     let query = lower(option_sat_fixture());
-    assert_eq!(query.logic(), "QF_UFDTLIA");
+    assert_eq!(query.logic(), "ALL");
     assert_eq!(query.query(), include_str!("golden/option-sat-v2.smt2"));
     assert_eq!(query.query(), lower(option_sat_fixture()).query());
     assert_eq!(query.option_sorts().len(), 1);
@@ -514,7 +514,7 @@ fn record_fixtures_are_decided_and_reported_under_the_datatype_logic() {
     let report = render_differential_report(&query, &run).expect("report");
     let value: serde_json::Value = serde_json::from_slice(&report).expect("json");
     assert_eq!(value["encodingProfile"], "filament.smtlib2/v2");
-    assert_eq!(value["logic"], "QF_UFDTLIA");
+    assert_eq!(value["logic"], "ALL");
     validate_report_document(&report).expect("document valid");
     validate_differential_report(&report, &query, &run).expect("valid");
 }
@@ -616,7 +616,7 @@ fn literal_only_record_and_option_queries_are_replayed() {
         ],
     );
     let query = lower(literal_only);
-    assert_eq!(query.logic(), "QF_UFDTLIA");
+    assert_eq!(query.logic(), "ALL");
     let flag = &query.variables()[0].symbol;
     for (value, verifies) in [("true", true), ("false", false)] {
         let model = format!("sat\n(model (define-fun {flag} () Bool {value}))\n");

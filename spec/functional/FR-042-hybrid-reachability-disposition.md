@@ -26,7 +26,7 @@ When delegate-and-remove names an external tool, the application SHALL compare t
 
 | ID | Criteria | Verification |
 | --- | --- | --- |
-| FR-042-AC-1 | Where the recorded path is keep-and-harden, each case in the review's adversarial set yields either an enclosure containing every enumerated reachable state or a typed Incomplete or Refused outcome. This branch does not apply when the recorded path is delegate-and-remove. | Test |
+| FR-042-AC-1 | When the recorded path is keep-and-harden, each case in the review's adversarial set yields either an enclosure containing every enumerated reachable state or a typed Incomplete or Refused outcome. This criterion does not apply under the selected delegate-and-remove path. | Inspection (recorded disposition; test only when keep-and-harden is selected) |
 | FR-042-AC-2 | Under delegate-and-remove, reach, replay_hybrid, bind_hybrid_result and hybrid_method_outcome are absent from the crate, and no code path computes a hybrid enclosure inside the crate. | Inspection |
 | FR-042-AC-3 | Under delegate-and-remove, FR-007, FR-040, NFR-040, TC-013 and TC-040, including their index entries and test-matrix rows, are removed. | Inspection |
 | FR-042-AC-4 | For each fit case in TC-041 that returns an enclosure, the enclosure contains every state reached by the independent oracle for every mode and step. | Test |

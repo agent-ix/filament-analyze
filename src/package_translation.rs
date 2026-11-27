@@ -578,16 +578,22 @@ struct SpanSource<'a> {
 }
 
 impl SpanSource<'_> {
-    /// Whether the node has a first source region.
-    fn has_region(&self, node: usize) -> bool {
+    /// The first authored source region for a graph node.
+    fn region(&self, node: usize) -> Option<&filament_contract_model::CheckedSourceRegion> {
         self.package
             .wire()
             .source_map
             .nodes
-            .get(node)
-            .and_then(|entry| entry.occurrences.first())
-            .and_then(|occurrence| occurrence.regions.first())
-            .is_some()
+            .get(node)?
+            .occurrences
+            .first()?
+            .regions
+            .first()
+    }
+
+    /// Whether the node has a first source region.
+    fn has_region(&self, node: usize) -> bool {
+        self.region(node).is_some()
     }
 
     fn node(&self, node: usize) -> Result<SourceSpan, TranslationError> {
@@ -826,6 +832,28 @@ impl<'a> Walker<'a> {
         } else {
             Ok(self.span.clone())
         }
+    }
+
+    fn quantifier_refusal(
+        &self,
+        node: usize,
+        reason: &str,
+        detail: &str,
+    ) -> TranslationError {
+        let Some(region) = self.spans.region(node) else {
+            return TranslationError::at_node(
+                TranslationErrorKind::SourceRegion,
+                node,
+                "the node has no source region",
+            );
+        };
+        cannot_lower(
+            node,
+            format!(
+                "{reason}: {detail} (source {}:{} bytes {}..{})",
+                region.source.authority, region.source.identity, region.start, region.end
+            ),
+        )
     }
 
     /// The type node a term of an application argument has: the `semantic_type` of a reference
@@ -1354,13 +1382,23 @@ impl<'a> Walker<'a> {
                 "the collection element type is not a node",
             ));
         };
+        let element_type_kind = self.kind(element_type_node);
         if !matches!(
-            self.kind(element_type_node),
+            element_type_kind,
             Some(
                 CheckedNodeKind::ScalarType(ScalarTypeForm::Boolean | ScalarTypeForm::Enum)
                     | CheckedNodeKind::BoundedDomain(BoundedDomainForm::IntegerRange)
             )
         ) {
+            if element_type_kind
+                == Some(CheckedNodeKind::BoundedDomain(BoundedDomainForm::TextBounds))
+            {
+                return Err(self.quantifier_refusal(
+                    node,
+                    "text-domain",
+                    "the collection element type is not supported",
+                ));
+            }
             return Err(cannot_lower(
                 node,
                 "the collection element type is not supported",

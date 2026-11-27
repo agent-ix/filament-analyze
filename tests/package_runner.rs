@@ -1655,6 +1655,7 @@ fn quantified_package_runs_publish_deterministic_report_bytes() {
 #[test]
 fn a_text_quantifier_domain_exits_two_without_a_solver_call_or_report() {
     let mut document = Document::new();
+    document.source_identity = "spec/fixtures/text-domain.qsl".to_owned();
     let text = document.unsupported_type("text");
     let _binder = document.parameter_of(&text);
     let collection = document.collection_literal("sequence", &text, &[]);
@@ -1665,14 +1666,19 @@ fn a_text_quantifier_domain_exits_two_without_a_solver_call_or_report() {
         "p1",
         &predicate,
     );
+    let source_region = document.region(&quantifier);
     let claim = document.claim(&quantifier);
     let bytes = document.bytes(&[&claim]);
     let fixture = Fixture::new(&bytes);
 
     let run = fixture.run();
     assert_eq!(run.code, Some(2), "{}", run.stderr);
-    let span = format!("semantic_graph.nodes[{}]", node_index(&bytes, &quantifier));
-    let expected = format!("--package: {span}: the collection element type is not supported");
+    let node = format!("semantic_graph.nodes[{}]", node_index(&bytes, &quantifier));
+    let expected = format!(
+        "--package: {node}: text-domain: the collection element type is not supported \
+         (source agent-ix:{} bytes {}..{})",
+        document.source_identity, source_region.0, source_region.1
+    );
     assert!(run.stderr.contains(&expected), "{expected}: {}", run.stderr);
     assert!(fixture.requests().is_empty(), "a solver was invoked");
     fixture.assert_no_report();

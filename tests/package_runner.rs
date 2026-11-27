@@ -1651,6 +1651,33 @@ fn quantified_package_runs_publish_deterministic_report_bytes() {
     assert_eq!(normalised(&first_report), normalised(&second_report));
 }
 
+#[trace("TC-030", "FR-034-AC-2")]
+#[test]
+fn a_text_quantifier_domain_exits_two_without_a_solver_call_or_report() {
+    let mut document = Document::new();
+    let text = document.unsupported_type("text");
+    let _binder = document.parameter_of(&text);
+    let collection = document.collection_literal("sequence", &text, &[]);
+    let predicate = document.literal(true);
+    let quantifier = document.quantifier(
+        "filament.op.collection.forall",
+        &collection,
+        "p1",
+        &predicate,
+    );
+    let claim = document.claim(&quantifier);
+    let bytes = document.bytes(&[&claim]);
+    let fixture = Fixture::new(&bytes);
+
+    let run = fixture.run();
+    assert_eq!(run.code, Some(2), "{}", run.stderr);
+    let span = format!("semantic_graph.nodes[{}]", node_index(&bytes, &quantifier));
+    let expected = format!("--package: {span}: the collection element type is not supported");
+    assert!(run.stderr.contains(&expected), "{expected}: {}", run.stderr);
+    assert!(fixture.requests().is_empty(), "a solver was invoked");
+    fixture.assert_no_report();
+}
+
 #[trace("FR-009-AC-12")]
 #[test]
 fn the_capability_root_is_gone_after_every_exit_path() {

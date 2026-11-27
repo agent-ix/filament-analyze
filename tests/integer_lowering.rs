@@ -734,7 +734,6 @@ fn reports_naming_the_boolean_only_profile_are_refused() {
 /// the sat fixture, and each returned model replay-verifies.
 #[trace("TC-016", "TC-017", "FR-010-AC-7", "FR-011-AC-1", "FR-011-AC-11")]
 #[test]
-#[ignore = "requires official Z3 and cvc5 executables at FILAMENT_Z3 and FILAMENT_CVC5"]
 fn real_z3_cvc5_decide_integer_fixtures_identically() {
     let z3_path = PathBuf::from(std::env::var_os("FILAMENT_Z3").expect("FILAMENT_Z3 is required"));
     let cvc5_path =

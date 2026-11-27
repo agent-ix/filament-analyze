@@ -732,10 +732,19 @@ fn reports_naming_the_boolean_only_profile_are_refused() {
 
 /// FR-010-AC-7 and FR-011-AC-1/11: real solvers agree on the unsat fixture, both answer sat on
 /// the sat fixture, and each returned model replay-verifies.
-#[trace("TC-016", "TC-017", "FR-010-AC-7", "FR-011-AC-1", "FR-011-AC-11")]
+#[trace("TC-016", "TC-017", "FR-011-AC-1", "FR-011-AC-11")]
 #[test]
-#[ignore = "requires official Z3 and cvc5 executables at FILAMENT_Z3 and FILAMENT_CVC5"]
 fn real_z3_cvc5_decide_integer_fixtures_identically() {
+    assert_real_integer_solver_fixture_results();
+}
+
+#[trace("FR-010-AC-7")]
+#[test]
+fn real_integer_solver_statuses_and_replay_are_verified() {
+    assert_real_integer_solver_fixture_results();
+}
+
+fn assert_real_integer_solver_fixture_results() {
     let z3_path = PathBuf::from(std::env::var_os("FILAMENT_Z3").expect("FILAMENT_Z3 is required"));
     let cvc5_path =
         PathBuf::from(std::env::var_os("FILAMENT_CVC5").expect("FILAMENT_CVC5 is required"));

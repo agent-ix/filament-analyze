@@ -27,7 +27,7 @@ help:
 	@echo "  make test             - cargo test"
 	@echo "  make real-tool-test   - Real Z3/cvc5 tests with retained SUITE-004 results"
 	@echo "  make spec             - Quire-validate the specification and plan (requires QUIRE_MODULE_ARGS with explicit --module paths)"
-	@echo "  make msrv             - Test the locked graph with Rust 1.98.1"
+	@echo "  make msrv             - Test the locked graph with Rust 1.100.0"
 	@echo "  make rustdoc          - Build warning-free public documentation"
 	@echo "  make coverage         - Enforce the local line-coverage floor"
 	@echo "  make build            - Release build"
@@ -70,7 +70,7 @@ spec-feature-risk-ratings:
 
 .PHONY: msrv
 msrv:
-	$(CARGO) +1.98.1 test --locked
+	$(CARGO) +1.100.0 test --locked
 
 .PHONY: rustdoc
 rustdoc:

@@ -2124,17 +2124,11 @@ fn contradictory_dose_claims_are_refuted() {
 
 /// FR-012-AC-8: the dose fixtures with the real executor and real Z3 and cvc5.
 #[trace("FR-012-AC-8")]
-#[ignore = "needs VER-82 integer witness replay"]
 #[test]
 fn real_solvers_agree_with_the_controlled_run_on_the_dose_fixtures() {
-    let (Some(executable), Some(z3), Some(cvc5)) = (
-        real_producer_execute(),
-        find_executable("z3"),
-        find_executable("cvc5"),
-    ) else {
-        eprintln!("skipped: engineering-assurance, z3 and cvc5 must all be on PATH");
-        return;
-    };
+    let executable = real_producer_execute().expect("engineering-assurance is required on PATH");
+    let z3 = find_executable("z3").expect("z3 is required on PATH");
+    let cvc5 = find_executable("cvc5").expect("cvc5 is required on PATH");
     for (contradiction, code, status) in [(false, 0, "satisfied"), (true, 1, "refuted")] {
         let built = dose_package(contradiction);
         let fixture = Fixture::new(&built.bytes);

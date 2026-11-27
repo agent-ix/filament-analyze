@@ -4450,7 +4450,7 @@ mod tests {
     }
 
     /// FR-010-AC-11: a constant fold outside the 128-bit signed range is refused, not wrapped.
-    #[ix_trace_rs::trace("TC-016", "FR-010-AC-11")]
+    #[trace("TC-016", "FR-010-AC-11")]
     #[test]
     fn constant_fold_overflow_is_unsupported() {
         let ty = IntegerType::new(
@@ -4491,6 +4491,32 @@ mod tests {
                 Some(UnsupportedClass::ConstantOverflow)
             );
         }
+
+        let overflowing = binary(
+            NumericOperator::Add,
+            literal(i128::MAX, &ty),
+            literal(1, &ty),
+        );
+        let statement = unchecked_statement(
+            vec![],
+            vec![],
+            Expression::new(
+                ExpressionKind::Compare {
+                    operator: ComparisonOperator::Greater,
+                    left: Box::new(overflowing),
+                    right: Box::new(literal(0, &ty)),
+                },
+                span(),
+            ),
+        );
+        let errors = lower_boolean_statements(&[statement], &[])
+            .expect_err("overflowing unchecked expression must produce no query");
+        assert_eq!(errors[0].code(), LoweringErrorCode::UnsupportedConstruct);
+        assert_eq!(
+            errors[0].unsupported_class(),
+            Some(UnsupportedClass::ConstantOverflow)
+        );
+
         let exact = binary(
             NumericOperator::Add,
             literal(i128::MAX - 1, &ty),

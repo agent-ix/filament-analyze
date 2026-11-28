@@ -1,0 +1,1550 @@
+{
+  "analyzer": {
+    "name": "filament-analyze",
+    "version": "0.1.0"
+  },
+  "caseCount": 10,
+  "cases": [
+    {
+      "analysisKind": "consistency",
+      "caseId": "consistency-sat",
+      "expected": {
+        "analysisStatus": "satisfied",
+        "differentialDisposition": "agreement",
+        "solverOutcome": "sat"
+      },
+      "observed": {
+        "cvc5Outcome": "sat",
+        "cvc5Status": "satisfied",
+        "disposition": "agreement",
+        "reportSha256": "dd3a7c202a754603cb17f51afb4b841bc1094eb0f7e5f63885441b9b740d6b24",
+        "z3Outcome": "sat",
+        "z3Status": "satisfied"
+      },
+      "queryDigest": "3900f5e67dc3dbf993f02500330bf565a85d9675293845dcc9e9cdcf3e941684",
+      "report": {
+        "analysisKind": "consistency",
+        "analysisModelProfile": "filament.analysis-model/v1",
+        "assertions": [
+          {
+            "clause": "agent-ix/analysis-test:REQ-consistency-sat@1:C-consistency-sat",
+            "clauseDigest": "dae5f3a89c7eb3e1621a409ed1f8f36797a63baefd6c2dda8edcf07c7c91f5df",
+            "name": "a_p6167656e742d69782f616e616c797369732d74657374_r5245512d636f6e73697374656e63792d736174_v1_c432d636f6e73697374656e63792d736174_d602273c3724d4264d1ea0cc02946b55c0b31437fb62dd4ad3e490fa88a3391f5",
+            "polarity": "positive",
+            "role": "selected",
+            "source": {
+              "document": "analysis-test",
+              "end": {
+                "byte": 16,
+                "column": 17,
+                "line": 1
+              },
+              "revision": 1,
+              "start": {
+                "byte": 15,
+                "column": 16,
+                "line": 1
+              }
+            }
+          }
+        ],
+        "bindingSetDigest": "20ac99465be863cfcd4d4f76c41954c3f840f7888af14c6c684238bc7cc570dc",
+        "differential": {
+          "agreedStatus": "satisfied",
+          "disposition": "agreement"
+        },
+        "encodingProfile": "filament.smtlib2/v2",
+        "engines": [
+          {
+            "argv": [
+              "-in",
+              "-smt2"
+            ],
+            "cleanupMs": 0,
+            "configuredExecutable": "/builds/worktrees/codex-fixes-tc006-corpus/.tc006-tools/z3/z3_solver-5.1.0.0.data/data/bin/z3",
+            "diagnostic": null,
+            "elapsedMs": 20,
+            "engine": "z3",
+            "explanation": "verified",
+            "identity": {
+              "path": "/builds/worktrees/codex-fixes-tc006-corpus/.tc006-tools/z3/z3_solver-5.1.0.0.data/data/bin/z3",
+              "version": "Z3 version 5.1.0 - 64 bit"
+            },
+            "limits": {
+              "cleanupTimeMs": 1000,
+              "gracefulCleanupMs": 100,
+              "modelBytes": 8388608,
+              "monitorIntervalMs": 5,
+              "pathBytes": 4096,
+              "stderrBytes": 1048576,
+              "stdinBytes": 16777216,
+              "stdoutBytes": 16777216,
+              "versionBytes": 65536,
+              "wallTimeMs": 5000
+            },
+            "modelHex": "280a202028646566696e652d66756e20765f735f6631363037393230303461373739653430303339303465303236646161656231643436363539323263303235636437343066663639323462633339393636633020282920426f6f6c0a2020202074727565290a202028646566696e652d66756e20615f7036313637363536653734326436393738326636313665363136633739373336393733326437343635373337345f7235323435353132643633366636653733363937333734363536653633373932643733363137345f76315f63343332643633366636653733363937333734363536653633373932643733363137345f643630323237336333373234643432363464316561306363303239343662353563306233313433376662363264643461643365343930666138386133333931663520282920426f6f6c0a20202020765f735f66313630373932303034613737396534303033393034653032366461616562316434363635393232633032356364373430666636393234626333393936366330290a29",
+            "outcome": "sat",
+            "processExit": {
+              "code": 0,
+              "signal": null
+            },
+            "profile": "filament.solver-process/v1",
+            "queryDigest": "3900f5e67dc3dbf993f02500330bf565a85d9675293845dcc9e9cdcf3e941684",
+            "status": "satisfied",
+            "stderrHex": "",
+            "stdoutHex": "7361740a280a202028646566696e652d66756e20765f735f6631363037393230303461373739653430303339303465303236646161656231643436363539323263303235636437343066663639323462633339393636633020282920426f6f6c0a2020202074727565290a202028646566696e652d66756e20615f7036313637363536653734326436393738326636313665363136633739373336393733326437343635373337345f7235323435353132643633366636653733363937333734363536653633373932643733363137345f76315f63343332643633366636653733363937333734363536653633373932643733363137345f643630323237336333373234643432363464316561306363303239343662353563306233313433376662363264643461643365343930666138386133333931663520282920426f6f6c0a20202020765f735f66313630373932303034613737396534303033393034653032366461616562316434363635393232633032356364373430666636393234626333393936366330290a290a"
+          },
+          {
+            "argv": [
+              "--lang=smt2",
+              "--no-incremental"
+            ],
+            "cleanupMs": 0,
+            "configuredExecutable": "/builds/worktrees/codex-fixes-tc006-corpus/.tc006-tools/cvc5/cvc5-Linux-x86_64-static/bin/cvc5",
+            "diagnostic": null,
+            "elapsedMs": 10,
+            "engine": "cvc5",
+            "explanation": "verified",
+            "identity": {
+              "path": "/builds/worktrees/codex-fixes-tc006-corpus/.tc006-tools/cvc5/cvc5-Linux-x86_64-static/bin/cvc5",
+              "version": "cvc5 1.3.4 [git f3b21c4 on branch HEAD]\ncompiled with GCC version 11.4.0 on May  7 2026 15:42:04\n\nCopyright (c) 2009-2026 by the authors and their institutional\naffiliations listed at https://cvc5.github.io/people.html\n\ncvc5 is open-source and is covered by the BSD license (modified).\n\nTHIS SOFTWARE IS PROVIDED AS-IS, WITHOUT ANY WARRANTIES.\nUSE AT YOUR OWN RISK.\n\nThis version of cvc5 is linked against the following non-(L)GPL'ed\nthird party libraries.\n\n  CaDiCaL - Simplified Satisfiability Solver\n  See https://github.com/arminbiere/cadical for copyright information.\n\n  Editline Library\n  See https://thrysoee.dk/editline\n  for copyright information.\n\n  SymFPU - The Symbolic Floating Point Unit\n  See https://github.com/martin-cs/symfpu/tree/CVC4 for copyright information.\n\nThis version of cvc5 is linked against the following third party\nlibraries covered by the LGPLv3 license.\nSee licenses/lgpl-3.0.txt for more information.\n\n  GMP - Gnu Multi Precision Arithmetic Library\n  See http://gmplib.org for copyright information.\n\n  LibPoly polynomial library\n  See https://github.com/SRI-CSL/libpoly for copyright and\n  licensing information.\n\ncvc5 is statically linked against these libraries. To recompile\nthis version of cvc5 with different versions of these libraries\nfollow the instructions on https://github.com/cvc5/cvc5/blob/main/INSTALL.md\n\nSee the file COPYING (distributed with the source code, and with\nall binaries) for the full cvc5 copyright, licensing, and (lack of)\nwarranty information."
+            },
+            "limits": {
+              "cleanupTimeMs": 1000,
+              "gracefulCleanupMs": 100,
+              "modelBytes": 8388608,
+              "monitorIntervalMs": 5,
+              "pathBytes": 4096,
+              "stderrBytes": 1048576,
+              "stdinBytes": 16777216,
+              "stdoutBytes": 16777216,
+              "versionBytes": 65536,
+              "wallTimeMs": 5000
+            },
+            "modelHex": "280a28646566696e652d66756e20765f735f6631363037393230303461373739653430303339303465303236646161656231643436363539323263303235636437343066663639323462633339393636633020282920426f6f6c2074727565290a29",
+            "outcome": "sat",
+            "processExit": {
+              "code": 0,
+              "signal": null
+            },
+            "profile": "filament.solver-process/v1",
+            "queryDigest": "3900f5e67dc3dbf993f02500330bf565a85d9675293845dcc9e9cdcf3e941684",
+            "status": "satisfied",
+            "stderrHex": "",
+            "stdoutHex": "7361740a280a28646566696e652d66756e20765f735f6631363037393230303461373739653430303339303465303236646161656231643436363539323263303235636437343066663639323462633339393636633020282920426f6f6c2074727565290a290a"
+          }
+        ],
+        "logic": "QF_LIA",
+        "producer": {
+          "name": "filament-analyze",
+          "version": "0.1.0-12-g5989280"
+        },
+        "queryDigest": "3900f5e67dc3dbf993f02500330bf565a85d9675293845dcc9e9cdcf3e941684",
+        "queryHex": "287365742d696e666f203a736d742d6c69622d76657273696f6e20322e36290a287365742d696e666f203a736f75726365207c66696c616d656e742e736d746c6962322f76327c290a287365742d6f7074696f6e203a70726f647563652d6d6f64656c732074727565290a287365742d6c6f6769632051465f4c4941290a286465636c6172652d66756e20765f735f6631363037393230303461373739653430303339303465303236646161656231643436363539323263303235636437343066663639323462633339393636633020282920426f6f6c290a2861737365727420282120765f735f66313630373932303034613737396534303033393034653032366461616562316434363635393232633032356364373430666636393234626333393936366330203a6e616d656420615f7036313637363536653734326436393738326636313665363136633739373336393733326437343635373337345f7235323435353132643633366636653733363937333734363536653633373932643733363137345f76315f63343332643633366636653733363937333734363536653633373932643733363137345f643630323237336333373234643432363464316561306363303239343662353563306233313433376662363264643461643365343930666138386133333931663529290a28636865636b2d736174290a286765742d6d6f64656c290a",
+        "requestDigest": "a26e56116ed46d52cc89e3f78b671e27c4ccc6907cea29627d303c084a78e464",
+        "schema": "filament.differential-report/v2"
+      }
+    },
+    {
+      "analysisKind": "consistency",
+      "caseId": "consistency-unsat",
+      "expected": {
+        "analysisStatus": "refuted",
+        "differentialDisposition": "agreement",
+        "solverOutcome": "unsat"
+      },
+      "observed": {
+        "cvc5Outcome": "unsat",
+        "cvc5Status": "refuted",
+        "disposition": "agreement",
+        "reportSha256": "ecbc9d6a6d51236addf256eb8fc2759debf7e0f1b1faf309620d1a917d80166b",
+        "z3Outcome": "unsat",
+        "z3Status": "refuted"
+      },
+      "queryDigest": "7457d1ac9da1dfee7d683c51f27605de160847edbbc1ca3d29c0f8334b05e33b",
+      "report": {
+        "analysisKind": "consistency",
+        "analysisModelProfile": "filament.analysis-model/v1",
+        "assertions": [
+          {
+            "clause": "agent-ix/analysis-test:REQ-consistency-unsat@1:C-consistency-unsat",
+            "clauseDigest": "716ac66b86c5975a71f9137b927ea13c62ef4eba0e89f5cdf850c54671f8a501",
+            "name": "a_p6167656e742d69782f616e616c797369732d74657374_r5245512d636f6e73697374656e63792d756e736174_v1_c432d636f6e73697374656e63792d756e736174_d8c6a241edfeddde7675e15f0d3490cc2a0600cbcbc944f79dd01dbe40be0a0d8",
+            "polarity": "positive",
+            "role": "selected",
+            "source": {
+              "document": "analysis-test",
+              "end": {
+                "byte": 18,
+                "column": 19,
+                "line": 1
+              },
+              "revision": 1,
+              "start": {
+                "byte": 17,
+                "column": 18,
+                "line": 1
+              }
+            }
+          }
+        ],
+        "bindingSetDigest": "20ac99465be863cfcd4d4f76c41954c3f840f7888af14c6c684238bc7cc570dc",
+        "differential": {
+          "agreedStatus": "refuted",
+          "disposition": "agreement"
+        },
+        "encodingProfile": "filament.smtlib2/v2",
+        "engines": [
+          {
+            "argv": [
+              "-in",
+              "-smt2"
+            ],
+            "cleanupMs": 0,
+            "configuredExecutable": "/builds/worktrees/codex-fixes-tc006-corpus/.tc006-tools/z3/z3_solver-5.1.0.0.data/data/bin/z3",
+            "diagnostic": null,
+            "elapsedMs": 15,
+            "engine": "z3",
+            "explanation": "not-applicable",
+            "identity": {
+              "path": "/builds/worktrees/codex-fixes-tc006-corpus/.tc006-tools/z3/z3_solver-5.1.0.0.data/data/bin/z3",
+              "version": "Z3 version 5.1.0 - 64 bit"
+            },
+            "limits": {
+              "cleanupTimeMs": 1000,
+              "gracefulCleanupMs": 100,
+              "modelBytes": 8388608,
+              "monitorIntervalMs": 5,
+              "pathBytes": 4096,
+              "stderrBytes": 1048576,
+              "stdinBytes": 16777216,
+              "stdoutBytes": 16777216,
+              "versionBytes": 65536,
+              "wallTimeMs": 5000
+            },
+            "modelHex": "",
+            "outcome": "unsat",
+            "processExit": {
+              "code": 1,
+              "signal": null
+            },
+            "profile": "filament.solver-process/v1",
+            "queryDigest": "7457d1ac9da1dfee7d683c51f27605de160847edbbc1ca3d29c0f8334b05e33b",
+            "status": "refuted",
+            "stderrHex": "",
+            "stdoutHex": "756e7361740a286572726f7220226c696e65203820636f6c756d6e2031303a206d6f64656c206973206e6f7420617661696c61626c6522290a"
+          },
+          {
+            "argv": [
+              "--lang=smt2",
+              "--no-incremental"
+            ],
+            "cleanupMs": 0,
+            "configuredExecutable": "/builds/worktrees/codex-fixes-tc006-corpus/.tc006-tools/cvc5/cvc5-Linux-x86_64-static/bin/cvc5",
+            "diagnostic": null,
+            "elapsedMs": 15,
+            "engine": "cvc5",
+            "explanation": "not-applicable",
+            "identity": {
+              "path": "/builds/worktrees/codex-fixes-tc006-corpus/.tc006-tools/cvc5/cvc5-Linux-x86_64-static/bin/cvc5",
+              "version": "cvc5 1.3.4 [git f3b21c4 on branch HEAD]\ncompiled with GCC version 11.4.0 on May  7 2026 15:42:04\n\nCopyright (c) 2009-2026 by the authors and their institutional\naffiliations listed at https://cvc5.github.io/people.html\n\ncvc5 is open-source and is covered by the BSD license (modified).\n\nTHIS SOFTWARE IS PROVIDED AS-IS, WITHOUT ANY WARRANTIES.\nUSE AT YOUR OWN RISK.\n\nThis version of cvc5 is linked against the following non-(L)GPL'ed\nthird party libraries.\n\n  CaDiCaL - Simplified Satisfiability Solver\n  See https://github.com/arminbiere/cadical for copyright information.\n\n  Editline Library\n  See https://thrysoee.dk/editline\n  for copyright information.\n\n  SymFPU - The Symbolic Floating Point Unit\n  See https://github.com/martin-cs/symfpu/tree/CVC4 for copyright information.\n\nThis version of cvc5 is linked against the following third party\nlibraries covered by the LGPLv3 license.\nSee licenses/lgpl-3.0.txt for more information.\n\n  GMP - Gnu Multi Precision Arithmetic Library\n  See http://gmplib.org for copyright information.\n\n  LibPoly polynomial library\n  See https://github.com/SRI-CSL/libpoly for copyright and\n  licensing information.\n\ncvc5 is statically linked against these libraries. To recompile\nthis version of cvc5 with different versions of these libraries\nfollow the instructions on https://github.com/cvc5/cvc5/blob/main/INSTALL.md\n\nSee the file COPYING (distributed with the source code, and with\nall binaries) for the full cvc5 copyright, licensing, and (lack of)\nwarranty information."
+            },
+            "limits": {
+              "cleanupTimeMs": 1000,
+              "gracefulCleanupMs": 100,
+              "modelBytes": 8388608,
+              "monitorIntervalMs": 5,
+              "pathBytes": 4096,
+              "stderrBytes": 1048576,
+              "stdinBytes": 16777216,
+              "stdoutBytes": 16777216,
+              "versionBytes": 65536,
+              "wallTimeMs": 5000
+            },
+            "modelHex": "",
+            "outcome": "unsat",
+            "processExit": {
+              "code": 0,
+              "signal": null
+            },
+            "profile": "filament.solver-process/v1",
+            "queryDigest": "7457d1ac9da1dfee7d683c51f27605de160847edbbc1ca3d29c0f8334b05e33b",
+            "status": "refuted",
+            "stderrHex": "",
+            "stdoutHex": "756e7361740a286572726f72202263616e6e6f7420676574206d6f64656c20756e6c657373206166746572206120534154206f7220554e4b4e4f574e20726573706f6e73652e22290a"
+          }
+        ],
+        "logic": "QF_LIA",
+        "producer": {
+          "name": "filament-analyze",
+          "version": "0.1.0-12-g5989280"
+        },
+        "queryDigest": "7457d1ac9da1dfee7d683c51f27605de160847edbbc1ca3d29c0f8334b05e33b",
+        "queryHex": "287365742d696e666f203a736d742d6c69622d76657273696f6e20322e36290a287365742d696e666f203a736f75726365207c66696c616d656e742e736d746c6962322f76327c290a287365742d6f7074696f6e203a70726f647563652d6d6f64656c732074727565290a287365742d6c6f6769632051465f4c4941290a286465636c6172652d66756e20765f735f6636306438636436333936623639653635643533303461316362353533393637626436336438626635623365653063386264643430363735616337306261666620282920426f6f6c290a286173736572742028212028616e6420765f735f6636306438636436333936623639653635643533303461316362353533393637626436336438626635623365653063386264643430363735616337306261666620286e6f7420765f735f663630643863643633393662363965363564353330346131636235353339363762643633643862663562336565306338626464343036373561633730626166662929203a6e616d656420615f7036313637363536653734326436393738326636313665363136633739373336393733326437343635373337345f723532343535313264363336663665373336393733373436353665363337393264373536653733363137345f76315f6334333264363336663665373336393733373436353665363337393264373536653733363137345f643863366132343165646665646464653736373565313566306433343930636332613036303063626362633934346637396464303164626534306265306130643829290a28636865636b2d736174290a286765742d6d6f64656c290a",
+        "requestDigest": "88de8663c0e261b51d46af56662992946a4e27222901c40b6115d21c91ad4f4f",
+        "schema": "filament.differential-report/v2"
+      }
+    },
+    {
+      "analysisKind": "contradiction",
+      "caseId": "contradiction-satisfied",
+      "expected": {
+        "analysisStatus": "satisfied",
+        "differentialDisposition": "agreement",
+        "solverOutcome": "unsat"
+      },
+      "observed": {
+        "cvc5Outcome": "unsat",
+        "cvc5Status": "satisfied",
+        "disposition": "agreement",
+        "reportSha256": "cac480a3ad849113e91eccac641129e370eefa235c479fd7619791bbd703a6a8",
+        "z3Outcome": "unsat",
+        "z3Status": "satisfied"
+      },
+      "queryDigest": "fae5f1a2b683c4341501f8f0888e40430a246e5c0d40ead943accc94bba6c1de",
+      "report": {
+        "analysisKind": "contradiction",
+        "analysisModelProfile": "filament.analysis-model/v1",
+        "assertions": [
+          {
+            "clause": "agent-ix/analysis-test:REQ-contradiction-unsat-left@1:C-contradiction-unsat-left",
+            "clauseDigest": "678d77b2ae0e274a3962d691c2303b969a41e7a2482b65d7d28a05247129dfff",
+            "name": "a_p6167656e742d69782f616e616c797369732d74657374_r5245512d636f6e74726164696374696f6e2d756e7361742d6c656674_v1_c432d636f6e74726164696374696f6e2d756e7361742d6c656674_dd9c37b8a6d488df17d906e7978ecab1f06a16001d96c9846761428863b5c46af",
+            "polarity": "positive",
+            "role": "left",
+            "source": {
+              "document": "analysis-test",
+              "end": {
+                "byte": 25,
+                "column": 26,
+                "line": 1
+              },
+              "revision": 1,
+              "start": {
+                "byte": 24,
+                "column": 25,
+                "line": 1
+              }
+            }
+          },
+          {
+            "clause": "agent-ix/analysis-test:REQ-contradiction-unsat-right@1:C-contradiction-unsat-right",
+            "clauseDigest": "4dae8105ee45160b53f8e17a7ac6a9b47eb5685ec4b0a26f66c0c58b4524f844",
+            "name": "a_p6167656e742d69782f616e616c797369732d74657374_r5245512d636f6e74726164696374696f6e2d756e7361742d7269676874_v1_c432d636f6e74726164696374696f6e2d756e7361742d7269676874_df544adfcb4d320f4f3018a323cc474156130d4032ce1395ad7b7f8ea70d13a6f",
+            "polarity": "positive",
+            "role": "right",
+            "source": {
+              "document": "analysis-test",
+              "end": {
+                "byte": 26,
+                "column": 27,
+                "line": 1
+              },
+              "revision": 1,
+              "start": {
+                "byte": 25,
+                "column": 26,
+                "line": 1
+              }
+            }
+          }
+        ],
+        "bindingSetDigest": "20ac99465be863cfcd4d4f76c41954c3f840f7888af14c6c684238bc7cc570dc",
+        "differential": {
+          "agreedStatus": "satisfied",
+          "disposition": "agreement"
+        },
+        "encodingProfile": "filament.smtlib2/v2",
+        "engines": [
+          {
+            "argv": [
+              "-in",
+              "-smt2"
+            ],
+            "cleanupMs": 0,
+            "configuredExecutable": "/builds/worktrees/codex-fixes-tc006-corpus/.tc006-tools/z3/z3_solver-5.1.0.0.data/data/bin/z3",
+            "diagnostic": null,
+            "elapsedMs": 10,
+            "engine": "z3",
+            "explanation": "not-applicable",
+            "identity": {
+              "path": "/builds/worktrees/codex-fixes-tc006-corpus/.tc006-tools/z3/z3_solver-5.1.0.0.data/data/bin/z3",
+              "version": "Z3 version 5.1.0 - 64 bit"
+            },
+            "limits": {
+              "cleanupTimeMs": 1000,
+              "gracefulCleanupMs": 100,
+              "modelBytes": 8388608,
+              "monitorIntervalMs": 5,
+              "pathBytes": 4096,
+              "stderrBytes": 1048576,
+              "stdinBytes": 16777216,
+              "stdoutBytes": 16777216,
+              "versionBytes": 65536,
+              "wallTimeMs": 5000
+            },
+            "modelHex": "",
+            "outcome": "unsat",
+            "processExit": {
+              "code": 1,
+              "signal": null
+            },
+            "profile": "filament.solver-process/v1",
+            "queryDigest": "fae5f1a2b683c4341501f8f0888e40430a246e5c0d40ead943accc94bba6c1de",
+            "status": "satisfied",
+            "stderrHex": "",
+            "stdoutHex": "756e7361740a286572726f7220226c696e65203820636f6c756d6e2031303a206d6f64656c206973206e6f7420617661696c61626c6522290a"
+          },
+          {
+            "argv": [
+              "--lang=smt2",
+              "--no-incremental"
+            ],
+            "cleanupMs": 0,
+            "configuredExecutable": "/builds/worktrees/codex-fixes-tc006-corpus/.tc006-tools/cvc5/cvc5-Linux-x86_64-static/bin/cvc5",
+            "diagnostic": null,
+            "elapsedMs": 15,
+            "engine": "cvc5",
+            "explanation": "not-applicable",
+            "identity": {
+              "path": "/builds/worktrees/codex-fixes-tc006-corpus/.tc006-tools/cvc5/cvc5-Linux-x86_64-static/bin/cvc5",
+              "version": "cvc5 1.3.4 [git f3b21c4 on branch HEAD]\ncompiled with GCC version 11.4.0 on May  7 2026 15:42:04\n\nCopyright (c) 2009-2026 by the authors and their institutional\naffiliations listed at https://cvc5.github.io/people.html\n\ncvc5 is open-source and is covered by the BSD license (modified).\n\nTHIS SOFTWARE IS PROVIDED AS-IS, WITHOUT ANY WARRANTIES.\nUSE AT YOUR OWN RISK.\n\nThis version of cvc5 is linked against the following non-(L)GPL'ed\nthird party libraries.\n\n  CaDiCaL - Simplified Satisfiability Solver\n  See https://github.com/arminbiere/cadical for copyright information.\n\n  Editline Library\n  See https://thrysoee.dk/editline\n  for copyright information.\n\n  SymFPU - The Symbolic Floating Point Unit\n  See https://github.com/martin-cs/symfpu/tree/CVC4 for copyright information.\n\nThis version of cvc5 is linked against the following third party\nlibraries covered by the LGPLv3 license.\nSee licenses/lgpl-3.0.txt for more information.\n\n  GMP - Gnu Multi Precision Arithmetic Library\n  See http://gmplib.org for copyright information.\n\n  LibPoly polynomial library\n  See https://github.com/SRI-CSL/libpoly for copyright and\n  licensing information.\n\ncvc5 is statically linked against these libraries. To recompile\nthis version of cvc5 with different versions of these libraries\nfollow the instructions on https://github.com/cvc5/cvc5/blob/main/INSTALL.md\n\nSee the file COPYING (distributed with the source code, and with\nall binaries) for the full cvc5 copyright, licensing, and (lack of)\nwarranty information."
+            },
+            "limits": {
+              "cleanupTimeMs": 1000,
+              "gracefulCleanupMs": 100,
+              "modelBytes": 8388608,
+              "monitorIntervalMs": 5,
+              "pathBytes": 4096,
+              "stderrBytes": 1048576,
+              "stdinBytes": 16777216,
+              "stdoutBytes": 16777216,
+              "versionBytes": 65536,
+              "wallTimeMs": 5000
+            },
+            "modelHex": "",
+            "outcome": "unsat",
+            "processExit": {
+              "code": 0,
+              "signal": null
+            },
+            "profile": "filament.solver-process/v1",
+            "queryDigest": "fae5f1a2b683c4341501f8f0888e40430a246e5c0d40ead943accc94bba6c1de",
+            "status": "satisfied",
+            "stderrHex": "",
+            "stdoutHex": "756e7361740a286572726f72202263616e6e6f7420676574206d6f64656c20756e6c657373206166746572206120534154206f7220554e4b4e4f574e20726573706f6e73652e22290a"
+          }
+        ],
+        "logic": "QF_LIA",
+        "producer": {
+          "name": "filament-analyze",
+          "version": "0.1.0-12-g5989280"
+        },
+        "queryDigest": "fae5f1a2b683c4341501f8f0888e40430a246e5c0d40ead943accc94bba6c1de",
+        "queryHex": "287365742d696e666f203a736d742d6c69622d76657273696f6e20322e36290a287365742d696e666f203a736f75726365207c66696c616d656e742e736d746c6962322f76327c290a287365742d6f7074696f6e203a70726f647563652d6d6f64656c732074727565290a287365742d6c6f6769632051465f4c4941290a286173736572742028212074727565203a6e616d656420615f7036313637363536653734326436393738326636313665363136633739373336393733326437343635373337345f7235323435353132643633366636653734373236313634363936333734363936663665326437353665373336313734326436633635363637345f76315f63343332643633366636653734373236313634363936333734363936663665326437353665373336313734326436633635363637345f646439633337623861366434383864663137643930366537393738656361623166303661313630303164393663393834363736313432383836336235633436616629290a286173736572742028212066616c7365203a6e616d656420615f7036313637363536653734326436393738326636313665363136633739373336393733326437343635373337345f72353234353531326436333666366537343732363136343639363337343639366636653264373536653733363137343264373236393637363837345f76315f633433326436333666366537343732363136343639363337343639366636653264373536653733363137343264373236393637363837345f646635343461646663623464333230663466333031386133323363633437343135363133306434303332636531333935616437623766386561373064313361366629290a28636865636b2d736174290a286765742d6d6f64656c290a",
+        "requestDigest": "d353bd48e850c12c10dd5ec476f80d82123fde65cc57661d7cbc80435206828d",
+        "schema": "filament.differential-report/v2"
+      }
+    },
+    {
+      "analysisKind": "contradiction",
+      "caseId": "contradiction-refuted",
+      "expected": {
+        "analysisStatus": "refuted",
+        "differentialDisposition": "agreement",
+        "solverOutcome": "sat"
+      },
+      "observed": {
+        "cvc5Outcome": "sat",
+        "cvc5Status": "refuted",
+        "disposition": "agreement",
+        "reportSha256": "fb2d208a364cad582dc09c7e20b670df5a48b3f21544039d79c977c7a8f21edf",
+        "z3Outcome": "sat",
+        "z3Status": "refuted"
+      },
+      "queryDigest": "7e946db301dad8a130d0586191cb4f8d731dac8227ca26fc325ed2f93f0ac3e9",
+      "report": {
+        "analysisKind": "contradiction",
+        "analysisModelProfile": "filament.analysis-model/v1",
+        "assertions": [
+          {
+            "clause": "agent-ix/analysis-test:REQ-contradiction-sat-left@1:C-contradiction-sat-left",
+            "clauseDigest": "23fa1e4240c21d2614859b2c6c8d072f707acbd8787cc7357c439eb8679c6c87",
+            "name": "a_p6167656e742d69782f616e616c797369732d74657374_r5245512d636f6e74726164696374696f6e2d7361742d6c656674_v1_c432d636f6e74726164696374696f6e2d7361742d6c656674_db2d414ab55b1e937b7c65b3fac931c361b1433a21c491695562cefeeadb9af36",
+            "polarity": "positive",
+            "role": "left",
+            "source": {
+              "document": "analysis-test",
+              "end": {
+                "byte": 23,
+                "column": 24,
+                "line": 1
+              },
+              "revision": 1,
+              "start": {
+                "byte": 22,
+                "column": 23,
+                "line": 1
+              }
+            }
+          },
+          {
+            "clause": "agent-ix/analysis-test:REQ-contradiction-sat-right@1:C-contradiction-sat-right",
+            "clauseDigest": "f0c5e8172482173e4e8c04c8f7621b6544a48b327d701506cb19b5a4ba6d4d3a",
+            "name": "a_p6167656e742d69782f616e616c797369732d74657374_r5245512d636f6e74726164696374696f6e2d7361742d7269676874_v1_c432d636f6e74726164696374696f6e2d7361742d7269676874_df8427d3a1c36085da2a17b36712b1ea99dbb8148053f53e151f615dee5a5d83c",
+            "polarity": "positive",
+            "role": "right",
+            "source": {
+              "document": "analysis-test",
+              "end": {
+                "byte": 24,
+                "column": 25,
+                "line": 1
+              },
+              "revision": 1,
+              "start": {
+                "byte": 23,
+                "column": 24,
+                "line": 1
+              }
+            }
+          }
+        ],
+        "bindingSetDigest": "20ac99465be863cfcd4d4f76c41954c3f840f7888af14c6c684238bc7cc570dc",
+        "differential": {
+          "agreedStatus": "refuted",
+          "disposition": "agreement"
+        },
+        "encodingProfile": "filament.smtlib2/v2",
+        "engines": [
+          {
+            "argv": [
+              "-in",
+              "-smt2"
+            ],
+            "cleanupMs": 0,
+            "configuredExecutable": "/builds/worktrees/codex-fixes-tc006-corpus/.tc006-tools/z3/z3_solver-5.1.0.0.data/data/bin/z3",
+            "diagnostic": null,
+            "elapsedMs": 10,
+            "engine": "z3",
+            "explanation": "verified",
+            "identity": {
+              "path": "/builds/worktrees/codex-fixes-tc006-corpus/.tc006-tools/z3/z3_solver-5.1.0.0.data/data/bin/z3",
+              "version": "Z3 version 5.1.0 - 64 bit"
+            },
+            "limits": {
+              "cleanupTimeMs": 1000,
+              "gracefulCleanupMs": 100,
+              "modelBytes": 8388608,
+              "monitorIntervalMs": 5,
+              "pathBytes": 4096,
+              "stderrBytes": 1048576,
+              "stdinBytes": 16777216,
+              "stdoutBytes": 16777216,
+              "versionBytes": 65536,
+              "wallTimeMs": 5000
+            },
+            "modelHex": "280a202028646566696e652d66756e20615f7036313637363536653734326436393738326636313665363136633739373336393733326437343635373337345f723532343535313264363336663665373437323631363436393633373436393666366532643733363137343264373236393637363837345f76315f6334333264363336663665373437323631363436393633373436393666366532643733363137343264373236393637363837345f646638343237643361316333363038356461326131376233363731326231656139396462623831343830353366353365313531663631356465653561356438336320282920426f6f6c0a2020202074727565290a202028646566696e652d66756e20615f7036313637363536653734326436393738326636313665363136633739373336393733326437343635373337345f72353234353531326436333666366537343732363136343639363337343639366636653264373336313734326436633635363637345f76315f633433326436333666366537343732363136343639363337343639366636653264373336313734326436633635363637345f646232643431346162353562316539333762376336356233666163393331633336316231343333613231633439313639353536326365666565616462396166333620282920426f6f6c0a2020202074727565290a29",
+            "outcome": "sat",
+            "processExit": {
+              "code": 0,
+              "signal": null
+            },
+            "profile": "filament.solver-process/v1",
+            "queryDigest": "7e946db301dad8a130d0586191cb4f8d731dac8227ca26fc325ed2f93f0ac3e9",
+            "status": "refuted",
+            "stderrHex": "",
+            "stdoutHex": "7361740a280a202028646566696e652d66756e20615f7036313637363536653734326436393738326636313665363136633739373336393733326437343635373337345f723532343535313264363336663665373437323631363436393633373436393666366532643733363137343264373236393637363837345f76315f6334333264363336663665373437323631363436393633373436393666366532643733363137343264373236393637363837345f646638343237643361316333363038356461326131376233363731326231656139396462623831343830353366353365313531663631356465653561356438336320282920426f6f6c0a2020202074727565290a202028646566696e652d66756e20615f7036313637363536653734326436393738326636313665363136633739373336393733326437343635373337345f72353234353531326436333666366537343732363136343639363337343639366636653264373336313734326436633635363637345f76315f633433326436333666366537343732363136343639363337343639366636653264373336313734326436633635363637345f646232643431346162353562316539333762376336356233666163393331633336316231343333613231633439313639353536326365666565616462396166333620282920426f6f6c0a2020202074727565290a290a"
+          },
+          {
+            "argv": [
+              "--lang=smt2",
+              "--no-incremental"
+            ],
+            "cleanupMs": 0,
+            "configuredExecutable": "/builds/worktrees/codex-fixes-tc006-corpus/.tc006-tools/cvc5/cvc5-Linux-x86_64-static/bin/cvc5",
+            "diagnostic": null,
+            "elapsedMs": 10,
+            "engine": "cvc5",
+            "explanation": "verified",
+            "identity": {
+              "path": "/builds/worktrees/codex-fixes-tc006-corpus/.tc006-tools/cvc5/cvc5-Linux-x86_64-static/bin/cvc5",
+              "version": "cvc5 1.3.4 [git f3b21c4 on branch HEAD]\ncompiled with GCC version 11.4.0 on May  7 2026 15:42:04\n\nCopyright (c) 2009-2026 by the authors and their institutional\naffiliations listed at https://cvc5.github.io/people.html\n\ncvc5 is open-source and is covered by the BSD license (modified).\n\nTHIS SOFTWARE IS PROVIDED AS-IS, WITHOUT ANY WARRANTIES.\nUSE AT YOUR OWN RISK.\n\nThis version of cvc5 is linked against the following non-(L)GPL'ed\nthird party libraries.\n\n  CaDiCaL - Simplified Satisfiability Solver\n  See https://github.com/arminbiere/cadical for copyright information.\n\n  Editline Library\n  See https://thrysoee.dk/editline\n  for copyright information.\n\n  SymFPU - The Symbolic Floating Point Unit\n  See https://github.com/martin-cs/symfpu/tree/CVC4 for copyright information.\n\nThis version of cvc5 is linked against the following third party\nlibraries covered by the LGPLv3 license.\nSee licenses/lgpl-3.0.txt for more information.\n\n  GMP - Gnu Multi Precision Arithmetic Library\n  See http://gmplib.org for copyright information.\n\n  LibPoly polynomial library\n  See https://github.com/SRI-CSL/libpoly for copyright and\n  licensing information.\n\ncvc5 is statically linked against these libraries. To recompile\nthis version of cvc5 with different versions of these libraries\nfollow the instructions on https://github.com/cvc5/cvc5/blob/main/INSTALL.md\n\nSee the file COPYING (distributed with the source code, and with\nall binaries) for the full cvc5 copyright, licensing, and (lack of)\nwarranty information."
+            },
+            "limits": {
+              "cleanupTimeMs": 1000,
+              "gracefulCleanupMs": 100,
+              "modelBytes": 8388608,
+              "monitorIntervalMs": 5,
+              "pathBytes": 4096,
+              "stderrBytes": 1048576,
+              "stdinBytes": 16777216,
+              "stdoutBytes": 16777216,
+              "versionBytes": 65536,
+              "wallTimeMs": 5000
+            },
+            "modelHex": "280a29",
+            "outcome": "sat",
+            "processExit": {
+              "code": 0,
+              "signal": null
+            },
+            "profile": "filament.solver-process/v1",
+            "queryDigest": "7e946db301dad8a130d0586191cb4f8d731dac8227ca26fc325ed2f93f0ac3e9",
+            "status": "refuted",
+            "stderrHex": "",
+            "stdoutHex": "7361740a280a290a"
+          }
+        ],
+        "logic": "QF_LIA",
+        "producer": {
+          "name": "filament-analyze",
+          "version": "0.1.0-12-g5989280"
+        },
+        "queryDigest": "7e946db301dad8a130d0586191cb4f8d731dac8227ca26fc325ed2f93f0ac3e9",
+        "queryHex": "287365742d696e666f203a736d742d6c69622d76657273696f6e20322e36290a287365742d696e666f203a736f75726365207c66696c616d656e742e736d746c6962322f76327c290a287365742d6f7074696f6e203a70726f647563652d6d6f64656c732074727565290a287365742d6c6f6769632051465f4c4941290a286173736572742028212074727565203a6e616d656420615f7036313637363536653734326436393738326636313665363136633739373336393733326437343635373337345f72353234353531326436333666366537343732363136343639363337343639366636653264373336313734326436633635363637345f76315f633433326436333666366537343732363136343639363337343639366636653264373336313734326436633635363637345f646232643431346162353562316539333762376336356233666163393331633336316231343333613231633439313639353536326365666565616462396166333629290a286173736572742028212074727565203a6e616d656420615f7036313637363536653734326436393738326636313665363136633739373336393733326437343635373337345f723532343535313264363336663665373437323631363436393633373436393666366532643733363137343264373236393637363837345f76315f6334333264363336663665373437323631363436393633373436393666366532643733363137343264373236393637363837345f646638343237643361316333363038356461326131376233363731326231656139396462623831343830353366353365313531663631356465653561356438336329290a28636865636b2d736174290a286765742d6d6f64656c290a",
+        "requestDigest": "4897455a49174dd91adbfe5ea8746eed7c7ecd292e35e77f2ae97e508723a54c",
+        "schema": "filament.differential-report/v2"
+      }
+    },
+    {
+      "analysisKind": "implication",
+      "caseId": "implication-satisfied",
+      "expected": {
+        "analysisStatus": "satisfied",
+        "differentialDisposition": "agreement",
+        "solverOutcome": "unsat"
+      },
+      "observed": {
+        "cvc5Outcome": "unsat",
+        "cvc5Status": "satisfied",
+        "disposition": "agreement",
+        "reportSha256": "1976de85b771c0d12f6500354e64fbcb6bfe67a5a0f7c62561dfff5e69d70329",
+        "z3Outcome": "unsat",
+        "z3Status": "satisfied"
+      },
+      "queryDigest": "3d39e731de3ec761bdfa4eb3859b455db6c23aaea3c83e5d38f6985d08fd1558",
+      "report": {
+        "analysisKind": "implication",
+        "analysisModelProfile": "filament.analysis-model/v1",
+        "assertions": [
+          {
+            "clause": "agent-ix/analysis-test:REQ-implication-unsat-left@1:C-implication-unsat-left",
+            "clauseDigest": "f3fdd33d94450fd59e7d385d33357b37404230e76416f3f5cb9486a86e6213a4",
+            "name": "a_p6167656e742d69782f616e616c797369732d74657374_r5245512d696d706c69636174696f6e2d756e7361742d6c656674_v1_c432d696d706c69636174696f6e2d756e7361742d6c656674_da50e20ab179e6bf2539f555bea494c2ee12581a054b5a9539d1207a7c3469c8c",
+            "polarity": "positive",
+            "role": "antecedent",
+            "source": {
+              "document": "analysis-test",
+              "end": {
+                "byte": 23,
+                "column": 24,
+                "line": 1
+              },
+              "revision": 1,
+              "start": {
+                "byte": 22,
+                "column": 23,
+                "line": 1
+              }
+            }
+          },
+          {
+            "clause": "agent-ix/analysis-test:REQ-implication-unsat-right@1:C-implication-unsat-right",
+            "clauseDigest": "0e5bceb84ad48b3f9041f3d09b059deb1deb68aa5d14847736533d60cca6967b",
+            "name": "a_p6167656e742d69782f616e616c797369732d74657374_r5245512d696d706c69636174696f6e2d756e7361742d7269676874_v1_c432d696d706c69636174696f6e2d756e7361742d7269676874_d2662241803337305b0ff0fd7ee34b074517feb54660ef706890eb68d4bbe0f84",
+            "polarity": "negated",
+            "role": "consequent",
+            "source": {
+              "document": "analysis-test",
+              "end": {
+                "byte": 24,
+                "column": 25,
+                "line": 1
+              },
+              "revision": 1,
+              "start": {
+                "byte": 23,
+                "column": 24,
+                "line": 1
+              }
+            }
+          }
+        ],
+        "bindingSetDigest": "20ac99465be863cfcd4d4f76c41954c3f840f7888af14c6c684238bc7cc570dc",
+        "differential": {
+          "agreedStatus": "satisfied",
+          "disposition": "agreement"
+        },
+        "encodingProfile": "filament.smtlib2/v2",
+        "engines": [
+          {
+            "argv": [
+              "-in",
+              "-smt2"
+            ],
+            "cleanupMs": 0,
+            "configuredExecutable": "/builds/worktrees/codex-fixes-tc006-corpus/.tc006-tools/z3/z3_solver-5.1.0.0.data/data/bin/z3",
+            "diagnostic": null,
+            "elapsedMs": 15,
+            "engine": "z3",
+            "explanation": "not-applicable",
+            "identity": {
+              "path": "/builds/worktrees/codex-fixes-tc006-corpus/.tc006-tools/z3/z3_solver-5.1.0.0.data/data/bin/z3",
+              "version": "Z3 version 5.1.0 - 64 bit"
+            },
+            "limits": {
+              "cleanupTimeMs": 1000,
+              "gracefulCleanupMs": 100,
+              "modelBytes": 8388608,
+              "monitorIntervalMs": 5,
+              "pathBytes": 4096,
+              "stderrBytes": 1048576,
+              "stdinBytes": 16777216,
+              "stdoutBytes": 16777216,
+              "versionBytes": 65536,
+              "wallTimeMs": 5000
+            },
+            "modelHex": "",
+            "outcome": "unsat",
+            "processExit": {
+              "code": 1,
+              "signal": null
+            },
+            "profile": "filament.solver-process/v1",
+            "queryDigest": "3d39e731de3ec761bdfa4eb3859b455db6c23aaea3c83e5d38f6985d08fd1558",
+            "status": "satisfied",
+            "stderrHex": "",
+            "stdoutHex": "756e7361740a286572726f7220226c696e65203820636f6c756d6e2031303a206d6f64656c206973206e6f7420617661696c61626c6522290a"
+          },
+          {
+            "argv": [
+              "--lang=smt2",
+              "--no-incremental"
+            ],
+            "cleanupMs": 0,
+            "configuredExecutable": "/builds/worktrees/codex-fixes-tc006-corpus/.tc006-tools/cvc5/cvc5-Linux-x86_64-static/bin/cvc5",
+            "diagnostic": null,
+            "elapsedMs": 20,
+            "engine": "cvc5",
+            "explanation": "not-applicable",
+            "identity": {
+              "path": "/builds/worktrees/codex-fixes-tc006-corpus/.tc006-tools/cvc5/cvc5-Linux-x86_64-static/bin/cvc5",
+              "version": "cvc5 1.3.4 [git f3b21c4 on branch HEAD]\ncompiled with GCC version 11.4.0 on May  7 2026 15:42:04\n\nCopyright (c) 2009-2026 by the authors and their institutional\naffiliations listed at https://cvc5.github.io/people.html\n\ncvc5 is open-source and is covered by the BSD license (modified).\n\nTHIS SOFTWARE IS PROVIDED AS-IS, WITHOUT ANY WARRANTIES.\nUSE AT YOUR OWN RISK.\n\nThis version of cvc5 is linked against the following non-(L)GPL'ed\nthird party libraries.\n\n  CaDiCaL - Simplified Satisfiability Solver\n  See https://github.com/arminbiere/cadical for copyright information.\n\n  Editline Library\n  See https://thrysoee.dk/editline\n  for copyright information.\n\n  SymFPU - The Symbolic Floating Point Unit\n  See https://github.com/martin-cs/symfpu/tree/CVC4 for copyright information.\n\nThis version of cvc5 is linked against the following third party\nlibraries covered by the LGPLv3 license.\nSee licenses/lgpl-3.0.txt for more information.\n\n  GMP - Gnu Multi Precision Arithmetic Library\n  See http://gmplib.org for copyright information.\n\n  LibPoly polynomial library\n  See https://github.com/SRI-CSL/libpoly for copyright and\n  licensing information.\n\ncvc5 is statically linked against these libraries. To recompile\nthis version of cvc5 with different versions of these libraries\nfollow the instructions on https://github.com/cvc5/cvc5/blob/main/INSTALL.md\n\nSee the file COPYING (distributed with the source code, and with\nall binaries) for the full cvc5 copyright, licensing, and (lack of)\nwarranty information."
+            },
+            "limits": {
+              "cleanupTimeMs": 1000,
+              "gracefulCleanupMs": 100,
+              "modelBytes": 8388608,
+              "monitorIntervalMs": 5,
+              "pathBytes": 4096,
+              "stderrBytes": 1048576,
+              "stdinBytes": 16777216,
+              "stdoutBytes": 16777216,
+              "versionBytes": 65536,
+              "wallTimeMs": 5000
+            },
+            "modelHex": "",
+            "outcome": "unsat",
+            "processExit": {
+              "code": 0,
+              "signal": null
+            },
+            "profile": "filament.solver-process/v1",
+            "queryDigest": "3d39e731de3ec761bdfa4eb3859b455db6c23aaea3c83e5d38f6985d08fd1558",
+            "status": "satisfied",
+            "stderrHex": "",
+            "stdoutHex": "756e7361740a286572726f72202263616e6e6f7420676574206d6f64656c20756e6c657373206166746572206120534154206f7220554e4b4e4f574e20726573706f6e73652e22290a"
+          }
+        ],
+        "logic": "QF_LIA",
+        "producer": {
+          "name": "filament-analyze",
+          "version": "0.1.0-12-g5989280"
+        },
+        "queryDigest": "3d39e731de3ec761bdfa4eb3859b455db6c23aaea3c83e5d38f6985d08fd1558",
+        "queryHex": "287365742d696e666f203a736d742d6c69622d76657273696f6e20322e36290a287365742d696e666f203a736f75726365207c66696c616d656e742e736d746c6962322f76327c290a287365742d6f7074696f6e203a70726f647563652d6d6f64656c732074727565290a287365742d6c6f6769632051465f4c4941290a286173736572742028212074727565203a6e616d656420615f7036313637363536653734326436393738326636313665363136633739373336393733326437343635373337345f72353234353531326436393664373036633639363336313734363936663665326437353665373336313734326436633635363637345f76315f633433326436393664373036633639363336313734363936663665326437353665373336313734326436633635363637345f646135306532306162313739653662663235333966353535626561343934633265653132353831613035346235613935333964313230376137633334363963386329290a2861737365727420282120286e6f74207472756529203a6e616d656420615f7036313637363536653734326436393738326636313665363136633739373336393733326437343635373337345f723532343535313264363936643730366336393633363137343639366636653264373536653733363137343264373236393637363837345f76315f6334333264363936643730366336393633363137343639366636653264373536653733363137343264373236393637363837345f643236363232343138303333333733303562306666306664376565333462303734353137666562353436363065663730363839306562363864346262653066383429290a28636865636b2d736174290a286765742d6d6f64656c290a",
+        "requestDigest": "7b33ba5c71da3f9c9d6093ee5c7d5a33202a31128ac574e1c15b14910308aa11",
+        "schema": "filament.differential-report/v2"
+      }
+    },
+    {
+      "analysisKind": "implication",
+      "caseId": "implication-refuted",
+      "expected": {
+        "analysisStatus": "refuted",
+        "differentialDisposition": "agreement",
+        "solverOutcome": "sat"
+      },
+      "observed": {
+        "cvc5Outcome": "sat",
+        "cvc5Status": "refuted",
+        "disposition": "agreement",
+        "reportSha256": "69aa93b805112ca120bfcabc53cb9ebef0702b6e1745ab7cef0de173b570c6cf",
+        "z3Outcome": "sat",
+        "z3Status": "refuted"
+      },
+      "queryDigest": "d4450367ef596beaa923594a11c10a968e5f1d897ae8370a3be7a77fd070b6f0",
+      "report": {
+        "analysisKind": "implication",
+        "analysisModelProfile": "filament.analysis-model/v1",
+        "assertions": [
+          {
+            "clause": "agent-ix/analysis-test:REQ-implication-sat-left@1:C-implication-sat-left",
+            "clauseDigest": "ad89c8d3dbcc067ecbb58a490e1846a6f781e401706e3e425360e98d16b4d4a4",
+            "name": "a_p6167656e742d69782f616e616c797369732d74657374_r5245512d696d706c69636174696f6e2d7361742d6c656674_v1_c432d696d706c69636174696f6e2d7361742d6c656674_d97bead1349c6a762d6fe3753358b200506e28194aee7e16ca2535ae1cad87ec8",
+            "polarity": "positive",
+            "role": "antecedent",
+            "source": {
+              "document": "analysis-test",
+              "end": {
+                "byte": 21,
+                "column": 22,
+                "line": 1
+              },
+              "revision": 1,
+              "start": {
+                "byte": 20,
+                "column": 21,
+                "line": 1
+              }
+            }
+          },
+          {
+            "clause": "agent-ix/analysis-test:REQ-implication-sat-right@1:C-implication-sat-right",
+            "clauseDigest": "44af8faea085dcbfb277028a91eadd4cbae71ba80955b81303de21c912cbccd6",
+            "name": "a_p6167656e742d69782f616e616c797369732d74657374_r5245512d696d706c69636174696f6e2d7361742d7269676874_v1_c432d696d706c69636174696f6e2d7361742d7269676874_d840be45a97b065cf550d136e8fad92d85592b5830f23c121c65a2973173ee2f6",
+            "polarity": "negated",
+            "role": "consequent",
+            "source": {
+              "document": "analysis-test",
+              "end": {
+                "byte": 22,
+                "column": 23,
+                "line": 1
+              },
+              "revision": 1,
+              "start": {
+                "byte": 21,
+                "column": 22,
+                "line": 1
+              }
+            }
+          }
+        ],
+        "bindingSetDigest": "20ac99465be863cfcd4d4f76c41954c3f840f7888af14c6c684238bc7cc570dc",
+        "differential": {
+          "agreedStatus": "refuted",
+          "disposition": "agreement"
+        },
+        "encodingProfile": "filament.smtlib2/v2",
+        "engines": [
+          {
+            "argv": [
+              "-in",
+              "-smt2"
+            ],
+            "cleanupMs": 0,
+            "configuredExecutable": "/builds/worktrees/codex-fixes-tc006-corpus/.tc006-tools/z3/z3_solver-5.1.0.0.data/data/bin/z3",
+            "diagnostic": null,
+            "elapsedMs": 15,
+            "engine": "z3",
+            "explanation": "verified",
+            "identity": {
+              "path": "/builds/worktrees/codex-fixes-tc006-corpus/.tc006-tools/z3/z3_solver-5.1.0.0.data/data/bin/z3",
+              "version": "Z3 version 5.1.0 - 64 bit"
+            },
+            "limits": {
+              "cleanupTimeMs": 1000,
+              "gracefulCleanupMs": 100,
+              "modelBytes": 8388608,
+              "monitorIntervalMs": 5,
+              "pathBytes": 4096,
+              "stderrBytes": 1048576,
+              "stdinBytes": 16777216,
+              "stdoutBytes": 16777216,
+              "versionBytes": 65536,
+              "wallTimeMs": 5000
+            },
+            "modelHex": "280a202028646566696e652d66756e20615f7036313637363536653734326436393738326636313665363136633739373336393733326437343635373337345f7235323435353132643639366437303663363936333631373436393666366532643733363137343264373236393637363837345f76315f63343332643639366437303663363936333631373436393666366532643733363137343264373236393637363837345f643834306265343561393762303635636635353064313336653866616439326438353539326235383330663233633132316336356132393733313733656532663620282920426f6f6c0a20202020286e6f742066616c736529290a202028646566696e652d66756e20615f7036313637363536653734326436393738326636313665363136633739373336393733326437343635373337345f723532343535313264363936643730366336393633363137343639366636653264373336313734326436633635363637345f76315f6334333264363936643730366336393633363137343639366636653264373336313734326436633635363637345f643937626561643133343963366137363264366665333735333335386232303035303665323831393461656537653136636132353335616531636164383765633820282920426f6f6c0a2020202074727565290a29",
+            "outcome": "sat",
+            "processExit": {
+              "code": 0,
+              "signal": null
+            },
+            "profile": "filament.solver-process/v1",
+            "queryDigest": "d4450367ef596beaa923594a11c10a968e5f1d897ae8370a3be7a77fd070b6f0",
+            "status": "refuted",
+            "stderrHex": "",
+            "stdoutHex": "7361740a280a202028646566696e652d66756e20615f7036313637363536653734326436393738326636313665363136633739373336393733326437343635373337345f7235323435353132643639366437303663363936333631373436393666366532643733363137343264373236393637363837345f76315f63343332643639366437303663363936333631373436393666366532643733363137343264373236393637363837345f643834306265343561393762303635636635353064313336653866616439326438353539326235383330663233633132316336356132393733313733656532663620282920426f6f6c0a20202020286e6f742066616c736529290a202028646566696e652d66756e20615f7036313637363536653734326436393738326636313665363136633739373336393733326437343635373337345f723532343535313264363936643730366336393633363137343639366636653264373336313734326436633635363637345f76315f6334333264363936643730366336393633363137343639366636653264373336313734326436633635363637345f643937626561643133343963366137363264366665333735333335386232303035303665323831393461656537653136636132353335616531636164383765633820282920426f6f6c0a2020202074727565290a290a"
+          },
+          {
+            "argv": [
+              "--lang=smt2",
+              "--no-incremental"
+            ],
+            "cleanupMs": 0,
+            "configuredExecutable": "/builds/worktrees/codex-fixes-tc006-corpus/.tc006-tools/cvc5/cvc5-Linux-x86_64-static/bin/cvc5",
+            "diagnostic": null,
+            "elapsedMs": 10,
+            "engine": "cvc5",
+            "explanation": "verified",
+            "identity": {
+              "path": "/builds/worktrees/codex-fixes-tc006-corpus/.tc006-tools/cvc5/cvc5-Linux-x86_64-static/bin/cvc5",
+              "version": "cvc5 1.3.4 [git f3b21c4 on branch HEAD]\ncompiled with GCC version 11.4.0 on May  7 2026 15:42:04\n\nCopyright (c) 2009-2026 by the authors and their institutional\naffiliations listed at https://cvc5.github.io/people.html\n\ncvc5 is open-source and is covered by the BSD license (modified).\n\nTHIS SOFTWARE IS PROVIDED AS-IS, WITHOUT ANY WARRANTIES.\nUSE AT YOUR OWN RISK.\n\nThis version of cvc5 is linked against the following non-(L)GPL'ed\nthird party libraries.\n\n  CaDiCaL - Simplified Satisfiability Solver\n  See https://github.com/arminbiere/cadical for copyright information.\n\n  Editline Library\n  See https://thrysoee.dk/editline\n  for copyright information.\n\n  SymFPU - The Symbolic Floating Point Unit\n  See https://github.com/martin-cs/symfpu/tree/CVC4 for copyright information.\n\nThis version of cvc5 is linked against the following third party\nlibraries covered by the LGPLv3 license.\nSee licenses/lgpl-3.0.txt for more information.\n\n  GMP - Gnu Multi Precision Arithmetic Library\n  See http://gmplib.org for copyright information.\n\n  LibPoly polynomial library\n  See https://github.com/SRI-CSL/libpoly for copyright and\n  licensing information.\n\ncvc5 is statically linked against these libraries. To recompile\nthis version of cvc5 with different versions of these libraries\nfollow the instructions on https://github.com/cvc5/cvc5/blob/main/INSTALL.md\n\nSee the file COPYING (distributed with the source code, and with\nall binaries) for the full cvc5 copyright, licensing, and (lack of)\nwarranty information."
+            },
+            "limits": {
+              "cleanupTimeMs": 1000,
+              "gracefulCleanupMs": 100,
+              "modelBytes": 8388608,
+              "monitorIntervalMs": 5,
+              "pathBytes": 4096,
+              "stderrBytes": 1048576,
+              "stdinBytes": 16777216,
+              "stdoutBytes": 16777216,
+              "versionBytes": 65536,
+              "wallTimeMs": 5000
+            },
+            "modelHex": "280a29",
+            "outcome": "sat",
+            "processExit": {
+              "code": 0,
+              "signal": null
+            },
+            "profile": "filament.solver-process/v1",
+            "queryDigest": "d4450367ef596beaa923594a11c10a968e5f1d897ae8370a3be7a77fd070b6f0",
+            "status": "refuted",
+            "stderrHex": "",
+            "stdoutHex": "7361740a280a290a"
+          }
+        ],
+        "logic": "QF_LIA",
+        "producer": {
+          "name": "filament-analyze",
+          "version": "0.1.0-12-g5989280"
+        },
+        "queryDigest": "d4450367ef596beaa923594a11c10a968e5f1d897ae8370a3be7a77fd070b6f0",
+        "queryHex": "287365742d696e666f203a736d742d6c69622d76657273696f6e20322e36290a287365742d696e666f203a736f75726365207c66696c616d656e742e736d746c6962322f76327c290a287365742d6f7074696f6e203a70726f647563652d6d6f64656c732074727565290a287365742d6c6f6769632051465f4c4941290a286173736572742028212074727565203a6e616d656420615f7036313637363536653734326436393738326636313665363136633739373336393733326437343635373337345f723532343535313264363936643730366336393633363137343639366636653264373336313734326436633635363637345f76315f6334333264363936643730366336393633363137343639366636653264373336313734326436633635363637345f643937626561643133343963366137363264366665333735333335386232303035303665323831393461656537653136636132353335616531636164383765633829290a2861737365727420282120286e6f742066616c736529203a6e616d656420615f7036313637363536653734326436393738326636313665363136633739373336393733326437343635373337345f7235323435353132643639366437303663363936333631373436393666366532643733363137343264373236393637363837345f76315f63343332643639366437303663363936333631373436393666366532643733363137343264373236393637363837345f643834306265343561393762303635636635353064313336653866616439326438353539326235383330663233633132316336356132393733313733656532663629290a28636865636b2d736174290a286765742d6d6f64656c290a",
+        "requestDigest": "d49bed7cc1a24e073341b55caf7895b59cc17c9ec5b7cb417c176eb84acfedaa",
+        "schema": "filament.differential-report/v2"
+      }
+    },
+    {
+      "analysisKind": "redundancy",
+      "caseId": "redundancy-satisfied",
+      "expected": {
+        "analysisStatus": "satisfied",
+        "differentialDisposition": "agreement",
+        "solverOutcome": "unsat"
+      },
+      "observed": {
+        "cvc5Outcome": "unsat",
+        "cvc5Status": "satisfied",
+        "disposition": "agreement",
+        "reportSha256": "fa9b4a8c7d76be755b860f14a389132eff8602e5b579e74df6d8eec5e67789ec",
+        "z3Outcome": "unsat",
+        "z3Status": "satisfied"
+      },
+      "queryDigest": "9d967d8d445236230a46ec13ff5817cedceee4f3dc1b092e89a55e672b643b3a",
+      "report": {
+        "analysisKind": "redundancy",
+        "analysisModelProfile": "filament.analysis-model/v1",
+        "assertions": [
+          {
+            "clause": "agent-ix/analysis-test:REQ-redundancy-unsat-candidate@1:C-redundancy-unsat-candidate",
+            "clauseDigest": "aeabf246260ee5d97fef392c41e2eb64f1eb7091fe78a950addecf910e6ddf5b",
+            "name": "a_p6167656e742d69782f616e616c797369732d74657374_r5245512d726564756e64616e63792d756e7361742d63616e646964617465_v1_c432d726564756e64616e63792d756e7361742d63616e646964617465_dbcdea26546c4611a4d3c4de80c46fcd9f341f3fc81afb8cdf55f0453df6b8368",
+            "polarity": "negated",
+            "role": "candidate",
+            "source": {
+              "document": "analysis-test",
+              "end": {
+                "byte": 27,
+                "column": 28,
+                "line": 1
+              },
+              "revision": 1,
+              "start": {
+                "byte": 26,
+                "column": 27,
+                "line": 1
+              }
+            }
+          },
+          {
+            "clause": "agent-ix/analysis-test:REQ-redundancy-unsat-peer@1:C-redundancy-unsat-peer",
+            "clauseDigest": "4a8e6fad3a13f78f9ed7e295d6ba107bbd8419d2356f0698b32e248959d8c39f",
+            "name": "a_p6167656e742d69782f616e616c797369732d74657374_r5245512d726564756e64616e63792d756e7361742d70656572_v1_c432d726564756e64616e63792d756e7361742d70656572_dbc655f6fa46c49c85d9c59ea058193846cb549c287eac132739c50e8127d3aef",
+            "polarity": "positive",
+            "role": "peer",
+            "source": {
+              "document": "analysis-test",
+              "end": {
+                "byte": 22,
+                "column": 23,
+                "line": 1
+              },
+              "revision": 1,
+              "start": {
+                "byte": 21,
+                "column": 22,
+                "line": 1
+              }
+            }
+          }
+        ],
+        "bindingSetDigest": "20ac99465be863cfcd4d4f76c41954c3f840f7888af14c6c684238bc7cc570dc",
+        "differential": {
+          "agreedStatus": "satisfied",
+          "disposition": "agreement"
+        },
+        "encodingProfile": "filament.smtlib2/v2",
+        "engines": [
+          {
+            "argv": [
+              "-in",
+              "-smt2"
+            ],
+            "cleanupMs": 0,
+            "configuredExecutable": "/builds/worktrees/codex-fixes-tc006-corpus/.tc006-tools/z3/z3_solver-5.1.0.0.data/data/bin/z3",
+            "diagnostic": null,
+            "elapsedMs": 15,
+            "engine": "z3",
+            "explanation": "not-applicable",
+            "identity": {
+              "path": "/builds/worktrees/codex-fixes-tc006-corpus/.tc006-tools/z3/z3_solver-5.1.0.0.data/data/bin/z3",
+              "version": "Z3 version 5.1.0 - 64 bit"
+            },
+            "limits": {
+              "cleanupTimeMs": 1000,
+              "gracefulCleanupMs": 100,
+              "modelBytes": 8388608,
+              "monitorIntervalMs": 5,
+              "pathBytes": 4096,
+              "stderrBytes": 1048576,
+              "stdinBytes": 16777216,
+              "stdoutBytes": 16777216,
+              "versionBytes": 65536,
+              "wallTimeMs": 5000
+            },
+            "modelHex": "",
+            "outcome": "unsat",
+            "processExit": {
+              "code": 1,
+              "signal": null
+            },
+            "profile": "filament.solver-process/v1",
+            "queryDigest": "9d967d8d445236230a46ec13ff5817cedceee4f3dc1b092e89a55e672b643b3a",
+            "status": "satisfied",
+            "stderrHex": "",
+            "stdoutHex": "756e7361740a286572726f7220226c696e65203820636f6c756d6e2031303a206d6f64656c206973206e6f7420617661696c61626c6522290a"
+          },
+          {
+            "argv": [
+              "--lang=smt2",
+              "--no-incremental"
+            ],
+            "cleanupMs": 0,
+            "configuredExecutable": "/builds/worktrees/codex-fixes-tc006-corpus/.tc006-tools/cvc5/cvc5-Linux-x86_64-static/bin/cvc5",
+            "diagnostic": null,
+            "elapsedMs": 15,
+            "engine": "cvc5",
+            "explanation": "not-applicable",
+            "identity": {
+              "path": "/builds/worktrees/codex-fixes-tc006-corpus/.tc006-tools/cvc5/cvc5-Linux-x86_64-static/bin/cvc5",
+              "version": "cvc5 1.3.4 [git f3b21c4 on branch HEAD]\ncompiled with GCC version 11.4.0 on May  7 2026 15:42:04\n\nCopyright (c) 2009-2026 by the authors and their institutional\naffiliations listed at https://cvc5.github.io/people.html\n\ncvc5 is open-source and is covered by the BSD license (modified).\n\nTHIS SOFTWARE IS PROVIDED AS-IS, WITHOUT ANY WARRANTIES.\nUSE AT YOUR OWN RISK.\n\nThis version of cvc5 is linked against the following non-(L)GPL'ed\nthird party libraries.\n\n  CaDiCaL - Simplified Satisfiability Solver\n  See https://github.com/arminbiere/cadical for copyright information.\n\n  Editline Library\n  See https://thrysoee.dk/editline\n  for copyright information.\n\n  SymFPU - The Symbolic Floating Point Unit\n  See https://github.com/martin-cs/symfpu/tree/CVC4 for copyright information.\n\nThis version of cvc5 is linked against the following third party\nlibraries covered by the LGPLv3 license.\nSee licenses/lgpl-3.0.txt for more information.\n\n  GMP - Gnu Multi Precision Arithmetic Library\n  See http://gmplib.org for copyright information.\n\n  LibPoly polynomial library\n  See https://github.com/SRI-CSL/libpoly for copyright and\n  licensing information.\n\ncvc5 is statically linked against these libraries. To recompile\nthis version of cvc5 with different versions of these libraries\nfollow the instructions on https://github.com/cvc5/cvc5/blob/main/INSTALL.md\n\nSee the file COPYING (distributed with the source code, and with\nall binaries) for the full cvc5 copyright, licensing, and (lack of)\nwarranty information."
+            },
+            "limits": {
+              "cleanupTimeMs": 1000,
+              "gracefulCleanupMs": 100,
+              "modelBytes": 8388608,
+              "monitorIntervalMs": 5,
+              "pathBytes": 4096,
+              "stderrBytes": 1048576,
+              "stdinBytes": 16777216,
+              "stdoutBytes": 16777216,
+              "versionBytes": 65536,
+              "wallTimeMs": 5000
+            },
+            "modelHex": "",
+            "outcome": "unsat",
+            "processExit": {
+              "code": 0,
+              "signal": null
+            },
+            "profile": "filament.solver-process/v1",
+            "queryDigest": "9d967d8d445236230a46ec13ff5817cedceee4f3dc1b092e89a55e672b643b3a",
+            "status": "satisfied",
+            "stderrHex": "",
+            "stdoutHex": "756e7361740a286572726f72202263616e6e6f7420676574206d6f64656c20756e6c657373206166746572206120534154206f7220554e4b4e4f574e20726573706f6e73652e22290a"
+          }
+        ],
+        "logic": "QF_LIA",
+        "producer": {
+          "name": "filament-analyze",
+          "version": "0.1.0-12-g5989280"
+        },
+        "queryDigest": "9d967d8d445236230a46ec13ff5817cedceee4f3dc1b092e89a55e672b643b3a",
+        "queryHex": "287365742d696e666f203a736d742d6c69622d76657273696f6e20322e36290a287365742d696e666f203a736f75726365207c66696c616d656e742e736d746c6962322f76327c290a287365742d6f7074696f6e203a70726f647563652d6d6f64656c732074727565290a287365742d6c6f6769632051465f4c4941290a2861737365727420282120286e6f74207472756529203a6e616d656420615f7036313637363536653734326436393738326636313665363136633739373336393733326437343635373337345f723532343535313264373236353634373536653634363136653633373932643735366537333631373432643633363136653634363936343631373436355f76315f6334333264373236353634373536653634363136653633373932643735366537333631373432643633363136653634363936343631373436355f646263646561323635343663343631316134643363346465383063343666636439663334316633666338316166623863646635356630343533646636623833363829290a286173736572742028212074727565203a6e616d656420615f7036313637363536653734326436393738326636313665363136633739373336393733326437343635373337345f7235323435353132643732363536343735366536343631366536333739326437353665373336313734326437303635363537325f76315f63343332643732363536343735366536343631366536333739326437353665373336313734326437303635363537325f646263363535663666613436633439633835643963353965613035383139333834366362353439633238376561633133323733396335306538313237643361656629290a28636865636b2d736174290a286765742d6d6f64656c290a",
+        "requestDigest": "ac35324cc83cc5caa610faad5d4b74f6589a552c734c25f65e36c1c34accdbab",
+        "schema": "filament.differential-report/v2"
+      }
+    },
+    {
+      "analysisKind": "redundancy",
+      "caseId": "redundancy-refuted",
+      "expected": {
+        "analysisStatus": "refuted",
+        "differentialDisposition": "agreement",
+        "solverOutcome": "sat"
+      },
+      "observed": {
+        "cvc5Outcome": "sat",
+        "cvc5Status": "refuted",
+        "disposition": "agreement",
+        "reportSha256": "46066eef79f882e665d2a1ef5f8e7300895fdc322d1e71e21845a1774d11e32c",
+        "z3Outcome": "sat",
+        "z3Status": "refuted"
+      },
+      "queryDigest": "47f7bea469bf5f7f763b39403f4168fe8c7ecfae7b6ef56687cd0ec60cec3e1e",
+      "report": {
+        "analysisKind": "redundancy",
+        "analysisModelProfile": "filament.analysis-model/v1",
+        "assertions": [
+          {
+            "clause": "agent-ix/analysis-test:REQ-redundancy-sat-candidate@1:C-redundancy-sat-candidate",
+            "clauseDigest": "a919cf2853e280060d2d3b4f2a9e95c02498b45fec71e396697d6847347e1ce2",
+            "name": "a_p6167656e742d69782f616e616c797369732d74657374_r5245512d726564756e64616e63792d7361742d63616e646964617465_v1_c432d726564756e64616e63792d7361742d63616e646964617465_d4020a3a4f2b85ff072d1366a0cc93e66529135db8bd2d27ba93cb14d08474295",
+            "polarity": "negated",
+            "role": "candidate",
+            "source": {
+              "document": "analysis-test",
+              "end": {
+                "byte": 25,
+                "column": 26,
+                "line": 1
+              },
+              "revision": 1,
+              "start": {
+                "byte": 24,
+                "column": 25,
+                "line": 1
+              }
+            }
+          },
+          {
+            "clause": "agent-ix/analysis-test:REQ-redundancy-sat-peer@1:C-redundancy-sat-peer",
+            "clauseDigest": "6dd9d907e2fa688bcb6a83e34eb91b56096f82cebfd18fb6e2528d8a4827f3f8",
+            "name": "a_p6167656e742d69782f616e616c797369732d74657374_r5245512d726564756e64616e63792d7361742d70656572_v1_c432d726564756e64616e63792d7361742d70656572_d5f16903a49cd78be111b94a97a30e09d6514c8585e44c25121baf73be83956fa",
+            "polarity": "positive",
+            "role": "peer",
+            "source": {
+              "document": "analysis-test",
+              "end": {
+                "byte": 20,
+                "column": 21,
+                "line": 1
+              },
+              "revision": 1,
+              "start": {
+                "byte": 19,
+                "column": 20,
+                "line": 1
+              }
+            }
+          }
+        ],
+        "bindingSetDigest": "20ac99465be863cfcd4d4f76c41954c3f840f7888af14c6c684238bc7cc570dc",
+        "differential": {
+          "agreedStatus": "refuted",
+          "disposition": "agreement"
+        },
+        "encodingProfile": "filament.smtlib2/v2",
+        "engines": [
+          {
+            "argv": [
+              "-in",
+              "-smt2"
+            ],
+            "cleanupMs": 0,
+            "configuredExecutable": "/builds/worktrees/codex-fixes-tc006-corpus/.tc006-tools/z3/z3_solver-5.1.0.0.data/data/bin/z3",
+            "diagnostic": null,
+            "elapsedMs": 15,
+            "engine": "z3",
+            "explanation": "verified",
+            "identity": {
+              "path": "/builds/worktrees/codex-fixes-tc006-corpus/.tc006-tools/z3/z3_solver-5.1.0.0.data/data/bin/z3",
+              "version": "Z3 version 5.1.0 - 64 bit"
+            },
+            "limits": {
+              "cleanupTimeMs": 1000,
+              "gracefulCleanupMs": 100,
+              "modelBytes": 8388608,
+              "monitorIntervalMs": 5,
+              "pathBytes": 4096,
+              "stderrBytes": 1048576,
+              "stdinBytes": 16777216,
+              "stdoutBytes": 16777216,
+              "versionBytes": 65536,
+              "wallTimeMs": 5000
+            },
+            "modelHex": "280a202028646566696e652d66756e20615f7036313637363536653734326436393738326636313665363136633739373336393733326437343635373337345f7235323435353132643732363536343735366536343631366536333739326437333631373432643633363136653634363936343631373436355f76315f63343332643732363536343735366536343631366536333739326437333631373432643633363136653634363936343631373436355f643430323061336134663262383566663037326431333636613063633933653636353239313335646238626432643237626139336362313464303834373432393520282920426f6f6c0a20202020286e6f742066616c736529290a202028646566696e652d66756e20615f7036313637363536653734326436393738326636313665363136633739373336393733326437343635373337345f72353234353531326437323635363437353665363436313665363337393264373336313734326437303635363537325f76315f633433326437323635363437353665363436313665363337393264373336313734326437303635363537325f643566313639303361343963643738626531313162393461393761333065303964363531346338353835653434633235313231626166373362653833393536666120282920426f6f6c0a2020202074727565290a29",
+            "outcome": "sat",
+            "processExit": {
+              "code": 0,
+              "signal": null
+            },
+            "profile": "filament.solver-process/v1",
+            "queryDigest": "47f7bea469bf5f7f763b39403f4168fe8c7ecfae7b6ef56687cd0ec60cec3e1e",
+            "status": "refuted",
+            "stderrHex": "",
+            "stdoutHex": "7361740a280a202028646566696e652d66756e20615f7036313637363536653734326436393738326636313665363136633739373336393733326437343635373337345f7235323435353132643732363536343735366536343631366536333739326437333631373432643633363136653634363936343631373436355f76315f63343332643732363536343735366536343631366536333739326437333631373432643633363136653634363936343631373436355f643430323061336134663262383566663037326431333636613063633933653636353239313335646238626432643237626139336362313464303834373432393520282920426f6f6c0a20202020286e6f742066616c736529290a202028646566696e652d66756e20615f7036313637363536653734326436393738326636313665363136633739373336393733326437343635373337345f72353234353531326437323635363437353665363436313665363337393264373336313734326437303635363537325f76315f633433326437323635363437353665363436313665363337393264373336313734326437303635363537325f643566313639303361343963643738626531313162393461393761333065303964363531346338353835653434633235313231626166373362653833393536666120282920426f6f6c0a2020202074727565290a290a"
+          },
+          {
+            "argv": [
+              "--lang=smt2",
+              "--no-incremental"
+            ],
+            "cleanupMs": 0,
+            "configuredExecutable": "/builds/worktrees/codex-fixes-tc006-corpus/.tc006-tools/cvc5/cvc5-Linux-x86_64-static/bin/cvc5",
+            "diagnostic": null,
+            "elapsedMs": 10,
+            "engine": "cvc5",
+            "explanation": "verified",
+            "identity": {
+              "path": "/builds/worktrees/codex-fixes-tc006-corpus/.tc006-tools/cvc5/cvc5-Linux-x86_64-static/bin/cvc5",
+              "version": "cvc5 1.3.4 [git f3b21c4 on branch HEAD]\ncompiled with GCC version 11.4.0 on May  7 2026 15:42:04\n\nCopyright (c) 2009-2026 by the authors and their institutional\naffiliations listed at https://cvc5.github.io/people.html\n\ncvc5 is open-source and is covered by the BSD license (modified).\n\nTHIS SOFTWARE IS PROVIDED AS-IS, WITHOUT ANY WARRANTIES.\nUSE AT YOUR OWN RISK.\n\nThis version of cvc5 is linked against the following non-(L)GPL'ed\nthird party libraries.\n\n  CaDiCaL - Simplified Satisfiability Solver\n  See https://github.com/arminbiere/cadical for copyright information.\n\n  Editline Library\n  See https://thrysoee.dk/editline\n  for copyright information.\n\n  SymFPU - The Symbolic Floating Point Unit\n  See https://github.com/martin-cs/symfpu/tree/CVC4 for copyright information.\n\nThis version of cvc5 is linked against the following third party\nlibraries covered by the LGPLv3 license.\nSee licenses/lgpl-3.0.txt for more information.\n\n  GMP - Gnu Multi Precision Arithmetic Library\n  See http://gmplib.org for copyright information.\n\n  LibPoly polynomial library\n  See https://github.com/SRI-CSL/libpoly for copyright and\n  licensing information.\n\ncvc5 is statically linked against these libraries. To recompile\nthis version of cvc5 with different versions of these libraries\nfollow the instructions on https://github.com/cvc5/cvc5/blob/main/INSTALL.md\n\nSee the file COPYING (distributed with the source code, and with\nall binaries) for the full cvc5 copyright, licensing, and (lack of)\nwarranty information."
+            },
+            "limits": {
+              "cleanupTimeMs": 1000,
+              "gracefulCleanupMs": 100,
+              "modelBytes": 8388608,
+              "monitorIntervalMs": 5,
+              "pathBytes": 4096,
+              "stderrBytes": 1048576,
+              "stdinBytes": 16777216,
+              "stdoutBytes": 16777216,
+              "versionBytes": 65536,
+              "wallTimeMs": 5000
+            },
+            "modelHex": "280a29",
+            "outcome": "sat",
+            "processExit": {
+              "code": 0,
+              "signal": null
+            },
+            "profile": "filament.solver-process/v1",
+            "queryDigest": "47f7bea469bf5f7f763b39403f4168fe8c7ecfae7b6ef56687cd0ec60cec3e1e",
+            "status": "refuted",
+            "stderrHex": "",
+            "stdoutHex": "7361740a280a290a"
+          }
+        ],
+        "logic": "QF_LIA",
+        "producer": {
+          "name": "filament-analyze",
+          "version": "0.1.0-12-g5989280"
+        },
+        "queryDigest": "47f7bea469bf5f7f763b39403f4168fe8c7ecfae7b6ef56687cd0ec60cec3e1e",
+        "queryHex": "287365742d696e666f203a736d742d6c69622d76657273696f6e20322e36290a287365742d696e666f203a736f75726365207c66696c616d656e742e736d746c6962322f76327c290a287365742d6f7074696f6e203a70726f647563652d6d6f64656c732074727565290a287365742d6c6f6769632051465f4c4941290a2861737365727420282120286e6f742066616c736529203a6e616d656420615f7036313637363536653734326436393738326636313665363136633739373336393733326437343635373337345f7235323435353132643732363536343735366536343631366536333739326437333631373432643633363136653634363936343631373436355f76315f63343332643732363536343735366536343631366536333739326437333631373432643633363136653634363936343631373436355f643430323061336134663262383566663037326431333636613063633933653636353239313335646238626432643237626139336362313464303834373432393529290a286173736572742028212074727565203a6e616d656420615f7036313637363536653734326436393738326636313665363136633739373336393733326437343635373337345f72353234353531326437323635363437353665363436313665363337393264373336313734326437303635363537325f76315f633433326437323635363437353665363436313665363337393264373336313734326437303635363537325f643566313639303361343963643738626531313162393461393761333065303964363531346338353835653434633235313231626166373362653833393536666129290a28636865636b2d736174290a286765742d6d6f64656c290a",
+        "requestDigest": "ccc64a383d321e9ae78b3fb32ad388583a02ccdb36e42874130560da85559878",
+        "schema": "filament.differential-report/v2"
+      }
+    },
+    {
+      "analysisKind": "dead-antecedent",
+      "caseId": "dead-antecedent-satisfied",
+      "expected": {
+        "analysisStatus": "satisfied",
+        "differentialDisposition": "agreement",
+        "solverOutcome": "unsat"
+      },
+      "observed": {
+        "cvc5Outcome": "unsat",
+        "cvc5Status": "satisfied",
+        "disposition": "agreement",
+        "reportSha256": "7bed934494183601168c3a5c7740894aba28f046faa1dbcf21767f873e392436",
+        "z3Outcome": "unsat",
+        "z3Status": "satisfied"
+      },
+      "queryDigest": "7321d592467a0488c2854dc78554255ffbc18f6a292eef4f3abc1eac5d3b1662",
+      "report": {
+        "analysisKind": "dead-antecedent",
+        "analysisModelProfile": "filament.analysis-model/v1",
+        "assertions": [
+          {
+            "clause": "agent-ix/analysis-test:REQ-dead-unsat@1:C-dead-unsat",
+            "clauseDigest": "a3e9064cad2eb06c47de78715dbcc5c022f674d9cb5a9a1bf8d9f33abd1cabbb",
+            "name": "a_p6167656e742d69782f616e616c797369732d74657374_r5245512d646561642d756e736174_v1_c432d646561642d756e736174_d4125eae1b43808ac005b6f3d5bf8496d28cb20f0f2d594e9adc71336e8e4f73e",
+            "polarity": "positive",
+            "role": "antecedent",
+            "source": {
+              "document": "analysis-test",
+              "end": {
+                "byte": 11,
+                "column": 12,
+                "line": 1
+              },
+              "revision": 1,
+              "start": {
+                "byte": 10,
+                "column": 11,
+                "line": 1
+              }
+            }
+          }
+        ],
+        "bindingSetDigest": "20ac99465be863cfcd4d4f76c41954c3f840f7888af14c6c684238bc7cc570dc",
+        "differential": {
+          "agreedStatus": "satisfied",
+          "disposition": "agreement"
+        },
+        "encodingProfile": "filament.smtlib2/v2",
+        "engines": [
+          {
+            "argv": [
+              "-in",
+              "-smt2"
+            ],
+            "cleanupMs": 0,
+            "configuredExecutable": "/builds/worktrees/codex-fixes-tc006-corpus/.tc006-tools/z3/z3_solver-5.1.0.0.data/data/bin/z3",
+            "diagnostic": null,
+            "elapsedMs": 15,
+            "engine": "z3",
+            "explanation": "not-applicable",
+            "identity": {
+              "path": "/builds/worktrees/codex-fixes-tc006-corpus/.tc006-tools/z3/z3_solver-5.1.0.0.data/data/bin/z3",
+              "version": "Z3 version 5.1.0 - 64 bit"
+            },
+            "limits": {
+              "cleanupTimeMs": 1000,
+              "gracefulCleanupMs": 100,
+              "modelBytes": 8388608,
+              "monitorIntervalMs": 5,
+              "pathBytes": 4096,
+              "stderrBytes": 1048576,
+              "stdinBytes": 16777216,
+              "stdoutBytes": 16777216,
+              "versionBytes": 65536,
+              "wallTimeMs": 5000
+            },
+            "modelHex": "",
+            "outcome": "unsat",
+            "processExit": {
+              "code": 1,
+              "signal": null
+            },
+            "profile": "filament.solver-process/v1",
+            "queryDigest": "7321d592467a0488c2854dc78554255ffbc18f6a292eef4f3abc1eac5d3b1662",
+            "status": "satisfied",
+            "stderrHex": "",
+            "stdoutHex": "756e7361740a286572726f7220226c696e65203820636f6c756d6e2031303a206d6f64656c206973206e6f7420617661696c61626c6522290a"
+          },
+          {
+            "argv": [
+              "--lang=smt2",
+              "--no-incremental"
+            ],
+            "cleanupMs": 0,
+            "configuredExecutable": "/builds/worktrees/codex-fixes-tc006-corpus/.tc006-tools/cvc5/cvc5-Linux-x86_64-static/bin/cvc5",
+            "diagnostic": null,
+            "elapsedMs": 15,
+            "engine": "cvc5",
+            "explanation": "not-applicable",
+            "identity": {
+              "path": "/builds/worktrees/codex-fixes-tc006-corpus/.tc006-tools/cvc5/cvc5-Linux-x86_64-static/bin/cvc5",
+              "version": "cvc5 1.3.4 [git f3b21c4 on branch HEAD]\ncompiled with GCC version 11.4.0 on May  7 2026 15:42:04\n\nCopyright (c) 2009-2026 by the authors and their institutional\naffiliations listed at https://cvc5.github.io/people.html\n\ncvc5 is open-source and is covered by the BSD license (modified).\n\nTHIS SOFTWARE IS PROVIDED AS-IS, WITHOUT ANY WARRANTIES.\nUSE AT YOUR OWN RISK.\n\nThis version of cvc5 is linked against the following non-(L)GPL'ed\nthird party libraries.\n\n  CaDiCaL - Simplified Satisfiability Solver\n  See https://github.com/arminbiere/cadical for copyright information.\n\n  Editline Library\n  See https://thrysoee.dk/editline\n  for copyright information.\n\n  SymFPU - The Symbolic Floating Point Unit\n  See https://github.com/martin-cs/symfpu/tree/CVC4 for copyright information.\n\nThis version of cvc5 is linked against the following third party\nlibraries covered by the LGPLv3 license.\nSee licenses/lgpl-3.0.txt for more information.\n\n  GMP - Gnu Multi Precision Arithmetic Library\n  See http://gmplib.org for copyright information.\n\n  LibPoly polynomial library\n  See https://github.com/SRI-CSL/libpoly for copyright and\n  licensing information.\n\ncvc5 is statically linked against these libraries. To recompile\nthis version of cvc5 with different versions of these libraries\nfollow the instructions on https://github.com/cvc5/cvc5/blob/main/INSTALL.md\n\nSee the file COPYING (distributed with the source code, and with\nall binaries) for the full cvc5 copyright, licensing, and (lack of)\nwarranty information."
+            },
+            "limits": {
+              "cleanupTimeMs": 1000,
+              "gracefulCleanupMs": 100,
+              "modelBytes": 8388608,
+              "monitorIntervalMs": 5,
+              "pathBytes": 4096,
+              "stderrBytes": 1048576,
+              "stdinBytes": 16777216,
+              "stdoutBytes": 16777216,
+              "versionBytes": 65536,
+              "wallTimeMs": 5000
+            },
+            "modelHex": "",
+            "outcome": "unsat",
+            "processExit": {
+              "code": 0,
+              "signal": null
+            },
+            "profile": "filament.solver-process/v1",
+            "queryDigest": "7321d592467a0488c2854dc78554255ffbc18f6a292eef4f3abc1eac5d3b1662",
+            "status": "satisfied",
+            "stderrHex": "",
+            "stdoutHex": "756e7361740a286572726f72202263616e6e6f7420676574206d6f64656c20756e6c657373206166746572206120534154206f7220554e4b4e4f574e20726573706f6e73652e22290a"
+          }
+        ],
+        "logic": "QF_LIA",
+        "producer": {
+          "name": "filament-analyze",
+          "version": "0.1.0-12-g5989280"
+        },
+        "queryDigest": "7321d592467a0488c2854dc78554255ffbc18f6a292eef4f3abc1eac5d3b1662",
+        "queryHex": "287365742d696e666f203a736d742d6c69622d76657273696f6e20322e36290a287365742d696e666f203a736f75726365207c66696c616d656e742e736d746c6962322f76327c290a287365742d6f7074696f6e203a70726f647563652d6d6f64656c732074727565290a287365742d6c6f6769632051465f4c4941290a286465636c6172652d66756e20765f735f3632656563623762616261336235306538393261376436343964336562383036323839343730663539343163616134386334663633346361316531316632316220282920426f6f6c290a286173736572742028212028616e6420765f735f3632656563623762616261336235306538393261376436343964336562383036323839343730663539343163616134386334663633346361316531316632316220286e6f7420765f735f363265656362376261626133623530653839326137643634396433656238303632383934373066353934316361613438633466363334636131653131663231622929203a6e616d656420615f7036313637363536653734326436393738326636313665363136633739373336393733326437343635373337345f72353234353531326436343635363136343264373536653733363137345f76315f633433326436343635363136343264373536653733363137345f643431323565616531623433383038616330303562366633643562663834393664323863623230663066326435393465396164633731333336653865346637336529290a28636865636b2d736174290a286765742d6d6f64656c290a",
+        "requestDigest": "6ed019e6a8e277f4debdcd0cda28b8a01cbae12e06be72218b452f1f8e384daa",
+        "schema": "filament.differential-report/v2"
+      }
+    },
+    {
+      "analysisKind": "dead-antecedent",
+      "caseId": "dead-antecedent-refuted",
+      "expected": {
+        "analysisStatus": "refuted",
+        "differentialDisposition": "agreement",
+        "solverOutcome": "sat"
+      },
+      "observed": {
+        "cvc5Outcome": "sat",
+        "cvc5Status": "refuted",
+        "disposition": "agreement",
+        "reportSha256": "c3281f319a8b2bde9900b3772f47dbcb77b5996893007f758c35911ff1e827d8",
+        "z3Outcome": "sat",
+        "z3Status": "refuted"
+      },
+      "queryDigest": "4355a8e8d00a4447f1954a66099edf4ea62f64d74ee5e40f72187aa5cb9e3567",
+      "report": {
+        "analysisKind": "dead-antecedent",
+        "analysisModelProfile": "filament.analysis-model/v1",
+        "assertions": [
+          {
+            "clause": "agent-ix/analysis-test:REQ-dead-sat@1:C-dead-sat",
+            "clauseDigest": "bc79d229a1640c690406415bd6dbc94ee59ddb7ed35088104d964d3d02ab6511",
+            "name": "a_p6167656e742d69782f616e616c797369732d74657374_r5245512d646561642d736174_v1_c432d646561642d736174_dd2cf72b30304c367f6eb631883ad8f22c4e38c84960278861dc9fcb5aa2fa5d6",
+            "polarity": "positive",
+            "role": "antecedent",
+            "source": {
+              "document": "analysis-test",
+              "end": {
+                "byte": 9,
+                "column": 10,
+                "line": 1
+              },
+              "revision": 1,
+              "start": {
+                "byte": 8,
+                "column": 9,
+                "line": 1
+              }
+            }
+          }
+        ],
+        "bindingSetDigest": "20ac99465be863cfcd4d4f76c41954c3f840f7888af14c6c684238bc7cc570dc",
+        "differential": {
+          "agreedStatus": "refuted",
+          "disposition": "agreement"
+        },
+        "encodingProfile": "filament.smtlib2/v2",
+        "engines": [
+          {
+            "argv": [
+              "-in",
+              "-smt2"
+            ],
+            "cleanupMs": 0,
+            "configuredExecutable": "/builds/worktrees/codex-fixes-tc006-corpus/.tc006-tools/z3/z3_solver-5.1.0.0.data/data/bin/z3",
+            "diagnostic": null,
+            "elapsedMs": 20,
+            "engine": "z3",
+            "explanation": "verified",
+            "identity": {
+              "path": "/builds/worktrees/codex-fixes-tc006-corpus/.tc006-tools/z3/z3_solver-5.1.0.0.data/data/bin/z3",
+              "version": "Z3 version 5.1.0 - 64 bit"
+            },
+            "limits": {
+              "cleanupTimeMs": 1000,
+              "gracefulCleanupMs": 100,
+              "modelBytes": 8388608,
+              "monitorIntervalMs": 5,
+              "pathBytes": 4096,
+              "stderrBytes": 1048576,
+              "stdinBytes": 16777216,
+              "stdoutBytes": 16777216,
+              "versionBytes": 65536,
+              "wallTimeMs": 5000
+            },
+            "modelHex": "280a202028646566696e652d66756e20765f735f6465626338666262373636323164633335353232333461653461333866333037323838373233336133643264363965663864666465343430643162316434636120282920426f6f6c0a2020202074727565290a202028646566696e652d66756e20615f7036313637363536653734326436393738326636313665363136633739373336393733326437343635373337345f723532343535313264363436353631363432643733363137345f76315f6334333264363436353631363432643733363137345f646432636637326233303330346333363766366562363331383833616438663232633465333863383439363032373838363164633966636235616132666135643620282920426f6f6c0a20202020765f735f64656263386662623736363231646333353532323334616534613338663330373238383732333361336432643639656638646664653434306431623164346361290a29",
+            "outcome": "sat",
+            "processExit": {
+              "code": 0,
+              "signal": null
+            },
+            "profile": "filament.solver-process/v1",
+            "queryDigest": "4355a8e8d00a4447f1954a66099edf4ea62f64d74ee5e40f72187aa5cb9e3567",
+            "status": "refuted",
+            "stderrHex": "",
+            "stdoutHex": "7361740a280a202028646566696e652d66756e20765f735f6465626338666262373636323164633335353232333461653461333866333037323838373233336133643264363965663864666465343430643162316434636120282920426f6f6c0a2020202074727565290a202028646566696e652d66756e20615f7036313637363536653734326436393738326636313665363136633739373336393733326437343635373337345f723532343535313264363436353631363432643733363137345f76315f6334333264363436353631363432643733363137345f646432636637326233303330346333363766366562363331383833616438663232633465333863383439363032373838363164633966636235616132666135643620282920426f6f6c0a20202020765f735f64656263386662623736363231646333353532323334616534613338663330373238383732333361336432643639656638646664653434306431623164346361290a290a"
+          },
+          {
+            "argv": [
+              "--lang=smt2",
+              "--no-incremental"
+            ],
+            "cleanupMs": 0,
+            "configuredExecutable": "/builds/worktrees/codex-fixes-tc006-corpus/.tc006-tools/cvc5/cvc5-Linux-x86_64-static/bin/cvc5",
+            "diagnostic": null,
+            "elapsedMs": 10,
+            "engine": "cvc5",
+            "explanation": "verified",
+            "identity": {
+              "path": "/builds/worktrees/codex-fixes-tc006-corpus/.tc006-tools/cvc5/cvc5-Linux-x86_64-static/bin/cvc5",
+              "version": "cvc5 1.3.4 [git f3b21c4 on branch HEAD]\ncompiled with GCC version 11.4.0 on May  7 2026 15:42:04\n\nCopyright (c) 2009-2026 by the authors and their institutional\naffiliations listed at https://cvc5.github.io/people.html\n\ncvc5 is open-source and is covered by the BSD license (modified).\n\nTHIS SOFTWARE IS PROVIDED AS-IS, WITHOUT ANY WARRANTIES.\nUSE AT YOUR OWN RISK.\n\nThis version of cvc5 is linked against the following non-(L)GPL'ed\nthird party libraries.\n\n  CaDiCaL - Simplified Satisfiability Solver\n  See https://github.com/arminbiere/cadical for copyright information.\n\n  Editline Library\n  See https://thrysoee.dk/editline\n  for copyright information.\n\n  SymFPU - The Symbolic Floating Point Unit\n  See https://github.com/martin-cs/symfpu/tree/CVC4 for copyright information.\n\nThis version of cvc5 is linked against the following third party\nlibraries covered by the LGPLv3 license.\nSee licenses/lgpl-3.0.txt for more information.\n\n  GMP - Gnu Multi Precision Arithmetic Library\n  See http://gmplib.org for copyright information.\n\n  LibPoly polynomial library\n  See https://github.com/SRI-CSL/libpoly for copyright and\n  licensing information.\n\ncvc5 is statically linked against these libraries. To recompile\nthis version of cvc5 with different versions of these libraries\nfollow the instructions on https://github.com/cvc5/cvc5/blob/main/INSTALL.md\n\nSee the file COPYING (distributed with the source code, and with\nall binaries) for the full cvc5 copyright, licensing, and (lack of)\nwarranty information."
+            },
+            "limits": {
+              "cleanupTimeMs": 1000,
+              "gracefulCleanupMs": 100,
+              "modelBytes": 8388608,
+              "monitorIntervalMs": 5,
+              "pathBytes": 4096,
+              "stderrBytes": 1048576,
+              "stdinBytes": 16777216,
+              "stdoutBytes": 16777216,
+              "versionBytes": 65536,
+              "wallTimeMs": 5000
+            },
+            "modelHex": "280a28646566696e652d66756e20765f735f6465626338666262373636323164633335353232333461653461333866333037323838373233336133643264363965663864666465343430643162316434636120282920426f6f6c2074727565290a29",
+            "outcome": "sat",
+            "processExit": {
+              "code": 0,
+              "signal": null
+            },
+            "profile": "filament.solver-process/v1",
+            "queryDigest": "4355a8e8d00a4447f1954a66099edf4ea62f64d74ee5e40f72187aa5cb9e3567",
+            "status": "refuted",
+            "stderrHex": "",
+            "stdoutHex": "7361740a280a28646566696e652d66756e20765f735f6465626338666262373636323164633335353232333461653461333866333037323838373233336133643264363965663864666465343430643162316434636120282920426f6f6c2074727565290a290a"
+          }
+        ],
+        "logic": "QF_LIA",
+        "producer": {
+          "name": "filament-analyze",
+          "version": "0.1.0-12-g5989280"
+        },
+        "queryDigest": "4355a8e8d00a4447f1954a66099edf4ea62f64d74ee5e40f72187aa5cb9e3567",
+        "queryHex": "287365742d696e666f203a736d742d6c69622d76657273696f6e20322e36290a287365742d696e666f203a736f75726365207c66696c616d656e742e736d746c6962322f76327c290a287365742d6f7074696f6e203a70726f647563652d6d6f64656c732074727565290a287365742d6c6f6769632051465f4c4941290a286465636c6172652d66756e20765f735f6465626338666262373636323164633335353232333461653461333866333037323838373233336133643264363965663864666465343430643162316434636120282920426f6f6c290a2861737365727420282120765f735f64656263386662623736363231646333353532323334616534613338663330373238383732333361336432643639656638646664653434306431623164346361203a6e616d656420615f7036313637363536653734326436393738326636313665363136633739373336393733326437343635373337345f723532343535313264363436353631363432643733363137345f76315f6334333264363436353631363432643733363137345f646432636637326233303330346333363766366562363331383833616438663232633465333863383439363032373838363164633966636235616132666135643629290a28636865636b2d736174290a286765742d6d6f64656c290a",
+        "requestDigest": "e852775183552019e9ddad5631106714764316d58d4d48bee995d654ce669ff4",
+        "schema": "filament.differential-report/v2"
+      }
+    }
+  ],
+  "engines": {
+    "cvc5": {
+      "sha256": "7562a8b0b835e3eaad5f1a7b4616cd762350cf567b6be03d7e8ee24fa5ced5ee",
+      "version": "cvc5 1.3.4 [git f3b21c4 on branch HEAD]\ncompiled with GCC version 11.4.0 on May  7 2026 15:42:04\n\nCopyright (c) 2009-2026 by the authors and their institutional\naffiliations listed at https://cvc5.github.io/people.html\n\ncvc5 is open-source and is covered by the BSD license (modified).\n\nTHIS SOFTWARE IS PROVIDED AS-IS, WITHOUT ANY WARRANTIES.\nUSE AT YOUR OWN RISK.\n\nThis version of cvc5 is linked against the following non-(L)GPL'ed\nthird party libraries.\n\n  CaDiCaL - Simplified Satisfiability Solver\n  See https://github.com/arminbiere/cadical for copyright information.\n\n  Editline Library\n  See https://thrysoee.dk/editline\n  for copyright information.\n\n  SymFPU - The Symbolic Floating Point Unit\n  See https://github.com/martin-cs/symfpu/tree/CVC4 for copyright information.\n\nThis version of cvc5 is linked against the following third party\nlibraries covered by the LGPLv3 license.\nSee licenses/lgpl-3.0.txt for more information.\n\n  GMP - Gnu Multi Precision Arithmetic Library\n  See http://gmplib.org for copyright information.\n\n  LibPoly polynomial library\n  See https://github.com/SRI-CSL/libpoly for copyright and\n  licensing information.\n\ncvc5 is statically linked against these libraries. To recompile\nthis version of cvc5 with different versions of these libraries\nfollow the instructions on https://github.com/cvc5/cvc5/blob/main/INSTALL.md\n\nSee the file COPYING (distributed with the source code, and with\nall binaries) for the full cvc5 copyright, licensing, and (lack of)\nwarranty information."
+    },
+    "z3": {
+      "sha256": "54bae839dd54e262edac6f755fc99659ce2a121301faff20a3e3b94478dcead0",
+      "version": "Z3 version 5.1.0 - 64 bit"
+    }
+  },
+  "observedAtUnixSeconds": 1795898517,
+  "outcome": "passed",
+  "platform": "linux-x86_64",
+  "schema": "filament-analyze.tc006-corpus-run/v1",
+  "sourceRevision": "59892803eef59c2399a8cc5e5a888cd02ce4ccd9"
+}

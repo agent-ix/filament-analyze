@@ -857,7 +857,7 @@ fn official_z3_cvc5_differential_corpus_agrees() {
                 "z3Status": run.z3().status().as_str(),
                 "cvc5Status": run.cvc5().status().as_str(),
                 "disposition": run.disposition().as_str(),
-                "reportDigest": report_value["digest"],
+                "reportSha256": format!("{:x}", Sha256::digest(&report)),
             },
             "report": report_value,
         }));

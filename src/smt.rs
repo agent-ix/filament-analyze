@@ -10,6 +10,7 @@ use filament_contract_model::{
     RecordLiteralField, Requirement, RequirementRef, SourceSpan, StateObservation, SymbolName,
     TypeDeclaration, TypedExpression, ValueDeclarationKind, ValueType,
 };
+use ix_trace_rs::implements;
 use sha2::{Digest as _, Sha256};
 
 use crate::datatype_replay::{ReplayDatum, ReplayItem, ReplayShape, ReplayValue};
@@ -1346,6 +1347,7 @@ pub(crate) fn lower_analysis_statements(
     lower_statement_specs(Some(kind), kind.as_str(), statements, bindings)
 }
 
+#[implements("FR-020-AC-9")]
 fn lower_statement_specs(
     analysis_kind: Option<AnalysisKind>,
     request_kind: &str,

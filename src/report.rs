@@ -9,6 +9,7 @@ use std::{
 
 use serde::Serialize;
 use serde_json::{json, Value};
+use ix_trace_rs::implements;
 
 use crate::{
     classify_analysis, execute_solver, AnalysisConclusion, AnalysisStatus, CancellationToken,
@@ -342,6 +343,7 @@ pub fn validate_differential_report_with_selection(
     Ok(())
 }
 
+#[implements("FR-020-AC-9")]
 pub fn validate_report_document(bytes: &[u8]) -> Result<DifferentialDisposition, String> {
     if bytes.len() > MAX_REPORT_BYTES {
         return Err("report exceeds the v2 byte bound".to_owned());

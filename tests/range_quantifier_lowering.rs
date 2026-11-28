@@ -1779,7 +1779,15 @@ fn real_z3_cvc5_decide_range_fixtures() {
         for conclusion in [run.z3(), run.cvc5()] {
             assert_eq!(conclusion.solver().outcome(), SolverOutcome::Sat);
             assert_eq!(conclusion.explanation(), ExplanationState::Verified);
-            assert!(conclusion.verified_model().is_some());
+            let model = conclusion
+                .verified_model()
+                .expect("sat model passed replay");
+            assert!(!model.replayed_assertions().is_empty());
+            assert!(!model.quantifier_results().is_empty());
+            assert!(model
+                .quantifier_results()
+                .iter()
+                .all(|result| result.holds()));
         }
     }
 }
@@ -2825,13 +2833,30 @@ fn real_z3_cvc5_decide_domain_fixtures() {
             "{name}"
         );
         if expected {
+            assert_eq!(
+                run.agreed_status(),
+                Some(AnalysisStatus::Satisfied),
+                "{name}"
+            );
             for conclusion in [run.z3(), run.cvc5()] {
                 assert_eq!(
                     conclusion.explanation(),
                     ExplanationState::Verified,
                     "{name}"
                 );
-                assert!(conclusion.verified_model().is_some(), "{name}");
+                assert_eq!(conclusion.solver().outcome(), SolverOutcome::Sat, "{name}");
+                let model = conclusion
+                    .verified_model()
+                    .expect("sat model passed replay");
+                assert!(!model.replayed_assertions().is_empty(), "{name}");
+                assert!(!model.quantifier_results().is_empty(), "{name}");
+                assert!(
+                    model
+                        .quantifier_results()
+                        .iter()
+                        .all(|result| result.holds()),
+                    "{name}"
+                );
             }
         }
     }

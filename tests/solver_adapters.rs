@@ -629,7 +629,7 @@ fn process_exists(pid: i32) -> bool {
 }
 
 /// FR-003-AC-1: timeout and cancellation reap the whole isolated group in the numeric bound.
-#[trace("TC-005", "FR-003-AC-1", "NFR-001-AC-2")]
+#[trace("TC-005", "TC-006", "FR-003-AC-1", "NFR-001-AC-2")]
 #[test]
 fn timeout_and_cancellation_cleanup_are_measured() {
     let mut durations = Vec::new();

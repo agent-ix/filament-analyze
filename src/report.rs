@@ -17,7 +17,6 @@ use crate::{
 };
 
 pub const DIFFERENTIAL_REPORT_SCHEMA: &str = "filament.differential-report/v2";
-pub const PGM01_ENVELOPE_DEPENDENCY: &str = "agent-ix/filament-contract-ir#20";
 pub const MAX_REPORT_BYTES: usize = 64 * 1024 * 1024;
 static PUBLICATION_COUNTER: AtomicU64 = AtomicU64::new(0);
 
@@ -275,10 +274,6 @@ pub fn render_differential_report_with_selection(
         "encodingProfile": query.profile(),
         "engines": [engine_value(run.z3()), engine_value(run.cvc5())],
         "logic": query.logic(),
-        "pgm01Envelope": {
-            "dependency": PGM01_ENVELOPE_DEPENDENCY,
-            "status": "unavailable",
-        },
         "producer": {
             "name": env!("CARGO_PKG_NAME"),
             "version": env!("FILAMENT_BUILD_VERSION"),
@@ -323,17 +318,6 @@ pub fn validate_differential_report_with_selection(
     if object.get("schema").and_then(Value::as_str) != Some(DIFFERENTIAL_REPORT_SCHEMA) {
         return Err("report schema is absent or unsupported".to_owned());
     }
-    if object
-        .get("pgm01Envelope")
-        .and_then(|value| value.get("status"))
-        .and_then(Value::as_str)
-        != Some("unavailable")
-    {
-        return Err(
-            "PGM-01 envelope status must remain unavailable until the shared component lands"
-                .to_owned(),
-        );
-    }
     let expected = render_differential_report_with_selection(query, run, selection)?;
     if bytes != expected {
         return Err(
@@ -375,7 +359,6 @@ pub fn validate_report_document(bytes: &[u8]) -> Result<DifferentialDisposition,
             "encodingProfile",
             "engines",
             "logic",
-            "pgm01Envelope",
             "producer",
             "queryDigest",
             "queryHex",
@@ -397,18 +380,6 @@ pub fn validate_report_document(bytes: &[u8]) -> Result<DifferentialDisposition,
             if object.get(field).and_then(Value::as_str) != Some(expected) {
                 return Err(format!("report {field} is absent or unsupported"));
             }
-        }
-        let envelope = require_object(
-            object
-                .get("pgm01Envelope")
-                .ok_or_else(|| "PGM-01 envelope is absent".to_owned())?,
-            "PGM-01 envelope",
-        )?;
-        require_exact_keys(envelope, &["dependency", "status"], "PGM-01 envelope")?;
-        if envelope.get("status").and_then(Value::as_str) != Some("unavailable")
-            || envelope.get("dependency").and_then(Value::as_str) != Some(PGM01_ENVELOPE_DEPENDENCY)
-        {
-            return Err("PGM-01 envelope is not the required unavailable state".to_owned());
         }
     }
     if serde_json::to_vec(&value).map_err(|error| error.to_string())? != bytes {
@@ -575,11 +546,10 @@ pub fn validate_report_document(bytes: &[u8]) -> Result<DifferentialDisposition,
 
 pub fn render_differential_summary(run: &DifferentialRun) -> String {
     format!(
-        "Differential result: {}\nZ3: {}\ncvc5: {}\nPGM-01 envelope: unavailable ({})\n",
+        "Differential result: {}\nZ3: {}\ncvc5: {}\n",
         run.disposition.as_str(),
         run.z3.status().as_str(),
         run.cvc5.status().as_str(),
-        PGM01_ENVELOPE_DEPENDENCY,
     )
 }
 

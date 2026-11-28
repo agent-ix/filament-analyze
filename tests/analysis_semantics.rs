@@ -819,12 +819,9 @@ fn report_bytes_are_canonical_reconstructed_and_published_without_overwrite() {
         .compile(&schema)
         .unwrap_or_else(|error| panic!("schema compile: {error}"));
     assert!(validator.is_valid(&value));
-    assert_eq!(
-        value["pgm01Envelope"]["status"],
-        serde_json::Value::String("unavailable".to_owned())
-    );
+    assert!(value.get("pgm01Envelope").is_none());
     assert_eq!(value["engines"].as_array().expect("engines").len(), 2);
-    assert!(render_differential_summary(&run).contains("PGM-01 envelope: unavailable"));
+    assert!(!render_differential_summary(&run).contains("PGM-01"));
 
     let mut mutated = value.clone();
     let mut omitted = mutated.clone();

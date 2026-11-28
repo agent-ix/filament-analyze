@@ -50,7 +50,7 @@ stable exit classification, and shall retain cross-engine discrepancies without 
   version-mismatch because no pin or digest check exists.
   Dependency selection and resolution remain in `Cargo.toml` and `Cargo.lock`; their source revision
   is not copied into report metadata. The renderer and validator accept the v2 contract only, with
-  no v1 fallback or compatibility reader. This change does not make the PGM-01 envelope available.
+  no v1 fallback or compatibility reader. Differential reports do not claim an unavailable PGM-01 envelope.
 - `run-package --select` ([FR-009](./FR-009-package-runner.md)) adds the optional member
   `selection`, `{"excluded":["claim-N"...],"selected":["claim-N"...]}`, to the v2 report, and only that
   member. The member is closed and absent when no selection was given. When present, each list is a
@@ -74,16 +74,13 @@ stable exit classification, and shall retain cross-engine discrepancies without 
   close and remove their staging file and synchronize that removal. An uncatchable process
   termination can leave a private staging file but never exposes partial destination bytes; the
   file name identifies it as non-authoritative staging rather than a report.
-- Until `filament-contract-ir#20` selects the shared PGM-01 envelope and integrity component, its
-  status is `unavailable`; no report or local gate may translate that absence into schema
-  validation success.
 
 ## Acceptance Criteria
 
 | ID | Criteria | Verification |
 |---|---|---|
 | FR-005-AC-1 | CLI publication preserves the authoritative library report byte-for-byte and returns its stable exit class. | Test (TC-008) |
-| FR-005-AC-2 | Every report validates against its versioned schema and PGM-01 evidence envelope. | Test (TC-007) |
+| FR-005-AC-2 | Every report validates against its closed, versioned schema. | Test (TC-007) |
 | FR-005-AC-3 | Differential disagreement retains both results and cannot be reported as agreement. | Test (TC-006) |
 | FR-005-AC-4 | Failed publication leaves no partial result or modified developer-owned file. | Test (TC-008) |
 | FR-005-AC-5 | Every filed semantic defect maps to an executable retained regression fixture. | Inspection and test (TC-006) |

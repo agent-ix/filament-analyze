@@ -39,7 +39,7 @@ operations:
     semantics: FR-004 preserves logical status while requiring verified evidence before publishing a mapped model or counterexample
   - name: compare
     entry_point: src/report.rs compare_solver_records
-    current: implemented library comparison; PGM-01 envelope unavailable
+    current: implemented library comparison; reports make no PGM-01 envelope claim
     output: DifferentialRun
     semantics: retains both engine records; disagreement is non-conclusive until human-reviewed adjudication
   - name: cli_publish
@@ -100,8 +100,7 @@ executable path from untrusted query content. The listed library entry points ar
 currently composes prepare through compare.
 Hybrid reachability and canonical synthesis are separate providers in `src/hybrid_synthesis.rs`,
 returning method outcomes through `crates/method-contract`; they are outside this Boolean SMT
-classification contract. The PGM-01 shared envelope remains unavailable pending
-`filament-contract-ir#20`, so a local placeholder cannot establish full evidence compliance.
+classification contract. PGM-01 envelope production is outside this report contract.
 
 Cargo.toml and Cargo.lock declare and resolve the `filament-contract-model` crate from the
 `filament-contract-ir` repository. The runtime

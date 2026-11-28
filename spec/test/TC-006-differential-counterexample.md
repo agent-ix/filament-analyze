@@ -32,6 +32,33 @@ retained before disposition. Real-engine execution is a measured local lane. An 
 stated skip and is not evidence; an engine that a run observes as unavailable is a result (the
 RP-MISSING-ENGINE case, exit `3`).
 
+The retained real-engine corpus has ten case identities. Each Boolean formula has an independently
+enumerated truth result, the expected solver answer, and the expected analyzer status:
+
+| Case | Analysis kind | Solver answer | Analysis status |
+|---|---|---|---|
+| `consistency-sat` | consistency of `x` | sat | satisfied |
+| `consistency-unsat` | consistency of `x AND NOT x` | unsat | refuted |
+| `contradiction-satisfied` | left `true`, right `false` | unsat | satisfied |
+| `contradiction-refuted` | left `true`, right `true` | sat | refuted |
+| `implication-satisfied` | antecedent `true`, consequent `true` | unsat | satisfied |
+| `implication-refuted` | antecedent `true`, consequent `false` | sat | refuted |
+| `redundancy-satisfied` | peer `true`, candidate `true` | unsat | satisfied |
+| `redundancy-refuted` | peer `true`, candidate `false` | sat | refuted |
+| `dead-antecedent-satisfied` | antecedent `x AND NOT x` | unsat | satisfied |
+| `dead-antecedent-refuted` | antecedent `x` | sat | refuted |
+
+Both pinned engines must return the listed solver answer for every case. The test independently checks
+the ten formula truth cells, requires agreement and the listed status, validates each report, and can
+retain the observed engine records and report bytes as `filament-analyze.tc006-corpus-run/v1` JSON.
+The pinned executable digests are checked before any case runs.
+
+The non-conclusive corpus fixtures are also executable: unsupported lowering is checked by
+`quantification_and_data_types_are_explicitly_unsupported`; a bounded wall timeout by
+`timeout_and_cancellation_cleanup_are_measured`; missing-engine and controlled sat/unsat disagreement
+by `differential_disposition_requires_two_verified_conclusive_results`. The latter checks both engine
+records remain present and disagreement has no agreed status.
+
 ### `run-package` corpus
 
 Six named cases, each run through the library boundary (`filament_analyze::run_package`

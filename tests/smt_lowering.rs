@@ -393,7 +393,7 @@ fn every_supported_boolean_operator_has_an_exact_encoding() {
 }
 
 /// FR-002-AC-2/4 and TC-003: quantification and non-Boolean data fail explicitly.
-#[trace("TC-003", "TC-010", "FR-002-AC-2", "FR-002-AC-4")]
+#[trace("TC-003", "TC-006", "TC-010", "FR-002-AC-2", "FR-002-AC-4")]
 #[test]
 fn quantification_and_data_types_are_explicitly_unsupported() {
     let collection_type = CollectionType::new(ValueType::Boolean, 4).expect("collection type");

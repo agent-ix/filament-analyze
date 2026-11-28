@@ -359,26 +359,17 @@ fn dedicated_requests_are_role_exact_deterministic_and_fail_closed() {
 }
 
 struct TruthCase {
+    case_id: &'static str,
     kind: AnalysisKind,
     request: AnalysisRequest,
     independently_sat: bool,
     expected: AnalysisStatus,
 }
 
-/// FR-001-AC-1 and FR-004-AC-1/5: all ten classifications match independent finite evaluation.
-#[trace(
-    "TC-001",
-    "TC-005",
-    "TC-016",
-    "FR-001-AC-1",
-    "FR-004-AC-1",
-    "FR-004-AC-5",
-    "FR-010-AC-9"
-)]
-#[test]
-fn all_ten_truth_table_cells_match_independent_finite_models() {
+fn tc006_real_engine_cases() -> Vec<TruthCase> {
     let cases = vec![
         TruthCase {
+            case_id: "consistency-sat",
             kind: AnalysisKind::Consistency,
             request: AnalysisRequest::consistency(
                 vec![],
@@ -390,6 +381,7 @@ fn all_ten_truth_table_cells_match_independent_finite_models() {
             expected: AnalysisStatus::Satisfied,
         },
         TruthCase {
+            case_id: "consistency-unsat",
             kind: AnalysisKind::Consistency,
             request: AnalysisRequest::consistency(
                 vec![],
@@ -405,6 +397,7 @@ fn all_ten_truth_table_cells_match_independent_finite_models() {
             expected: AnalysisStatus::Refuted,
         },
         TruthCase {
+            case_id: "contradiction-satisfied",
             kind: AnalysisKind::Contradiction,
             request: AnalysisRequest::contradiction(
                 vec![],
@@ -417,6 +410,7 @@ fn all_ten_truth_table_cells_match_independent_finite_models() {
             expected: AnalysisStatus::Satisfied,
         },
         TruthCase {
+            case_id: "contradiction-refuted",
             kind: AnalysisKind::Contradiction,
             request: AnalysisRequest::contradiction(
                 vec![],
@@ -429,6 +423,7 @@ fn all_ten_truth_table_cells_match_independent_finite_models() {
             expected: AnalysisStatus::Refuted,
         },
         TruthCase {
+            case_id: "implication-satisfied",
             kind: AnalysisKind::Implication,
             request: AnalysisRequest::implication(
                 vec![],
@@ -441,6 +436,7 @@ fn all_ten_truth_table_cells_match_independent_finite_models() {
             expected: AnalysisStatus::Satisfied,
         },
         TruthCase {
+            case_id: "implication-refuted",
             kind: AnalysisKind::Implication,
             request: AnalysisRequest::implication(
                 vec![],
@@ -453,6 +449,7 @@ fn all_ten_truth_table_cells_match_independent_finite_models() {
             expected: AnalysisStatus::Refuted,
         },
         TruthCase {
+            case_id: "redundancy-satisfied",
             kind: AnalysisKind::Redundancy,
             request: AnalysisRequest::redundancy(
                 vec![],
@@ -465,6 +462,7 @@ fn all_ten_truth_table_cells_match_independent_finite_models() {
             expected: AnalysisStatus::Satisfied,
         },
         TruthCase {
+            case_id: "redundancy-refuted",
             kind: AnalysisKind::Redundancy,
             request: AnalysisRequest::redundancy(
                 vec![],
@@ -477,6 +475,7 @@ fn all_ten_truth_table_cells_match_independent_finite_models() {
             expected: AnalysisStatus::Refuted,
         },
         TruthCase {
+            case_id: "dead-antecedent-satisfied",
             kind: AnalysisKind::DeadAntecedent,
             request: AnalysisRequest::dead_antecedent(
                 vec![],
@@ -488,6 +487,7 @@ fn all_ten_truth_table_cells_match_independent_finite_models() {
             expected: AnalysisStatus::Satisfied,
         },
         TruthCase {
+            case_id: "dead-antecedent-refuted",
             kind: AnalysisKind::DeadAntecedent,
             request: AnalysisRequest::dead_antecedent(
                 vec![],
@@ -499,6 +499,23 @@ fn all_ten_truth_table_cells_match_independent_finite_models() {
             expected: AnalysisStatus::Refuted,
         },
     ];
+    cases
+}
+
+/// FR-001-AC-1 and FR-004-AC-1/5: all ten classifications match independent finite evaluation.
+#[trace(
+    "TC-001",
+    "TC-005",
+    "TC-016",
+    "TC-006",
+    "FR-001-AC-1",
+    "FR-004-AC-1",
+    "FR-004-AC-5",
+    "FR-010-AC-9"
+)]
+#[test]
+fn all_ten_truth_table_cells_match_independent_finite_models() {
+    let cases = tc006_real_engine_cases();
 
     assert_eq!(cases.len(), 10);
     for case in cases {
@@ -636,7 +653,7 @@ fn model_decode_mapping_and_replay_are_fail_closed() {
 }
 
 /// FR-004-AC-4/5: unknown, cancellation, and tool failures never become success.
-#[trace("TC-005", "TC-007", "FR-004-AC-4", "FR-004-AC-5")]
+#[trace("TC-005", "TC-006", "TC-007", "FR-004-AC-4", "FR-004-AC-5")]
 #[test]
 fn nonconclusive_adapter_states_remain_nonconclusive() {
     let request =
@@ -748,50 +765,155 @@ fn differential_disposition_requires_two_verified_conclusive_results() {
     .is_err());
 }
 
-/// FR-005-AC-3: official engines agree on independently selected sat and unsat cases.
+/// FR-005-AC-3: official pinned engines agree across the retained TC-006 corpus.
 #[trace("TC-006", "FR-005-AC-3", "MP-001-M-06")]
 #[test]
-#[ignore = "requires official Z3 and cvc5 executables at FILAMENT_Z3 and FILAMENT_CVC5"]
+#[ignore = "requires the FR-005 pinned Z3 and cvc5 executables at FILAMENT_Z3 and FILAMENT_CVC5"]
 fn official_z3_cvc5_differential_corpus_agrees() {
+    const Z3_SHA256: &str = "54bae839dd54e262edac6f755fc99659ce2a121301faff20a3e3b94478dcead0";
+    const CVC5_SHA256: &str = "7562a8b0b835e3eaad5f1a7b4616cd762350cf567b6be03d7e8ee24fa5ced5ee";
+
     let z3_path = PathBuf::from(std::env::var_os("FILAMENT_Z3").expect("FILAMENT_Z3 is required"));
     let cvc5_path =
         PathBuf::from(std::env::var_os("FILAMENT_CVC5").expect("FILAMENT_CVC5 is required"));
-    let z3 = SolverConfig::new(SolverEngine::Z3, z3_path, AdapterLimits::default())
+    let z3_sha256 = sha256_file(&z3_path);
+    let cvc5_sha256 = sha256_file(&cvc5_path);
+    assert_eq!(z3_sha256, Z3_SHA256, "Z3 executable is not the FR-005 pin");
+    assert_eq!(
+        cvc5_sha256, CVC5_SHA256,
+        "cvc5 executable is not the FR-005 pin"
+    );
+    let z3_version = solver_version(&z3_path, "-version");
+    let cvc5_version = solver_version(&cvc5_path, "--version");
+    assert_eq!(z3_version, "Z3 version 5.1.0 - 64 bit");
+    assert!(cvc5_version.starts_with("cvc5 1.3.4 [git f3b21c4 on branch HEAD]"));
+
+    let z3 = SolverConfig::new(SolverEngine::Z3, z3_path.clone(), AdapterLimits::default())
         .expect("Z3 configuration");
-    let cvc5 = SolverConfig::new(SolverEngine::Cvc5, cvc5_path, AdapterLimits::default())
-        .expect("cvc5 configuration");
-    let corpus = [
-        AnalysisRequest::consistency(
-            vec![],
-            vec![statement("real-sat", value("x"), &["x"])],
-            vec![],
-        )
-        .expect("sat request"),
-        AnalysisRequest::consistency(
-            vec![],
-            vec![statement(
-                "real-unsat",
-                and(value("x"), not(value("x"))),
-                &["x"],
-            )],
-            vec![],
-        )
-        .expect("unsat request"),
-    ];
-    let expected = [AnalysisStatus::Satisfied, AnalysisStatus::Refuted];
-    for (request, expected_status) in corpus.iter().zip(expected) {
-        let query = lower_analysis_request(request).expect("real query");
+    let cvc5 = SolverConfig::new(
+        SolverEngine::Cvc5,
+        cvc5_path.clone(),
+        AdapterLimits::default(),
+    )
+    .expect("cvc5 configuration");
+    let mut results = Vec::new();
+    let cases = tc006_real_engine_cases();
+    assert_eq!(cases.len(), 10);
+    for case in cases {
+        let query = lower_analysis_request(&case.request).expect("real query");
         let run = execute_differential(&query, &z3, &cvc5, &CancellationToken::default())
             .expect("real differential run");
+        let expected_solver = if case.independently_sat {
+            "sat"
+        } else {
+            "unsat"
+        };
+        assert_eq!(
+            run.z3().solver().outcome().as_str(),
+            expected_solver,
+            "{} Z3",
+            case.case_id
+        );
+        assert_eq!(
+            run.cvc5().solver().outcome().as_str(),
+            expected_solver,
+            "{} cvc5",
+            case.case_id
+        );
+        assert_eq!(
+            run.z3().status(),
+            case.expected,
+            "{} Z3 analysis",
+            case.case_id
+        );
+        assert_eq!(
+            run.cvc5().status(),
+            case.expected,
+            "{} cvc5 analysis",
+            case.case_id
+        );
         assert_eq!(
             run.disposition(),
             DifferentialDisposition::Agreement,
-            "real differential failure: {run:#?}"
+            "{}: {run:#?}",
+            case.case_id
         );
-        assert_eq!(run.agreed_status(), Some(expected_status));
+        assert_eq!(run.agreed_status(), Some(case.expected), "{}", case.case_id);
         let report = render_differential_report(&query, &run).expect("render real report");
         validate_differential_report(&report, &query, &run).expect("real report");
+        let report_value: serde_json::Value = serde_json::from_slice(&report).expect("report JSON");
+        results.push(serde_json::json!({
+            "caseId": case.case_id,
+            "analysisKind": case.kind.as_str(),
+            "queryDigest": query.query_digest().to_string(),
+            "expected": {
+                "solverOutcome": expected_solver,
+                "analysisStatus": case.expected.as_str(),
+                "differentialDisposition": "agreement",
+            },
+            "observed": {
+                "z3Outcome": run.z3().solver().outcome().as_str(),
+                "cvc5Outcome": run.cvc5().solver().outcome().as_str(),
+                "z3Status": run.z3().status().as_str(),
+                "cvc5Status": run.cvc5().status().as_str(),
+                "disposition": run.disposition().as_str(),
+                "reportSha256": format!("{:x}", Sha256::digest(&report)),
+            },
+            "report": report_value,
+        }));
     }
+
+    if let Some(output_path) = std::env::var_os("FILAMENT_TC006_RESULTS_OUT") {
+        let output_path = PathBuf::from(output_path);
+        if let Some(parent) = output_path.parent() {
+            fs::create_dir_all(parent).expect("create retained results directory");
+        }
+        let source_revision = std::env::var("FILAMENT_TC006_SOURCE_REVISION")
+            .expect("FILAMENT_TC006_SOURCE_REVISION is required when retaining results");
+        let observed_at_unix_seconds = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .expect("system clock after epoch")
+            .as_secs();
+        let document = serde_json::json!({
+            "schema": "filament-analyze.tc006-corpus-run/v1",
+            "sourceRevision": source_revision,
+            "observedAtUnixSeconds": observed_at_unix_seconds,
+            "platform": format!("{}-{}", std::env::consts::OS, std::env::consts::ARCH),
+            "analyzer": { "name": env!("CARGO_PKG_NAME"), "version": env!("CARGO_PKG_VERSION") },
+            "engines": {
+                "z3": { "version": z3_version, "sha256": z3_sha256 },
+                "cvc5": { "version": cvc5_version, "sha256": cvc5_sha256 },
+            },
+            "caseCount": results.len(),
+            "outcome": "passed",
+            "cases": results,
+        });
+        fs::write(
+            &output_path,
+            serde_json::to_vec_pretty(&document).expect("serialize results"),
+        )
+        .expect("retain TC-006 results");
+    }
+}
+
+fn sha256_file(path: &Path) -> String {
+    let bytes = fs::read(path).expect("read pinned solver executable");
+    format!("{:x}", Sha256::digest(bytes))
+}
+
+fn solver_version(path: &Path, argument: &str) -> String {
+    let output = Command::new(path)
+        .arg(argument)
+        .output()
+        .expect("pinned solver version probe");
+    assert!(
+        output.status.success(),
+        "solver version probe failed: {output:?}"
+    );
+    String::from_utf8(output.stdout)
+        .expect("solver version UTF-8")
+        .trim()
+        .to_owned()
 }
 
 /// FR-005-AC-1/2/4: one canonical renderer backs validation and no-replace atomic publication.

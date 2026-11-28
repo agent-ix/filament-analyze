@@ -2138,11 +2138,26 @@ fn dose_package(contradiction: bool) -> Built {
         other => panic!("fixture refused: {other:?}"),
     };
     let translation = translate_analysis_claims(&package).expect("translation");
-    let definitions = translation
-        .environment()
-        .values()
-        .iter()
-        .map(|declaration| format!("(define-fun {} () Int 0)", declaration.name().as_str()))
+    let query = lower_analysis_request(translation.request()).expect("query");
+    let definitions = query
+        .query()
+        .lines()
+        .filter_map(|line| {
+            let declaration = line.strip_prefix("(declare-fun ")?.strip_suffix(')')?;
+            let parts: Vec<_> = declaration.split_whitespace().collect();
+            if parts.len() != 3 || parts[1] != "()" {
+                return None;
+            }
+            let value = match parts[2] {
+                "Int" => "0",
+                "Bool" => "true",
+                _ => return None,
+            };
+            Some(format!(
+                "(define-fun {} () {} {})",
+                parts[0], parts[2], value
+            ))
+        })
         .collect::<Vec<_>>()
         .join(" ");
     Built {

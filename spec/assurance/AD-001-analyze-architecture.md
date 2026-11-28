@@ -59,10 +59,8 @@ publish an unverified source value or yield same-status differential `Agreement`
 engine statuses retain both records with a non-conclusive differential disposition. Adapters cannot
 construct conclusions directly.
 
-The evidence view is incomplete: `src/report.rs` explicitly marks its PGM-01 envelope
-`unavailable` pending `filament-contract-ir#20`. FR-005-AC-2 and TC-007 cannot be claimed complete
-from that placeholder. Source publication and release qualification remain a human PGM-02 Wave 4
-decision.
+Differential reports do not claim a PGM-01 envelope or establish source publication or release
+qualification. Those decisions remain with the human PGM-02 Wave 4 owner.
 
 ## Decisions
 

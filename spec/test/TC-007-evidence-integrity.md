@@ -21,8 +21,7 @@ proof-input identity, artifact, status, limitation, engine field, and output. Co
 and declared outcomes, and alter the artifact census.
 
 Runtime report validation checks canonical JSON, canonical query identity, and differential
-disposition. The PGM-01 envelope lane must return
-unavailable until the component selected by `filament-contract-ir#20` is adopted.
+disposition. Differential reports make no PGM-01 envelope claim.
 
 For the `filament.differential-report/v2` lane, validate a genuine v2 document both standalone
 and against its authoritative query and differential run. Omit each required producer field,

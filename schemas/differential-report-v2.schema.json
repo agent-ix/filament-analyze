@@ -13,7 +13,6 @@
     "encodingProfile",
     "engines",
     "logic",
-    "pgm01Envelope",
     "producer",
     "queryDigest",
     "queryHex",
@@ -58,15 +57,6 @@
       "items": { "$ref": "#/definitions/engine" }
     },
     "logic": { "enum": ["QF_LIA", "ALL", "LIA"] },
-    "pgm01Envelope": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["dependency", "status"],
-      "properties": {
-        "dependency": { "const": "agent-ix/filament-contract-ir#20" },
-        "status": { "const": "unavailable" }
-      }
-    },
     "selection": {
       "type": "object",
       "additionalProperties": false,

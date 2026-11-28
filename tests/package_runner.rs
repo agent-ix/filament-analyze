@@ -2152,7 +2152,6 @@ fn dose_package(contradiction: bool) -> Built {
 }
 
 #[trace("FR-012-AC-1")]
-#[ignore = "blocked by VER-113: remove the unavailable PGM-01 report placeholder"]
 #[test]
 fn a_dose_bounded_by_a_maximum_runs_end_to_end() {
     let built = dose_package(false);

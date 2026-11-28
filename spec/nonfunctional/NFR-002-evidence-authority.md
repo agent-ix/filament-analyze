@@ -12,8 +12,8 @@ relationships:
 ## Statement
 
 Every analysis report shall retain its canonical proof-input identities and raw solver output, and
-preserve non-conclusive states. PGM-01 envelope status remains unavailable until its owner
-component is adopted. No automated output shall claim solver qualification, semantic
+preserve non-conclusive states. Differential reports do not claim a PGM-01 envelope. No automated
+output shall claim solver qualification, semantic
 accreditation, source-release approval, certification, or project-specific assurance sufficiency.
 
 ## Measurement and Evaluation
